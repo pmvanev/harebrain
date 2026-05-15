@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>MEBN &amp; PR-OWL, distilled</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..900,0..100,0..1;1,9..144,300..900,0..100,0..1&family=Spectral:ital,wght@0,300;0,400;0,500;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light dark;
+    --paper:        #f3eddc;
+    --paper-grid:   rgba(40, 36, 24, 0.045);
+    --paper-edge:   #ece3c9;
+    --paper-edge-2: #e4dbc1;
+    --ink:          #1a1810;
+    --muted:        #5d553f;
+    --rule:         #a99a76;
+    --rule-soft:    #d4c8a4;
+    --blueprint:    #1f4f7a;
+    --blueprint-deep:#143553;
+    --blueprint-tint: rgba(31, 79, 122, 0.07);
+    --oxblood:      #8b1f2c;
+    --oxblood-tint: rgba(139, 31, 44, 0.06);
+    --sage:         #4f6b3f;
+    --sage-tint:    rgba(79, 107, 63, 0.08);
+    --sepia:        #8a6b2d;
+    --sepia-tint:   rgba(138, 107, 45, 0.10);
+    --code-bg:      #ebe2c5;
+    --table-bg:     rgba(255, 252, 238, 0.5);
+    --table-head:   rgba(0, 0, 0, 0.025);
+    --hover-tint:   rgba(31, 79, 122, 0.05);
+    --diagram-bg:   rgba(255, 252, 238, 0.55);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper:        #14130c;
+      --paper-grid:   rgba(255, 245, 215, 0.035);
+      --paper-edge:   #1c1a12;
+      --paper-edge-2: #221f15;
+      --ink:          #ede2c4;
+      --muted:        #a89c7d;
+      --rule:         #5a5037;
+      --rule-soft:    #3a3327;
+      --blueprint:    #88c0e8;
+      --blueprint-deep:#bcdcf2;
+      --blueprint-tint: rgba(136, 192, 232, 0.10);
+      --oxblood:      #e09098;
+      --oxblood-tint: rgba(224, 144, 152, 0.10);
+      --sage:         #b1c98c;
+      --sage-tint:    rgba(177, 201, 140, 0.10);
+      --sepia:        #d4b884;
+      --sepia-tint:   rgba(212, 184, 132, 0.10);
+      --code-bg:      #221f15;
+      --table-bg:     rgba(255, 245, 215, 0.025);
+      --table-head:   rgba(255, 245, 215, 0.05);
+      --hover-tint:   rgba(136, 192, 232, 0.08);
+      --diagram-bg:   rgba(255, 245, 215, 0.03);
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  html { background: var(--paper); }
+
+  body {
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(var(--paper-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--paper-grid) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-position: 0 0;
+    color: var(--ink);
+    font-family: 'Spectral', Georgia, "Iowan Old Style", "Times New Roman", serif;
+    font-size: 1.05rem;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    counter-reset: section figure;
+  }
+
+  .page {
+    max-width: 76ch;
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(1.2rem, 4vw, 3rem) 6rem;
+    position: relative;
+  }
+
+  .masthead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    border-top: 3px double var(--ink);
+    border-bottom: 1px solid var(--rule);
+    padding: 0.75rem 0 0.55rem;
+    margin: 0 0 2.4rem;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .masthead .vol { color: var(--blueprint); }
+  .masthead .date { color: var(--oxblood); }
+
+  .glyph { display: block; margin: 0 0 1.4rem; color: var(--ink); }
+  .glyph svg { display: block; }
+
+  h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'SOFT' 30, 'WONK' 0;
+    font-weight: 500;
+    font-size: clamp(2.2rem, 5.4vw, 3.6rem);
+    line-height: 1.02;
+    letter-spacing: -0.012em;
+    margin: 0 0 0.55rem;
+    color: var(--ink);
+  }
+  h1 em {
+    font-style: italic;
+    font-variation-settings: 'opsz' 144, 'SOFT' 90, 'WONK' 1;
+    color: var(--blueprint);
+  }
+
+  p.lede {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 24, 'SOFT' 100, 'WONK' 0;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 1.18rem;
+    line-height: 1.46;
+    color: var(--muted);
+    margin: 0.4rem 0 0;
+    max-width: 56ch;
+  }
+  p.lede code { font-style: normal; }
+
+  .ornament {
+    display: flex; align-items: center; gap: 0.6rem;
+    margin: 2.6rem 0 2rem;
+    color: var(--rule);
+  }
+  .ornament::before, .ornament::after {
+    content: ""; flex: 1; height: 1px; background: var(--rule);
+  }
+  .ornament span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--muted);
+  }
+
+  h2 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 60, 'SOFT' 25, 'WONK' 0;
+    font-weight: 600;
+    font-size: clamp(1.32rem, 2.4vw, 1.6rem);
+    line-height: 1.2;
+    margin: 3.2rem 0 1rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--rule);
+    position: relative;
+    counter-increment: section;
+  }
+  h2::before {
+    content: "§ " counter(section, decimal-leading-zero);
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--blueprint);
+    font-weight: 500; margin-bottom: 0.35rem;
+  }
+
+  h3 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 24, 'SOFT' 50, 'WONK' 0;
+    font-weight: 600;
+    font-size: 1.15rem; line-height: 1.3;
+    margin: 1.9rem 0 0.55rem;
+    color: var(--sage);
+  }
+  h3::before {
+    content: "▸";
+    color: var(--sage);
+    margin-right: 0.45rem;
+    font-size: 0.9em;
+  }
+
+  /* drop cap */
+  .opening > p:first-of-type::first-letter {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'SOFT' 0, 'WONK' 1;
+    font-weight: 700;
+    float: left;
+    font-size: 3.9em;
+    line-height: 0.82;
+    padding: 0.06em 0.12em 0 0;
+    color: var(--blueprint);
+  }
+
+  p { margin: 0 0 1.05rem; }
+  strong { font-weight: 700; color: var(--ink); }
+  em { font-style: italic; }
+  a {
+    color: var(--blueprint);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+  }
+  a:hover { color: var(--oxblood); }
+
+  ul, ol { margin: 0 0 1.2rem; padding-left: 1.45rem; }
+  li { margin-bottom: 0.55rem; }
+  ul li::marker { color: var(--blueprint); }
+  ol li::marker { color: var(--blueprint); font-family: 'JetBrains Mono', monospace; }
+
+  /* code */
+  code {
+    font-family: 'JetBrains Mono', ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 0.85em;
+    background: var(--code-bg);
+    padding: 0.08em 0.36em;
+    border-radius: 2px;
+    color: var(--ink);
+    word-break: keep-all;
+  }
+  pre {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    background: var(--code-bg);
+    border: 1px solid var(--rule-soft);
+    border-left: 3px solid var(--blueprint);
+    padding: 1.1rem 1.2rem 1rem;
+    margin: 1.4rem 0;
+    overflow-x: auto;
+    position: relative;
+  }
+  pre code { background: transparent; padding: 0; font-size: inherit; color: var(--ink); }
+
+  /* terms list */
+  dl.terms {
+    margin: 1.4rem 0 1.8rem;
+    padding: 0;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.55rem 1.3rem;
+  }
+  dl.terms dt {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--oxblood);
+    font-weight: 600;
+    padding-top: 0.18rem;
+    white-space: nowrap;
+  }
+  dl.terms dd {
+    margin: 0;
+    font-size: 0.97rem;
+    line-height: 1.5;
+  }
+  dl.terms dd code { font-size: 0.84em; }
+
+  /* callouts */
+  .callout {
+    margin: 1.5rem 0;
+    padding: 0.9rem 1.2rem 0.95rem;
+    background: var(--blueprint-tint);
+    border-left: 3px solid var(--blueprint);
+    position: relative;
+  }
+  .callout::before {
+    content: "KEY";
+    position: absolute;
+    top: 0.55rem; right: 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.22em;
+    color: var(--blueprint); font-weight: 700; opacity: 0.6;
+  }
+  .callout h4 {
+    margin: 0 0 0.45rem;
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 24, 'SOFT' 30, 'WONK' 0;
+    font-weight: 600; font-size: 1.02rem;
+    color: var(--blueprint-deep); line-height: 1.25;
+  }
+  .callout p { margin: 0 0 0.55rem; font-size: 0.99rem; line-height: 1.5; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout code { font-size: 0.84em; }
+
+  .callout.def { background: var(--oxblood-tint); border-left-color: var(--oxblood); }
+  .callout.def::before { content: "DEF"; color: var(--oxblood); }
+  .callout.def h4 { color: var(--oxblood); }
+
+  .callout.idea { background: var(--sage-tint); border-left-color: var(--sage); }
+  .callout.idea::before { content: "IDEA"; color: var(--sage); }
+  .callout.idea h4 { color: var(--sage); }
+
+  .callout.tip { background: var(--sepia-tint); border-left-color: var(--sepia); }
+  .callout.tip::before { content: "NOTE"; color: var(--sepia); }
+  .callout.tip h4 { color: var(--sepia); }
+
+  .callout.formula {
+    text-align: center;
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-variation-settings: 'opsz' 60, 'SOFT' 80, 'WONK' 0;
+    font-size: 1.18rem;
+    color: var(--ink);
+    padding: 1.1rem 1rem;
+  }
+  .callout.formula::before { content: "AXIOM"; }
+  .callout.formula code {
+    font-style: normal;
+    font-size: 0.92em;
+    background: transparent;
+  }
+
+  /* figures */
+  figure.diagram {
+    margin: 1.8rem 0 2rem;
+    padding: 1.1rem 1rem 0.9rem;
+    background: var(--diagram-bg);
+    border: 1px solid var(--rule-soft);
+    border-radius: 4px;
+    counter-increment: figure;
+  }
+  figure.diagram svg {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  figure.diagram figcaption {
+    margin-top: 0.7rem;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  figure.diagram figcaption::before {
+    content: "FIG. " counter(figure, decimal-leading-zero) " · ";
+    color: var(--blueprint);
+  }
+
+  /* tables */
+  .table-wrap { margin: 1.5rem -0.4rem 2.2rem; overflow-x: auto; padding: 0 0.4rem; }
+  table {
+    width: 100%; border-collapse: collapse;
+    font-size: 0.94rem; background: var(--table-bg);
+    border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
+  }
+  thead th {
+    text-align: left; padding: 0.7rem 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem; letter-spacing: 0.16em;
+    text-transform: uppercase; font-weight: 600;
+    color: var(--muted);
+    border-bottom: 1px solid var(--ink);
+    background: var(--table-head);
+  }
+  tbody td {
+    padding: 0.78rem 0.85rem; vertical-align: top;
+    border-bottom: 1px dashed var(--rule-soft);
+    font-size: 0.94rem; line-height: 1.5;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr { transition: background 0.18s ease; }
+  tbody tr:hover { background: var(--hover-tint); }
+  td:first-child {
+    font-family: 'Spectral', serif;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  td code { font-size: 0.82em; }
+
+  .citation {
+    margin-top: 4rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--rule);
+    color: var(--sepia);
+    font-family: 'Spectral', serif;
+    font-style: italic;
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+  .citation code { font-style: normal; background: transparent; padding: 0; color: var(--sepia); }
+  .citation strong { color: var(--sepia); font-weight: 600; font-style: normal; }
+  .citation a { color: var(--sepia); text-decoration-color: var(--sepia); }
+
+  .colophon {
+    margin-top: 3rem; text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem; letter-spacing: 0.4em;
+    color: var(--muted); text-transform: uppercase;
+  }
+  .colophon .dot { color: var(--blueprint); margin: 0 0.4rem; }
+
+  @media (max-width: 720px) {
+    body { font-size: 1rem; }
+    .masthead { font-size: 0.62rem; }
+    table { font-size: 0.88rem; }
+    dl.terms { grid-template-columns: 1fr; gap: 0.1rem 0; }
+    dl.terms dt { padding-top: 0.6rem; }
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .page > *, .page > section > * {
+    animation: rise 0.55s cubic-bezier(.2,.7,.2,1) both;
+  }
+  .page > *:nth-child(1) { animation-delay: 0s; }
+  .page > *:nth-child(2) { animation-delay: 0.05s; }
+  .page > *:nth-child(3) { animation-delay: 0.1s; }
+  .page > *:nth-child(4) { animation-delay: 0.15s; }
+  .page > *:nth-child(5) { animation-delay: 0.2s; }
+  .page > *:nth-child(n+6) { animation-delay: 0.25s; }
+  @media (prefers-reduced-motion: reduce) {
+    .page > *, .page > section > * { animation: none; }
+  }
+
+  ::selection { background: var(--blueprint); color: var(--paper); }
+</style>
+</head>
+<body>
+
+<!-- shared SVG marker defs -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="m-arr-ink" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" style="fill: var(--ink);"/>
+    </marker>
+    <marker id="m-arr-blue" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" style="fill: var(--blueprint);"/>
+    </marker>
+    <marker id="m-arr-ox" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" style="fill: var(--oxblood);"/>
+    </marker>
+    <marker id="m-arr-sage" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" style="fill: var(--sage);"/>
+    </marker>
+  </defs>
+</svg>
+
+<article class="page">
+
+  <header class="masthead">
+    <span class="vol">Vol. I &middot; No. 4</span>
+    <span>Notes on Reactive Systems</span>
+    <span class="date">A Primer</span>
+  </header>
+
+  <div class="glyph" aria-hidden="true">
+    <svg width="200" height="60" viewBox="0 0 200 60" fill="none">
+      <!-- left: small Bayesian network (3 nodes, 3 edges) -->
+      <g style="stroke: var(--ink); fill: var(--paper);" stroke-width="1.3">
+        <circle cx="20" cy="14" r="8"/>
+        <circle cx="50" cy="14" r="8"/>
+        <circle cx="35" cy="46" r="8"/>
+      </g>
+      <g style="stroke: var(--ink); fill: none;" stroke-width="1">
+        <line x1="22" y1="22" x2="32" y2="38"/>
+        <line x1="48" y1="22" x2="38" y2="38"/>
+        <line x1="28" y1="14" x2="42" y2="14"/>
+      </g>
+      <!-- middle: bridge label -->
+      <text x="100" y="22" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" fill="var(--oxblood)" letter-spacing="0.16em">MEBN</text>
+      <line x1="78" y1="32" x2="122" y2="32" stroke="var(--oxblood)" stroke-width="1.2"/>
+      <text x="100" y="46" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" fill="var(--muted)" letter-spacing="0.12em">PR-OWL</text>
+      <!-- right: nested OWL-like classes -->
+      <g style="stroke: var(--blueprint); fill: none;" stroke-width="1.3">
+        <rect x="140" y="6" width="55" height="48" rx="4"/>
+        <rect x="148" y="14" width="40" height="32" rx="3"/>
+        <rect x="156" y="22" width="25" height="16" rx="2"/>
+      </g>
+      <text x="167" y="34" font-family="Fraunces, serif" font-size="9" text-anchor="middle" font-style="italic" fill="var(--blueprint)">owl</text>
+    </svg>
+  </div>
+
+  <h1>MEBN &amp; PR-OWL, <em>distilled</em></h1>
+  <p class="lede">Cliff notes on Multi-Entity Bayesian Networks and the OWL extension that serializes them &mdash; the formalism that bridges first-order knowledge representation and probabilistic reasoning.</p>
+
+  <div class="ornament" aria-hidden="true"><span>&sect;</span></div>
+
+  <!-- ===================================================== -->
+  <section class="opening">
+    <h2>The problem nobody addresses</h2>
+    <p>Two well-established traditions in knowledge representation, each missing what the other has.</p>
+
+    <p><strong>Bayesian networks</strong> (Pearl, 1988) give you principled probabilistic reasoning. Each node is a random variable; edges encode conditional dependencies; conditional probability tables (CPTs) encode the joint distribution. Inference is well-understood. They are beautiful when the structure is fixed &mdash; and useless when the world contains a variable number of entities or rich relationships between them.</p>
+
+    <p><strong>First-order logic</strong>, and on the web <strong>OWL</strong> (W3C, 2004), give you the ability to talk about classes, instances, properties, and relations. <em>&ldquo;All swans are birds. Ship-1 is a Tanker. If X is a Tanker, then X has Cargo.&rdquo;</em> Beautiful for representation. Useless for uncertainty &mdash; every assertion is binary. There is no way to say <em>&ldquo;Ship-1 is probably a Tanker (70%).&rdquo;</em></p>
+
+    <p>The two traditions evolved independently for thirty years.</p>
+
+    <div class="callout formula">
+      <code>MEBN = Bayesian networks + first-order logic</code>
+    </div>
+
+    <p><strong>MEBN</strong> (Multi-Entity Bayesian Networks; Laskey, 2008) is the formal bridge. <strong>PR-OWL</strong> (Probabilistic OWL; Costa &amp; Laskey, 2006) is the standard for serializing MEBN models on the semantic web. Niche, technical, never mainstream &mdash; but the only formalism in wide circulation that handles all three of: rich relational structure, native uncertainty, and a variable number of entities.</p>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>Bayesian networks, briefly</h2>
+    <p>A Bayesian network is a directed acyclic graph whose nodes are random variables and whose edges encode conditional dependencies. For each node X with parents Pa(X), you specify P(X | Pa(X)) &mdash; a conditional probability table. The joint distribution factorizes as the product of these CPTs.</p>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 480 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A simple Bayesian network: Cloudy points to Sprinkler and Rain, both of which point to WetGrass.">
+        <!-- nodes -->
+        <g style="stroke: var(--ink); fill: var(--paper);" stroke-width="1.5">
+          <ellipse cx="240" cy="40" rx="50" ry="22"/>
+          <ellipse cx="130" cy="115" rx="56" ry="22"/>
+          <ellipse cx="350" cy="115" rx="50" ry="22"/>
+          <ellipse cx="240" cy="190" rx="60" ry="22"/>
+        </g>
+        <g font-family="Spectral, serif" font-size="13" text-anchor="middle" fill="var(--ink)" font-style="italic">
+          <text x="240" y="44">Cloudy</text>
+          <text x="130" y="119">Sprinkler</text>
+          <text x="350" y="119">Rain</text>
+          <text x="240" y="194">WetGrass</text>
+        </g>
+        <!-- edges -->
+        <g style="stroke: var(--ink); fill: none;" stroke-width="1.3">
+          <line x1="210" y1="56" x2="160" y2="98" marker-end="url(#m-arr-ink)"/>
+          <line x1="270" y1="56" x2="320" y2="98" marker-end="url(#m-arr-ink)"/>
+          <line x1="160" y1="132" x2="208" y2="174" marker-end="url(#m-arr-ink)"/>
+          <line x1="320" y1="132" x2="272" y2="174" marker-end="url(#m-arr-ink)"/>
+        </g>
+        <!-- mini CPT -->
+        <g font-family="JetBrains Mono, monospace" font-size="9" fill="var(--muted)">
+          <text x="380" y="170">P(WetGrass | S, R)</text>
+          <text x="380" y="184">T,T &rarr; 0.99</text>
+          <text x="380" y="196">T,F &rarr; 0.90</text>
+          <text x="380" y="208">F,T &rarr; 0.90</text>
+          <text x="380" y="220">F,F &rarr; 0.01</text>
+        </g>
+      </svg>
+      <figcaption>The textbook example. Four binary random variables; three CPTs; the joint factorizes as P(C)P(S|C)P(R|C)P(W|S,R).</figcaption>
+    </figure>
+
+    <p>Inference: given evidence on some nodes, compute the marginal of others. Standard algorithms include variable elimination, junction trees, and MCMC sampling. Mature, widely implemented, well-understood.</p>
+
+    <div class="callout def">
+      <h4>The fatal limit</h4>
+      <p>A BN is a single fixed graph. To reason about &ldquo;all the ships in this region,&rdquo; you must hard-code one node per ship at design time. If a new ship arrives, you need a new graph. The structure cannot grow with the world.</p>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>OWL, briefly</h2>
+    <p>The Web Ontology Language is the W3C&rsquo;s vocabulary for describing ontologies &mdash; formal models of a domain in classes, properties, and instances. Built on RDF triples; semantics from description logic; open-world assumption; decidable subsets (OWL DL, EL, QL, RL).</p>
+
+<pre><code><span style="color: var(--blueprint);">@prefix</span> ex:   &lt;http://example.org/&gt; .
+<span style="color: var(--blueprint);">@prefix</span> rdf:  &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt; .
+<span style="color: var(--blueprint);">@prefix</span> rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt; .
+<span style="color: var(--blueprint);">@prefix</span> owl:  &lt;http://www.w3.org/2002/07/owl#&gt; .
+
+ex:Ship      a owl:Class .
+ex:Tanker    a owl:Class ;   rdfs:subClassOf ex:Ship .
+ex:hasCargo  a owl:ObjectProperty ;
+             rdfs:domain ex:Ship ;
+             rdfs:range  ex:Cargo .
+
+ex:Ship_42   a ex:Tanker ;
+             ex:hasCargo ex:Cargo_7 .</code></pre>
+
+    <p>From this, an OWL reasoner derives <code>ex:Ship_42 a ex:Ship</code>, that <code>ex:Cargo_7</code> is a <code>ex:Cargo</code> by range inference, and so on. Crisp, sound, complete (for decidable fragments).</p>
+
+    <div class="callout def">
+      <h4>The other fatal limit</h4>
+      <p>OWL has no native notion of uncertainty. Every triple is asserted or it is not. There is no way to express <em>&ldquo;Ship_42 is probably a Tanker, with confidence 0.7,&rdquo;</em> nor <em>&ldquo;90% of Tankers travel below 12 knots.&rdquo;</em> Workarounds (annotation properties, fuzzy DL, RDF reification of probabilities) all bolt uncertainty on rather than reason with it.</p>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>MEBN: the bridge</h2>
+    <p>Multi-Entity Bayesian Networks (Laskey, 2008) extend Bayesian networks with first-order logic. The core move: instead of a single fixed graph, you describe small <em>parameterized fragments</em> at design time, then compose them into a concrete BN at query time over whichever entities the situation involves.</p>
+
+    <p>The unit of composition is the <strong>MFrag</strong> (MEBN Fragment).</p>
+
+    <h3>Anatomy of an MFrag</h3>
+    <p>An MFrag describes one piece of probabilistic knowledge, parameterized over entities. It has four parts:</p>
+
+    <dl class="terms">
+      <dt>context</dt>
+      <dd>Boolean conditions on entity types and relationships that must hold for the fragment to apply. E.g., <code>IsA(s, Ship) &and; IsA(z, Zone)</code>.</dd>
+      <dt>input</dt>
+      <dd>Random variables the fragment depends on, defined as <em>resident</em> in some other MFrag. E.g., <code>Type(s)</code>, <code>Weather(z)</code>.</dd>
+      <dt>resident</dt>
+      <dd>Random variables defined <em>by</em> this fragment &mdash; what it contributes to the model. E.g., <code>Intent(s, z)</code>.</dd>
+      <dt>local distribution</dt>
+      <dd>A parameterized conditional distribution P(Resident | Inputs, Context) &mdash; commonly a CPT pattern, a logistic regression, or a programmatic function.</dd>
+    </dl>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 540 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Anatomy of an MFrag with context, input, and resident random variables, plus a local distribution panel.">
+        <!-- outer MFrag boundary -->
+        <rect x="20" y="20" width="380" height="280" rx="12" stroke="var(--ink)" stroke-width="1.6" fill="none"/>
+        <text x="36" y="40" font-family="Fraunces, serif" font-size="13" font-style="italic" fill="var(--ink)">IntentMFrag</text>
+        <text x="36" y="55" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--muted)" letter-spacing="0.12em">parameters: s, z</text>
+
+        <!-- Context band -->
+        <rect x="36" y="68" width="348" height="42" rx="6" stroke="var(--sage)" stroke-width="1.3" fill="var(--sage-tint)"/>
+        <text x="46" y="84" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--sage)" letter-spacing="0.12em">CONTEXT</text>
+        <text x="46" y="102" font-family="Spectral, serif" font-size="12" font-style="italic" fill="var(--ink)">IsA(s, Ship) &nbsp;&and;&nbsp; IsA(z, Zone) &nbsp;&and;&nbsp; Within(s, z)</text>
+
+        <!-- Input nodes -->
+        <text x="46" y="136" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--blueprint)" letter-spacing="0.12em">INPUT</text>
+        <g style="stroke: var(--blueprint); fill: var(--blueprint-tint);" stroke-width="1.4">
+          <ellipse cx="120" cy="170" rx="50" ry="20"/>
+          <ellipse cx="260" cy="170" rx="60" ry="20"/>
+        </g>
+        <g font-family="Spectral, serif" font-size="12" font-style="italic" text-anchor="middle" fill="var(--ink)">
+          <text x="120" y="174">Type(s)</text>
+          <text x="260" y="174">Weather(z)</text>
+        </g>
+
+        <!-- arrows down to resident -->
+        <line x1="120" y1="190" x2="180" y2="240" stroke="var(--ink)" stroke-width="1.3" marker-end="url(#m-arr-ink)"/>
+        <line x1="260" y1="190" x2="220" y2="240" stroke="var(--ink)" stroke-width="1.3" marker-end="url(#m-arr-ink)"/>
+
+        <!-- Resident node -->
+        <text x="46" y="226" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--oxblood)" letter-spacing="0.12em">RESIDENT</text>
+        <g style="stroke: var(--oxblood); fill: var(--oxblood-tint);" stroke-width="1.6">
+          <ellipse cx="200" cy="263" rx="70" ry="22"/>
+        </g>
+        <text x="200" y="267" font-family="Spectral, serif" font-size="13" font-style="italic" text-anchor="middle" fill="var(--ink)">Intent(s, z)</text>
+
+        <!-- Local distribution panel on the right -->
+        <rect x="416" y="68" width="116" height="220" rx="6" stroke="var(--ink)" stroke-width="1.3" fill="var(--paper-edge-2)"/>
+        <text x="474" y="86" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" fill="var(--muted)" letter-spacing="0.12em">LOCAL DIST</text>
+        <line x1="426" y1="94" x2="522" y2="94" stroke="var(--rule-soft)"/>
+        <g font-family="JetBrains Mono, monospace" font-size="8.5" fill="var(--ink)">
+          <text x="426" y="112">if Type=Tanker</text>
+          <text x="426" y="124">  Intent ~</text>
+          <text x="426" y="136">  [trade .80,</text>
+          <text x="426" y="148">   smuggle .15,</text>
+          <text x="426" y="160">   pirate .05]</text>
+          <text x="426" y="180">if Type=Fishing</text>
+          <text x="426" y="192">  Intent ~</text>
+          <text x="426" y="204">  [fish .85,</text>
+          <text x="426" y="216">   trade .12,</text>
+          <text x="426" y="228">   pirate .03]</text>
+          <text x="426" y="252">P shifts when</text>
+          <text x="426" y="264">Weather = Storm</text>
+        </g>
+      </svg>
+      <figcaption>Sage band: context, the boolean predicates that must hold. Blueprint: input random variables, resident in other MFrags. Oxblood: this MFrag&rsquo;s contribution. Right: the parameterized local distribution.</figcaption>
+    </figure>
+
+    <p>The first-order character lives in the parameters. The same MFrag describes <code>Intent</code> for <em>every</em> (ship, zone) pair that satisfies its context. One fragment, unbounded use.</p>
+
+    <h3>MTheory and Situation-Specific Bayesian Networks</h3>
+    <p>An <strong>MTheory</strong> is a coherent collection of MFrags covering a domain. It must satisfy two conditions: every random variable used as input by one MFrag is the resident of exactly one other (the <em>uniqueness</em> condition), and the dependency structure is acyclic.</p>
+
+    <p>A <strong>query</strong> consists of a target random variable, evidence (observed values), and the entities the question is about. The MEBN engine constructs a <strong>Situation-Specific Bayesian Network</strong> (SSBN) by walking upward from the target through input dependencies, instantiating MFrags for whichever entities are involved, and stopping at observed values or root variables. The SSBN is a regular BN. Standard inference takes it from there.</p>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 600 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MTheory plus query produces an SSBN: three MFrag templates on the left are instantiated for specific entities on the right.">
+        <!-- left: three MFrag templates -->
+        <g font-family="JetBrains Mono, monospace" font-size="9" fill="var(--muted)" letter-spacing="0.12em">
+          <text x="20" y="20">MTHEORY (templates)</text>
+        </g>
+        <g style="stroke: var(--ink); fill: none;" stroke-width="1.3">
+          <rect x="20" y="32" width="160" height="58" rx="6"/>
+          <rect x="20" y="106" width="160" height="58" rx="6"/>
+          <rect x="20" y="180" width="160" height="74" rx="6"/>
+        </g>
+        <g font-family="Spectral, serif" font-size="11" fill="var(--ink)">
+          <text x="32" y="50" font-style="italic">TypeMFrag</text>
+          <text x="32" y="68" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--blueprint)">Res: Type(s)</text>
+          <text x="32" y="82" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--sage)">Ctx: IsA(s, Ship)</text>
+
+          <text x="32" y="124" font-style="italic">WeatherMFrag</text>
+          <text x="32" y="142" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--blueprint)">Res: Weather(z)</text>
+          <text x="32" y="156" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--sage)">Ctx: IsA(z, Zone)</text>
+
+          <text x="32" y="198" font-style="italic">IntentMFrag</text>
+          <text x="32" y="216" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--blueprint)">Res: Intent(s, z)</text>
+          <text x="32" y="230" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--blueprint)">Inp: Type, Weather</text>
+          <text x="32" y="244" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--sage)">Ctx: Within(s, z)</text>
+        </g>
+
+        <!-- middle: query and entities -->
+        <g style="stroke: var(--oxblood); fill: var(--oxblood-tint);" stroke-width="1.4">
+          <rect x="200" y="50" width="170" height="84" rx="6"/>
+        </g>
+        <text x="285" y="68" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" fill="var(--oxblood)" letter-spacing="0.12em">QUERY</text>
+        <g font-family="JetBrains Mono, monospace" font-size="9.5" fill="var(--ink)">
+          <text x="210" y="86">target:</text>
+          <text x="210" y="100">  Intent(s_3, z_5)</text>
+          <text x="210" y="118">evidence:</text>
+          <text x="210" y="132">  Type(s_3)=Tanker</text>
+        </g>
+
+        <g style="stroke: var(--rule); fill: var(--paper-edge-2);" stroke-width="1.2">
+          <rect x="200" y="148" width="170" height="86" rx="6"/>
+        </g>
+        <text x="285" y="166" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" fill="var(--muted)" letter-spacing="0.12em">ENTITIES</text>
+        <g font-family="JetBrains Mono, monospace" font-size="9.5" fill="var(--ink)">
+          <text x="210" y="184">s_3 &isin; Ship</text>
+          <text x="210" y="198">s_4 &isin; Ship</text>
+          <text x="210" y="212">z_5 &isin; Zone</text>
+          <text x="210" y="226">Within(s_3,z_5),</text>
+          <text x="210" y="240">Within(s_4,z_5)</text>
+        </g>
+
+        <!-- arrow construct -->
+        <line x1="375" y1="180" x2="408" y2="180" stroke="var(--oxblood)" stroke-width="1.6"/>
+        <polygon points="412,180 405,176 405,184" fill="var(--oxblood)"/>
+        <text x="392" y="172" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" fill="var(--oxblood)">construct</text>
+
+        <!-- right: SSBN -->
+        <g font-family="JetBrains Mono, monospace" font-size="9" fill="var(--muted)" letter-spacing="0.12em">
+          <text x="420" y="20">SSBN (instantiated)</text>
+        </g>
+        <g style="stroke: var(--blueprint); fill: var(--blueprint-tint);" stroke-width="1.3">
+          <ellipse cx="450" cy="60" rx="40" ry="18"/>
+          <ellipse cx="560" cy="60" rx="40" ry="18"/>
+          <ellipse cx="505" cy="290" rx="50" ry="18"/>
+        </g>
+        <g style="stroke: var(--oxblood); fill: var(--oxblood-tint);" stroke-width="1.6">
+          <ellipse cx="450" cy="180" rx="50" ry="20"/>
+          <ellipse cx="560" cy="180" rx="50" ry="20"/>
+        </g>
+        <g font-family="Spectral, serif" font-size="11" font-style="italic" text-anchor="middle" fill="var(--ink)">
+          <text x="450" y="64">Type(s_3)</text>
+          <text x="560" y="64">Type(s_4)</text>
+          <text x="450" y="184">Intent(s_3,z_5)</text>
+          <text x="560" y="184">Intent(s_4,z_5)</text>
+          <text x="505" y="294">Weather(z_5)</text>
+        </g>
+        <g style="stroke: var(--ink); fill: none;" stroke-width="1.2">
+          <line x1="450" y1="78" x2="450" y2="160" marker-end="url(#m-arr-ink)"/>
+          <line x1="560" y1="78" x2="560" y2="160" marker-end="url(#m-arr-ink)"/>
+          <line x1="490" y1="278" x2="465" y2="200" marker-end="url(#m-arr-ink)"/>
+          <line x1="520" y1="278" x2="545" y2="200" marker-end="url(#m-arr-ink)"/>
+        </g>
+
+        <!-- evidence indicator on Type(s_3) -->
+        <rect x="420" y="86" width="60" height="14" rx="3" stroke="var(--sage)" stroke-width="1" fill="var(--sage-tint)"/>
+        <text x="450" y="96" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" fill="var(--sage)">obs: Tanker</text>
+
+        <text x="505" y="340" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" fill="var(--muted)" letter-spacing="0.1em">two ships in z_5 &rarr; IntentMFrag instantiated twice; one shared Weather node</text>
+      </svg>
+      <figcaption>The MTheory describes templates. The query plus the relevant entities drive the engine to instantiate just the slice it needs &mdash; one node per (entity-tuple, random variable) pair. From here, ordinary BN inference applies.</figcaption>
+    </figure>
+
+    <div class="callout idea">
+      <h4>The conceptual leap</h4>
+      <p>At design time you describe schema-like fragments. At query time the system builds the concrete BN it needs, sized to the situation. The flat BN is no longer authored &mdash; it is <em>constructed</em>. The number of entities can be unbounded; each one inherits the same probabilistic structure.</p>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>PR-OWL: MEBN on the semantic web</h2>
+    <p>PR-OWL is an OWL ontology that <em>describes</em> MEBN. It defines OWL classes for the things an MTheory contains: <code>MTheory</code>, <code>MFrag</code>, <code>Node</code> (with subclasses <code>ContextNode</code>, <code>InputNode</code>, <code>ResidentNode</code>), <code>RandomVariable</code>, <code>ProbabilityDistribution</code>, and the relationships between them (<code>hasMFrag</code>, <code>hasResidentNode</code>, <code>hasParent</code>, <code>hasProbDist</code>, &hellip;).</p>
+
+    <p>A PR-OWL document is therefore two things at once:</p>
+    <ul>
+      <li>A regular OWL ontology &mdash; usable by any OWL reasoner that knows nothing about probability. Class hierarchies, instances, properties all work as standard OWL.</li>
+      <li>A MEBN MTheory &mdash; usable by a MEBN inference engine that interprets the PR-OWL classes as MFrag/node/distribution definitions and runs SSBN construction over the same instances.</li>
+    </ul>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 540 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The PR-OWL class hierarchy: MTheory contains MFrags; MFrags contain Nodes (Context, Input, Resident); Resident nodes carry probability distributions.">
+        <!-- top: MTheory -->
+        <rect x="200" y="20" width="140" height="36" rx="6" stroke="var(--ink)" stroke-width="1.5" fill="var(--paper-edge-2)"/>
+        <text x="270" y="42" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" fill="var(--ink)">MTheory</text>
+
+        <!-- arrow hasMFrag -->
+        <line x1="270" y1="56" x2="270" y2="80" stroke="var(--blueprint)" stroke-width="1.3" marker-end="url(#m-arr-blue)"/>
+        <text x="280" y="74" font-family="JetBrains Mono, monospace" font-size="8.5" fill="var(--blueprint)">hasMFrag</text>
+
+        <!-- MFrag -->
+        <rect x="200" y="84" width="140" height="36" rx="6" stroke="var(--ink)" stroke-width="1.5" fill="var(--paper-edge-2)"/>
+        <text x="270" y="106" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" fill="var(--ink)">MFrag</text>
+
+        <!-- three has* arrows fan out -->
+        <line x1="240" y1="120" x2="120" y2="160" stroke="var(--blueprint)" stroke-width="1.3" marker-end="url(#m-arr-blue)"/>
+        <line x1="270" y1="120" x2="270" y2="160" stroke="var(--blueprint)" stroke-width="1.3" marker-end="url(#m-arr-blue)"/>
+        <line x1="300" y1="120" x2="420" y2="160" stroke="var(--blueprint)" stroke-width="1.3" marker-end="url(#m-arr-blue)"/>
+        <text x="170" y="140" font-family="JetBrains Mono, monospace" font-size="8" fill="var(--blueprint)">hasContextNode</text>
+        <text x="280" y="140" font-family="JetBrains Mono, monospace" font-size="8" fill="var(--blueprint)">hasInputNode</text>
+        <text x="370" y="140" font-family="JetBrains Mono, monospace" font-size="8" fill="var(--blueprint)">hasResidentNode</text>
+
+        <!-- three node types -->
+        <rect x="60" y="164" width="120" height="36" rx="6" stroke="var(--sage)" stroke-width="1.3" fill="var(--sage-tint)"/>
+        <text x="120" y="186" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle" fill="var(--sage)">ContextNode</text>
+
+        <rect x="210" y="164" width="120" height="36" rx="6" stroke="var(--blueprint)" stroke-width="1.3" fill="var(--blueprint-tint)"/>
+        <text x="270" y="186" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle" fill="var(--blueprint)">InputNode</text>
+
+        <rect x="360" y="164" width="120" height="36" rx="6" stroke="var(--oxblood)" stroke-width="1.3" fill="var(--oxblood-tint)"/>
+        <text x="420" y="186" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle" fill="var(--oxblood)">ResidentNode</text>
+
+        <!-- arrow from Resident down to ProbDist -->
+        <line x1="420" y1="200" x2="420" y2="232" stroke="var(--oxblood)" stroke-width="1.3" marker-end="url(#m-arr-ox)"/>
+        <text x="430" y="222" font-family="JetBrains Mono, monospace" font-size="8" fill="var(--oxblood)">hasProbDist</text>
+
+        <rect x="340" y="234" width="160" height="32" rx="6" stroke="var(--ink)" stroke-width="1.3" fill="var(--paper-edge-2)"/>
+        <text x="420" y="254" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle" fill="var(--ink)">ProbabilityDistribution</text>
+      </svg>
+      <figcaption>The skeleton of the PR-OWL vocabulary. Every PR-OWL document is a graph of instances of these classes, and conforms to the usual OWL semantics.</figcaption>
+    </figure>
+
+    <p>A miniature example, in Turtle:</p>
+
+<pre><code><span style="color: var(--blueprint);">@prefix</span> pr: &lt;http://www.pr-owl.org/pr-owl#&gt; .
+<span style="color: var(--blueprint);">@prefix</span> mt: &lt;http://example.org/maritime#&gt; .
+
+mt:MaritimeTheory  a pr:MTheory ;
+                   pr:hasMFrag mt:IntentMFrag .
+
+mt:IntentMFrag     a pr:MFrag ;
+                   pr:hasContextNode  mt:Within_ctx ;
+                   pr:hasInputNode    mt:Type_in,
+                                      mt:Weather_in ;
+                   pr:hasResidentNode mt:Intent_res .
+
+mt:Intent_res      a pr:ResidentNode ;
+                   pr:hasArgument mt:s, mt:z ;
+                   pr:hasProbDist mt:Intent_dist .
+
+mt:Intent_dist     a pr:ProbabilityDistribution ;
+                   pr:hasDeclaration  "if (Type=Tanker) ..."@en .</code></pre>
+
+    <p>An OWL reasoner walks the triples normally. A MEBN engine reads the same triples as instructions for SSBN construction. The same artifact serves both worlds &mdash; that is the whole point.</p>
+
+    <div class="callout tip">
+      <h4>PR-OWL 1 vs PR-OWL 2</h4>
+      <p>The original PR-OWL (Costa, 2005) introduced a self-contained vocabulary but did not deeply align random variables with OWL classes &mdash; you essentially had two parallel hierarchies. <strong>PR-OWL 2</strong> (Carvalho, Laskey, Costa, 2013) refactors the model so that random variables map directly onto OWL properties and classes, eliminating duplication and making interop with off-the-shelf OWL tooling much smoother. Treat PR-OWL 2 as the reference dialect.</p>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>Where this lands in practice</h2>
+    <p>The pattern recurs in any domain that combines a rich structured world model, native uncertainty, and a variable number of entities at runtime:</p>
+
+    <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Domain</th><th>What MEBN brings</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Maritime domain awareness</td>
+          <td>Combine AIS tracks, vessel-type ontologies, and sensor reports to infer intent (trade, fishing, smuggling, hostile) over an unknown number of vessels in a region. The original PR-OWL motivating use case.</td>
+        </tr>
+        <tr>
+          <td>Intelligence analysis</td>
+          <td>Combine structured reports with hypothesis-level reasoning: P(actor X intends Y | observed signals).</td>
+        </tr>
+        <tr>
+          <td>Cybersecurity</td>
+          <td>Reason about attacker intent given alerts, asset graphs, and prior campaign signatures &mdash; with the asset count growing over time.</td>
+        </tr>
+        <tr>
+          <td>Forensic genealogy</td>
+          <td>Combine fragmentary kinship evidence with a person ontology where the population size is unknown.</td>
+        </tr>
+        <tr>
+          <td>Diagnostics in complex systems</td>
+          <td>Probabilistic fault localization in networks of components where the topology is data-driven, not authored.</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <p>Implementations are few but real. <strong>UnBBayes</strong> (George Mason University; open source) is the reference toolchain &mdash; modeling, PR-OWL serialization, SSBN construction, inference. <strong>UnBBayes-MEBN</strong> ships with the maritime example and remains the easiest place to see the formalism running end-to-end.</p>
+
+    <div class="callout">
+      <h4>The honest assessment</h4>
+      <p>MEBN/PR-OWL has never gone mainstream. It is used in defense, intelligence, and academic research, and it has stable formal foundations &mdash; but it has not displaced ad-hoc combinations of probabilistic programming, graph databases, and bespoke reasoners. Reasons usually cited: the modeling discipline is heavy, OWL itself has a learning curve, and inference over large SSBNs is expensive. The conceptual contribution remains influential even where the specific tooling is not adopted.</p>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>Why it sits in this series</h2>
+    <p>A long-running LLM agent that maintains a working model of a domain faces the MEBN problem squarely. Its blackboard contains entities &mdash; files, hypotheses, users, requirements, hosts, alerts. It needs to reason under uncertainty about properties and relationships of those entities (this hypothesis is 60% likely; that file is probably the one). The number of entities is unknown at design time. New ones appear; old ones leave.</p>
+
+    <p>Three of the field&rsquo;s standard tools each handle a subset:</p>
+    <ul>
+      <li><strong>A typed blackboard</strong> with confidence values handles a fixed vocabulary of entities and shallow uncertainty. Cheap, fits in memory, easy to inspect. Doesn&rsquo;t compose &mdash; if your situation has three suspects and three motives, you write nine slots.</li>
+      <li><strong>A probabilistic programming language</strong> (Pyro, Edward, Stan) handles arbitrary distributions over arbitrary variables. Expressive, but you author the model imperatively; the relational structure is implicit in your code.</li>
+      <li><strong>A knowledge graph</strong> with OWL semantics handles rich relational structure and class-level reasoning. Mature tooling. Zero native uncertainty.</li>
+    </ul>
+
+    <p>MEBN is the single formalism that handles all three at once. Whether the harebrain runtime ever uses MEBN directly is an open question &mdash; the modeling overhead is real, and an LLM in the leaf can absorb a lot of fuzzy reasoning that would otherwise need a probabilistic engine. But understanding MEBN sharpens what you should want from a &ldquo;blackboard with confidence&rdquo; once it grows up:</p>
+
+    <ul>
+      <li>The schema is per-fragment, not per-entity. New entities inherit probabilistic structure automatically.</li>
+      <li>Queries assemble the relevant subgraph on demand, not the whole world.</li>
+      <li>Evidence and priors compose principally rather than ad hoc.</li>
+      <li>The same artifact serves as ontology (for the deterministic reasoner) and as MTheory (for the probabilistic one).</li>
+    </ul>
+
+    <p>Whether or not MEBN ships in your runtime, it is the formalism worth measuring your improvised blackboard against.</p>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>Further reading and where this sits</h2>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Source</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>Laskey, K. B. &mdash; <em>MEBN: A Language for First-Order Bayesian Knowledge Bases</em> (Artificial Intelligence, 2008)</td><td>The foundational paper. Defines MFrags, MTheories, SSBN construction with full formal semantics.</td></tr>
+        <tr><td>Costa, P. C. G. &mdash; <em>Bayesian Semantics for the Semantic Web</em> (PhD dissertation, GMU, 2005)</td><td>The PR-OWL origin document.</td></tr>
+        <tr><td>Carvalho, R. N., Laskey, K. B., Costa, P. C. G. &mdash; <em>PR-OWL 2.0</em> (KR, 2013)</td><td>The reference dialect for current work.</td></tr>
+        <tr><td>UnBBayes &mdash; <code>unbbayes.sourceforge.net</code></td><td>Open-source reference implementation; modeling, PR-OWL I/O, SSBN inference.</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <p>Companion notes in this series:</p>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Note</th><th>Why it&rsquo;s adjacent</th></tr></thead>
+      <tbody>
+        <tr><td><a href="game-ai.html">Traditional Game AI Primitives</a></td><td>Working-memory facts with confidence are the lightweight cousin of the MEBN approach &mdash; same need, different ambition.</td></tr>
+        <tr><td><a href="harebrain.html">Harebrain, sketched</a></td><td>The blackboard discussion lands here. MEBN/PR-OWL is the formal upgrade path beyond F.E.A.R.-style facts and beyond the MPLv2 Manifest.</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <p class="citation"><strong>Sources.</strong> Laskey, K. B., &ldquo;MEBN: A Language for First-Order Bayesian Knowledge Bases,&rdquo; <em>Artificial Intelligence</em> 172 (2008). Costa, P. C. G., &ldquo;Bayesian Semantics for the Semantic Web,&rdquo; PhD dissertation, George Mason University, 2005. Costa, P. C. G., &amp; Laskey, K. B., &ldquo;PR-OWL: A Framework for Probabilistic Ontologies,&rdquo; FOIS 2006. Carvalho, R. N., Laskey, K. B., &amp; Costa, P. C. G., &ldquo;PR-OWL 2.0,&rdquo; KR 2013. Pearl, J., <em>Probabilistic Reasoning in Intelligent Systems</em> (1988). All diagrams above are original SVGs drawn for this page.</p>
+
+  <div class="colophon">
+    <span>&sect;</span><span class="dot">&bull;</span><span>mebn &middot; pr-owl</span><span class="dot">&bull;</span><span>fin</span><span class="dot">&bull;</span><span>&sect;</span>
+  </div>
+
+</article>
+</body>
+</html>

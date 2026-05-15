@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Harebrain &mdash; LLMs in the Cage of State</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..900,0..100,0..1;1,9..144,300..900,0..100,0..1&family=Spectral:ital,wght@0,300;0,400;0,500;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light dark;
+    --paper:        #f3eddc;
+    --paper-grid:   rgba(40, 36, 24, 0.045);
+    --paper-edge:   #ece3c9;
+    --paper-edge-2: #e4dbc1;
+    --ink:          #1a1810;
+    --muted:        #5d553f;
+    --rule:         #a99a76;
+    --rule-soft:    #d4c8a4;
+    --blueprint:    #1f4f7a;
+    --blueprint-deep:#143553;
+    --blueprint-tint: rgba(31, 79, 122, 0.07);
+    --oxblood:      #8b1f2c;
+    --oxblood-tint: rgba(139, 31, 44, 0.06);
+    --sage:         #4f6b3f;
+    --sage-tint:    rgba(79, 107, 63, 0.08);
+    --sepia:        #8a6b2d;
+    --sepia-tint:   rgba(138, 107, 45, 0.10);
+    --code-bg:      #ebe2c5;
+    --table-bg:     rgba(255, 252, 238, 0.5);
+    --table-head:   rgba(0, 0, 0, 0.025);
+    --hover-tint:   rgba(31, 79, 122, 0.05);
+    --diagram-bg:   rgba(255, 252, 238, 0.55);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper:        #14130c;
+      --paper-grid:   rgba(255, 245, 215, 0.035);
+      --paper-edge:   #1c1a12;
+      --paper-edge-2: #221f15;
+      --ink:          #ede2c4;
+      --muted:        #a89c7d;
+      --rule:         #5a5037;
+      --rule-soft:    #3a3327;
+      --blueprint:    #88c0e8;
+      --blueprint-deep:#bcdcf2;
+      --blueprint-tint: rgba(136, 192, 232, 0.10);
+      --oxblood:      #e09098;
+      --oxblood-tint: rgba(224, 144, 152, 0.10);
+      --sage:         #b1c98c;
+      --sage-tint:    rgba(177, 201, 140, 0.10);
+      --sepia:        #d4b884;
+      --sepia-tint:   rgba(212, 184, 132, 0.10);
+      --code-bg:      #221f15;
+      --table-bg:     rgba(255, 245, 215, 0.025);
+      --table-head:   rgba(255, 245, 215, 0.05);
+      --hover-tint:   rgba(136, 192, 232, 0.08);
+      --diagram-bg:   rgba(255, 245, 215, 0.03);
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  html { background: var(--paper); }
+
+  body {
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(var(--paper-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--paper-grid) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-position: 0 0;
+    color: var(--ink);
+    font-family: 'Spectral', Georgia, "Iowan Old Style", "Times New Roman", serif;
+    font-size: 1.05rem;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    counter-reset: section figure;
+  }
+
+  .page {
+    max-width: 76ch;
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(1.2rem, 4vw, 3rem) 6rem;
+    position: relative;
+  }
+
+  .masthead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    border-top: 3px double var(--ink);
+    border-bottom: 1px solid var(--rule);
+    padding: 0.75rem 0 0.55rem;
+    margin: 0 0 2.4rem;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .masthead .vol { color: var(--blueprint); }
+  .masthead .date { color: var(--oxblood); }
+
+  .glyph { display: block; margin: 0 0 1.4rem; color: var(--ink); }
+  .glyph svg { display: block; }
+
+  h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'SOFT' 30, 'WONK' 0;
+    font-weight: 500;
+    font-size: clamp(2.2rem, 5.4vw, 3.6rem);
+    line-height: 1.02;
+    letter-spacing: -0.012em;
+    margin: 0 0 0.55rem;
+    color: var(--ink);
+  }
+  h1 em {
+    font-style: italic;
+    font-variation-settings: 'opsz' 144, 'SOFT' 90, 'WONK' 1;
+    color: var(--blueprint);
+  }
+
+  p.lede {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 24, 'SOFT' 100, 'WONK' 0;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 1.18rem;
+    line-height: 1.46;
+    color: var(--muted);
+    margin: 0.4rem 0 0;
+    max-width: 56ch;
+  }
+  p.lede code { font-style: normal; }
+
+  .ornament {
+    display: flex; align-items: center; gap: 0.6rem;
+    margin: 2.6rem 0 2rem;
+    color: var(--rule);
+  }
+  .ornament::before, .ornament::after {
+    content: ""; flex: 1; height: 1px; background: var(--rule);
+  }
+  .ornament span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--muted);
+  }
+
+  h2 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 60, 'SOFT' 25, 'WONK' 0;
+    font-weight: 600;
+    font-size: clamp(1.32rem, 2.4vw, 1.6rem);
+    line-height: 1.2;
+    margin: 3.2rem 0 1rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--rule);
+    position: relative;
+    counter-increment: section;
+  }
+  h2::before {
+    content: "§ " counter(section, decimal-leading-zero);
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--blueprint);
+    font-weight: 500; margin-bottom: 0.35rem;
+  }
+
+  h3 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 24, 'SOFT' 50, 'WONK' 0;
+    font-weight: 600;
+    font-size: 1.15rem; line-height: 1.3;
+    margin: 1.9rem 0 0.55rem;
+    color: var(--sage);
+  }
+  h3::before {
+    content: "▸";
+    color: var(--sage);
+    margin-right: 0.45rem;
+    font-size: 0.9em;
+  }
+
+  /* drop cap */
+  .opening > p:first-of-type::first-letter {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'SOFT' 0, 'WONK' 1;
+    font-weight: 700;
+    float: left;
+    font-size: 3.9em;
+    line-height: 0.82;
+    padding: 0.06em 0.12em 0 0;
+    color: var(--blueprint);
+  }
+
+  p { margin: 0 0 1.05rem; }
+  strong { font-weight: 700; color: var(--ink); }
+  em { font-style: italic; }
+  a {
+    color: var(--blueprint);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+  }
+  a:hover { color: var(--oxblood); }
+
+  ul, ol { margin: 0 0 1.2rem; padding-left: 1.45rem; }
+  li { margin-bottom: 0.55rem; }
+  ul li::marker { color: var(--blueprint); }
+  ol li::marker { color: var(--blueprint); font-family: 'JetBrains Mono', monospace; }
+
+  /* code */
+  code {
+    font-family: 'JetBrains Mono', ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 0.85em;
+    background: var(--code-bg);
+    padding: 0.08em 0.36em;
+    border-radius: 2px;
+    color: var(--ink);
+    word-break: keep-all;
+  }
+
+  /* callouts */
+  .callout {
+    margin: 1.5rem 0;
+    padding: 0.9rem 1.2rem 0.95rem;
+    background: var(--blueprint-tint);
+    border-left: 3px solid var(--blueprint);
+    position: relative;
+  }
+  .callout::before {
+    content: "KEY";
+    position: absolute;
+    top: 0.55rem; right: 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.22em;
+    color: var(--blueprint); font-weight: 700; opacity: 0.6;
+  }
+  .callout h4 {
+    margin: 0 0 0.45rem;
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 24, 'SOFT' 30, 'WONK' 0;
+    font-weight: 600; font-size: 1.02rem;
+    color: var(--blueprint-deep); line-height: 1.25;
+  }
+  .callout p { margin: 0 0 0.55rem; font-size: 0.99rem; line-height: 1.5; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout code { font-size: 0.84em; }
+
+  .callout.idea { background: var(--sage-tint); border-left-color: var(--sage); }
+  .callout.idea::before { content: "IDEA"; color: var(--sage); }
+  .callout.idea h4 { color: var(--sage); }
+
+  .callout.tip { background: var(--sepia-tint); border-left-color: var(--sepia); }
+  .callout.tip::before { content: "NOTE"; color: var(--sepia); }
+  .callout.tip h4 { color: var(--sepia); }
+
+  .callout.warn { background: var(--oxblood-tint); border-left-color: var(--oxblood); }
+  .callout.warn::before { content: "TRAP"; color: var(--oxblood); }
+  .callout.warn h4 { color: var(--oxblood); }
+
+  .callout.formula {
+    text-align: center;
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-variation-settings: 'opsz' 60, 'SOFT' 80, 'WONK' 0;
+    font-size: 1.18rem;
+    color: var(--ink);
+    padding: 1.1rem 1rem;
+  }
+  .callout.formula::before { content: "AXIOM"; }
+  .callout.formula code {
+    font-style: normal;
+    font-size: 0.92em;
+    background: transparent;
+  }
+
+  /* figures */
+  figure.diagram {
+    margin: 1.8rem 0 2rem;
+    padding: 1.1rem 1rem 0.9rem;
+    background: var(--diagram-bg);
+    border: 1px solid var(--rule-soft);
+    border-radius: 4px;
+    counter-increment: figure;
+  }
+  figure.diagram svg {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  figure.diagram figcaption {
+    margin-top: 0.7rem;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  figure.diagram figcaption::before {
+    content: "FIG. " counter(figure, decimal-leading-zero) " · ";
+    color: var(--blueprint);
+  }
+
+  /* tables */
+  .table-wrap { margin: 1.5rem -0.4rem 2.2rem; overflow-x: auto; padding: 0 0.4rem; }
+  table {
+    width: 100%; border-collapse: collapse;
+    font-size: 0.94rem; background: var(--table-bg);
+    border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
+  }
+  thead th {
+    text-align: left; padding: 0.7rem 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem; letter-spacing: 0.16em;
+    text-transform: uppercase; font-weight: 600;
+    color: var(--muted);
+    border-bottom: 1px solid var(--ink);
+    background: var(--table-head);
+  }
+  tbody td {
+    padding: 0.78rem 0.85rem; vertical-align: top;
+    border-bottom: 1px dashed var(--rule-soft);
+    font-size: 0.94rem; line-height: 1.5;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr { transition: background 0.18s ease; }
+  tbody tr:hover { background: var(--hover-tint); }
+  td:first-child {
+    font-family: 'Spectral', serif;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  td code { font-size: 0.82em; }
+
+  /* svg shared */
+  .sv-box   { fill: none; stroke: var(--ink); stroke-width: 1.4; }
+  .sv-dash  { stroke-dasharray: 5 4; }
+  .sv-edge  { fill: none; stroke: var(--ink); stroke-width: 1.2; }
+  .sv-edge-r{ stroke: var(--oxblood); }
+  .sv-edge-b{ stroke: var(--blueprint); }
+  .sv-text  { fill: var(--ink); font-family: 'Fraunces', Georgia, serif; font-size: 13px; font-style: italic; }
+  .sv-label { fill: var(--oxblood); font-family: 'JetBrains Mono', monospace; font-size: 10px; }
+  .sv-meta  { fill: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .sv-dot   { fill: var(--ink); }
+  .sv-fill  { fill: var(--blueprint-tint); }
+
+  .citation {
+    margin-top: 4rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--rule);
+    color: var(--sepia);
+    font-family: 'Spectral', serif;
+    font-style: italic;
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+  .citation code { font-style: normal; background: transparent; padding: 0; color: var(--sepia); }
+  .citation strong { color: var(--sepia); font-weight: 600; font-style: normal; }
+  .citation a { color: var(--sepia); text-decoration-color: var(--sepia); }
+
+  .colophon {
+    margin-top: 3rem; text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem; letter-spacing: 0.4em;
+    color: var(--muted); text-transform: uppercase;
+  }
+  .colophon .dot { color: var(--blueprint); margin: 0 0.4rem; }
+
+  @media (max-width: 720px) {
+    body { font-size: 1rem; }
+    .masthead { font-size: 0.62rem; }
+    table { font-size: 0.88rem; }
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .page > *, .page > section > * {
+    animation: rise 0.55s cubic-bezier(.2,.7,.2,1) both;
+  }
+  .page > *:nth-child(1) { animation-delay: 0s; }
+  .page > *:nth-child(2) { animation-delay: 0.05s; }
+  .page > *:nth-child(3) { animation-delay: 0.1s; }
+  .page > *:nth-child(4) { animation-delay: 0.15s; }
+  .page > *:nth-child(5) { animation-delay: 0.2s; }
+  .page > *:nth-child(n+6) { animation-delay: 0.25s; }
+  @media (prefers-reduced-motion: reduce) {
+    .page > *, .page > section > * { animation: none; }
+  }
+
+  ::selection { background: var(--blueprint); color: var(--paper); }
+</style>
+</head>
+<body>
+
+<!-- shared SVG marker defs -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="h-arr-ink" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" style="fill: var(--ink);"/>
+    </marker>
+    <marker id="h-arr-blue" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" style="fill: var(--blueprint);"/>
+    </marker>
+    <marker id="h-arr-ox" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" style="fill: var(--oxblood);"/>
+    </marker>
+    <marker id="h-arr-sage" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" style="fill: var(--sage);"/>
+    </marker>
+    <marker id="h-arr-muted" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" style="fill: var(--muted);"/>
+    </marker>
+  </defs>
+</svg>
+
+<article class="page">
+
+  <header class="masthead">
+    <span class="vol">Vol. I &middot; No. 3</span>
+    <span>Notes on Reactive Systems</span>
+    <span class="date">A Sketch</span>
+  </header>
+
+  <div class="glyph" aria-hidden="true">
+    <svg width="186" height="58" viewBox="0 0 186 58" fill="none">
+      <!-- chart container with LLM nucleus -->
+      <rect x="2" y="6" width="86" height="46" rx="8" class="sv-box"/>
+      <text x="8" y="17" class="sv-meta">state</text>
+      <ellipse cx="45" cy="32" rx="26" ry="13" stroke="var(--blueprint)" stroke-width="1.3" fill="var(--blueprint-tint)"/>
+      <text x="45" y="35" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" fill="var(--blueprint)" letter-spacing="0.12em">LLM</text>
+      <!-- transition -->
+      <line x1="92" y1="29" x2="112" y2="29" stroke="var(--oxblood)" stroke-width="1.3"/>
+      <polygon points="115,29 109,26 109,32" fill="var(--oxblood)"/>
+      <text x="92" y="22" font-family="JetBrains Mono, monospace" font-size="7.5" letter-spacing="0.4" fill="var(--oxblood)">e[C]/a</text>
+      <!-- blackboard panel -->
+      <rect x="118" y="6" width="66" height="46" rx="3" class="sv-box"/>
+      <line x1="118" y1="18" x2="184" y2="18" stroke="var(--rule-soft)" stroke-width="1"/>
+      <text x="124" y="15" class="sv-meta">bb</text>
+      <g font-family="JetBrains Mono, monospace" font-size="7" fill="var(--ink)">
+        <text x="123" y="27">enemy = pawn_3</text>
+        <text x="123" y="36">conf = 0.82</text>
+        <text x="123" y="45">age = 4s</text>
+      </g>
+    </svg>
+  </div>
+
+  <h1>Harebrain, <em>sketched</em></h1>
+  <p class="lede">A note on where game-AI primitives, statecharts, and LLM agency meet &mdash; and which intersections actually pay back.</p>
+
+  <div class="ornament" aria-hidden="true"><span>&sect;</span></div>
+
+  <!-- ===================================================== -->
+  <section class="opening">
+    <h2>The thesis</h2>
+    <p>The prior notes in this series circle a single bet. Harel&rsquo;s statecharts give reactive systems a humane diagram. MPLv2 makes that diagram executable. The field guide of game-AI primitives catalogs forty years of patterns for keeping autonomous agents on task. EDD asks how to keep an AI honest in the edits-not-authors loop. None of them, alone, addresses the long-running LLM problem. Together, they sketch one.</p>
+
+    <p>The bet, in one line:</p>
+
+    <div class="callout formula">
+      <code>harebrain = fast LLM brain &times; structured game-AI cage</code>
+    </div>
+
+    <p>The cage is bounded state, hierarchical decomposition, typed shared memory, utility-scored choice, and a meta-loop that watches the inner loop. The brain is the LLM doing the rich, judgment-heavy work inside the leaves. Neither half does the long-horizon job alone. The combination has a chance.</p>
+
+    <div class="callout idea">
+      <h4>Why the combination, and not either half</h4>
+      <p>An LLM without a cage drifts: forgets the goal, jumps a step, hallucinates an old fact as fresh, declares victory early. A cage without a brain is brittle: every leaf needs hand-authored logic, and the tree balloons the moment the world stops being predictable. The cage owns <em>where</em>; the brain owns <em>what</em>.</p>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>The shape of the cage</h2>
+    <p>Before zooming in on the payoffs, the architecture in one picture. A director sits outside, watching. A hierarchical statechart owns topology. A blackboard owns shared, typed, decaying memory. The LLM lives at the leaves &mdash; one rich call per state &mdash; and its choices route through a utility scorer before reaching the world.</p>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 620 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Architecture overview: director above, statechart in the middle with an LLM-driven leaf, blackboard on the right, utility selector below.">
+        <!-- Director -->
+        <rect x="220" y="14" width="180" height="44" rx="8" stroke="var(--oxblood)" stroke-width="1.6" fill="var(--oxblood-tint)"/>
+        <text x="310" y="34" font-family="Fraunces, serif" font-size="14" font-style="italic" text-anchor="middle" fill="var(--oxblood)">AI Director</text>
+        <text x="310" y="50" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" fill="var(--muted)">watches &middot; modulates &middot; interrupts</text>
+        <line x1="310" y1="58" x2="310" y2="78" stroke="var(--oxblood)" stroke-width="1.2" stroke-dasharray="4 3"/>
+        <polygon points="310,80 307,74 313,74" fill="var(--oxblood)"/>
+        <text x="320" y="73" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--oxblood)">events</text>
+
+        <!-- Statechart container -->
+        <rect x="30" y="84" width="430" height="220" rx="12" stroke="var(--ink)" stroke-width="1.6" fill="none"/>
+        <text x="42" y="103" font-family="Fraunces, serif" font-size="13" font-style="italic" fill="var(--ink)">Workflow chart</text>
+        <text x="42" y="118" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--muted)">topology &middot; transitions &middot; entry/exit</text>
+
+        <!-- inner states: Plan, Investigate (highlighted), Synthesize, Report -->
+        <rect x="50" y="135" width="86" height="42" rx="6" class="sv-box"/>
+        <text x="93" y="160" font-family="Spectral, serif" font-size="12" text-anchor="middle" fill="var(--ink)">Plan</text>
+        <circle cx="40" cy="155" r="2.5" class="sv-dot"/>
+        <line x1="42" y1="155" x2="50" y2="155" class="sv-edge"/>
+        <polygon points="50,155 47,152 47,158" fill="var(--ink)"/>
+
+        <!-- Investigate (highlighted, contains LLM nucleus) -->
+        <rect x="160" y="125" width="138" height="62" rx="6" stroke="var(--blueprint)" stroke-width="1.8" fill="var(--blueprint-tint)"/>
+        <text x="170" y="139" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--blueprint)" letter-spacing="0.12em">INVESTIGATE</text>
+        <ellipse cx="229" cy="163" rx="50" ry="16" stroke="var(--blueprint)" stroke-width="1.4" fill="var(--paper)"/>
+        <text x="229" y="167" font-family="JetBrains Mono, monospace" font-size="11" text-anchor="middle" fill="var(--blueprint-deep)" letter-spacing="0.1em">LLM</text>
+
+        <rect x="320" y="135" width="86" height="42" rx="6" class="sv-box"/>
+        <text x="363" y="160" font-family="Spectral, serif" font-size="12" text-anchor="middle" fill="var(--ink)">Synth.</text>
+
+        <rect x="320" y="220" width="86" height="42" rx="6" class="sv-box"/>
+        <text x="363" y="245" font-family="Spectral, serif" font-size="12" text-anchor="middle" fill="var(--ink)">Report</text>
+
+        <!-- transitions -->
+        <line x1="136" y1="156" x2="160" y2="156" class="sv-edge"/>
+        <polygon points="160,156 154,153 154,159" fill="var(--ink)"/>
+        <line x1="298" y1="156" x2="320" y2="156" class="sv-edge"/>
+        <polygon points="320,156 314,153 314,159" fill="var(--ink)"/>
+        <line x1="363" y1="177" x2="363" y2="218" class="sv-edge"/>
+        <polygon points="363,220 360,214 366,214" fill="var(--ink)"/>
+
+        <!-- transition labels -->
+        <text x="138" y="148" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--oxblood)">ready</text>
+        <text x="300" y="148" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--oxblood)">enough</text>
+        <text x="370" y="200" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--oxblood)">verified</text>
+
+        <!-- Blackboard on the right -->
+        <rect x="478" y="84" width="120" height="220" rx="6" stroke="var(--ink)" stroke-width="1.6" fill="var(--paper-edge-2)"/>
+        <text x="538" y="103" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" fill="var(--ink)">Blackboard</text>
+        <line x1="488" y1="112" x2="588" y2="112" stroke="var(--rule-soft)" stroke-width="1"/>
+        <g font-family="JetBrains Mono, monospace" font-size="9">
+          <text x="488" y="128" fill="var(--blueprint)">goal</text>
+          <text x="588" y="128" text-anchor="end" fill="var(--ink)">audit</text>
+          <text x="488" y="146" fill="var(--blueprint)">findings</text>
+          <text x="588" y="146" text-anchor="end" fill="var(--ink)">[7]</text>
+          <text x="488" y="164" fill="var(--blueprint)">conf</text>
+          <text x="588" y="164" text-anchor="end" fill="var(--ink)">0.74</text>
+          <text x="488" y="182" fill="var(--blueprint)">last_obs</text>
+          <text x="588" y="182" text-anchor="end" fill="var(--ink)">12s</text>
+          <text x="488" y="200" fill="var(--blueprint)">budget</text>
+          <text x="588" y="200" text-anchor="end" fill="var(--ink)">0.42</text>
+          <text x="488" y="218" fill="var(--blueprint)">open_qs</text>
+          <text x="588" y="218" text-anchor="end" fill="var(--ink)">3</text>
+        </g>
+        <!-- read/write arrows -->
+        <line x1="298" y1="170" x2="478" y2="170" stroke="var(--sage)" stroke-width="1.2" stroke-dasharray="3 3"/>
+        <polygon points="478,170 472,167 472,173" fill="var(--sage)"/>
+        <text x="388" y="164" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--sage)" text-anchor="middle">write</text>
+        <line x1="478" y1="190" x2="298" y2="190" stroke="var(--blueprint)" stroke-width="1.2" stroke-dasharray="3 3"/>
+        <polygon points="298,190 304,187 304,193" fill="var(--blueprint)"/>
+        <text x="388" y="204" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--blueprint)" text-anchor="middle">read</text>
+
+        <!-- Utility selector below -->
+        <rect x="160" y="335" width="280" height="48" rx="6" stroke="var(--sage)" stroke-width="1.6" fill="var(--sage-tint)"/>
+        <text x="300" y="354" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" fill="var(--sage)">Utility scorer</text>
+        <text x="300" y="372" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" fill="var(--muted)">cost &middot; success-rate &middot; confidence &middot; blast-radius</text>
+        <!-- arrow from chart down to utility -->
+        <line x1="229" y1="187" x2="229" y2="333" stroke="var(--sage)" stroke-width="1.2" stroke-dasharray="3 3"/>
+        <polygon points="229,335 226,329 232,329" fill="var(--sage)"/>
+        <text x="240" y="240" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--sage)">candidate tools</text>
+        <line x1="370" y1="383" x2="370" y2="395" stroke="var(--sage)" stroke-width="1.2"/>
+        <text x="378" y="394" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--sage)">&rarr; world</text>
+      </svg>
+      <figcaption>Director above, chart in the middle, blackboard on the right, utility scorer below. The LLM call is one component of the leaf, not the whole agent.</figcaption>
+    </figure>
+
+    <p>Each piece corresponds to a primitive in the field guide. The chart is a hierarchical statechart (Harel; UE&rsquo;s State Trees). The blackboard is exactly the <code>UBlackboardData</code> pattern. The utility scorer is utility AI. The director is the AI-Director pattern from <em>Left 4 Dead</em>. The novelty isn&rsquo;t any single piece. The novelty is putting the LLM in the slot game AI usually fills with a hand-authored task.</p>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>The cage, circa 1980</h2>
+    <p>Before zooming in on what the cage gives the brain, a note on what it gave the genre that invented it. The cage half of harebrain &mdash; bounded state, typed shared memory, guarded transitions, scripted NPCs &mdash; was first deployed in the late 1970s, in a corner of computing most readers met as children. <em>Colossal Cave Adventure</em> (1976), <em>Zork</em> (1980), Infocom&rsquo;s catalogue, <em>The Hobbit</em> (1982), <em>Eamon</em>, and their multiplayer cousins <em>MUD1</em> (1978) and the MUDs that followed are, structurally, near-perfect instances of the architecture above &mdash; minus the brain.</p>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 600 310" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A text-adventure world: four rooms connected by exits, a world-flags blackboard panel, and a parser slot at the bottom highlighted as the LLM seam.">
+        <!-- room graph container -->
+        <rect x="20" y="20" width="370" height="210" rx="10" stroke="var(--ink)" stroke-width="1.5" fill="none"/>
+        <text x="34" y="40" font-family="Fraunces, serif" font-size="13" font-style="italic" fill="var(--ink)">World graph</text>
+        <text x="34" y="54" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--muted)">rooms &middot; exits &middot; guards</text>
+
+        <!-- rooms -->
+        <rect x="60" y="70" width="110" height="44" rx="6" class="sv-box"/>
+        <text x="115" y="96" font-family="Spectral, serif" font-size="12" text-anchor="middle" fill="var(--ink)">Cellar</text>
+
+        <rect x="240" y="70" width="110" height="44" rx="6" class="sv-box"/>
+        <text x="295" y="96" font-family="Spectral, serif" font-size="12" text-anchor="middle" fill="var(--ink)">Forest</text>
+
+        <rect x="60" y="160" width="110" height="44" rx="6" class="sv-box"/>
+        <text x="115" y="186" font-family="Spectral, serif" font-size="12" text-anchor="middle" fill="var(--ink)">Cave</text>
+
+        <rect x="240" y="160" width="110" height="44" rx="6" class="sv-box"/>
+        <text x="295" y="186" font-family="Spectral, serif" font-size="12" text-anchor="middle" fill="var(--ink)">Maze</text>
+
+        <!-- edges -->
+        <line x1="170" y1="92" x2="240" y2="92" class="sv-edge"/>
+        <line x1="115" y1="114" x2="115" y2="160" class="sv-edge"/>
+        <line x1="295" y1="114" x2="295" y2="160" class="sv-edge"/>
+        <line x1="170" y1="182" x2="240" y2="182" class="sv-edge"/>
+
+        <!-- labels: one plain exit, one guarded -->
+        <text x="205" y="86" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--muted)" text-anchor="middle">north</text>
+        <text x="205" y="176" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--oxblood)" text-anchor="middle">[lamp_lit]</text>
+
+        <!-- world flags panel -->
+        <rect x="408" y="20" width="172" height="210" rx="6" stroke="var(--ink)" stroke-width="1.5" fill="var(--paper-edge-2)"/>
+        <text x="494" y="40" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" fill="var(--ink)">World flags</text>
+        <line x1="418" y1="50" x2="570" y2="50" stroke="var(--rule-soft)"/>
+        <g font-family="JetBrains Mono, monospace" font-size="10">
+          <text x="420" y="70" fill="var(--blueprint)">lamp_lit</text>
+          <text x="568" y="70" text-anchor="end" fill="var(--ink)">true</text>
+          <text x="420" y="90" fill="var(--blueprint)">troll</text>
+          <text x="568" y="90" text-anchor="end" fill="var(--ink)">dead</text>
+          <text x="420" y="110" fill="var(--blueprint)">egg.loc</text>
+          <text x="568" y="110" text-anchor="end" fill="var(--ink)">nest</text>
+          <text x="420" y="130" fill="var(--blueprint)">held</text>
+          <text x="568" y="130" text-anchor="end" fill="var(--ink)">[lamp, sword]</text>
+          <text x="420" y="150" fill="var(--blueprint)">score</text>
+          <text x="568" y="150" text-anchor="end" fill="var(--ink)">42</text>
+          <text x="420" y="170" fill="var(--blueprint)">moves</text>
+          <text x="568" y="170" text-anchor="end" fill="var(--ink)">87</text>
+        </g>
+        <text x="494" y="210" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" fill="var(--muted)">typed &middot; keyed &middot; persistent</text>
+
+        <!-- parser slot (the leaf) at bottom, highlighted -->
+        <rect x="20" y="248" width="560" height="50" rx="6" stroke="var(--blueprint)" stroke-width="1.7" fill="var(--blueprint-tint)"/>
+        <text x="34" y="269" font-family="Fraunces, serif" font-size="13" font-style="italic" fill="var(--blueprint)">Parser &mdash; the leaf</text>
+        <text x="34" y="287" font-family="JetBrains Mono, monospace" font-size="10" fill="var(--ink)">&gt; LIGHT LAMP &nbsp;&rarr;&nbsp; verb=light, obj=lamp &nbsp;&rarr;&nbsp; set lamp_lit := true</text>
+        <text x="566" y="269" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--oxblood)" text-anchor="end" letter-spacing="0.14em">LLM SEAM</text>
+        <text x="566" y="287" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--muted)" text-anchor="end">(was: ~100-word table)</text>
+      </svg>
+      <figcaption>Room graph, world flags, parser slot. Everything but the parser was solved in 1980; the cage stays the same when the leaf becomes an LLM.</figcaption>
+    </figure>
+
+    <p>In the field guide&rsquo;s vocabulary:</p>
+    <ul>
+      <li><strong>The world model is a blackboard.</strong> Rooms, inventory, NPC dispositions, puzzle flags &mdash; typed, keyed, persistent. &ldquo;The lantern is lit, the troll is dead, the egg is in the nest&rdquo; is a <code>UBlackboardData</code> written in 1980.</li>
+      <li><strong>Each room is a state; each puzzle a guarded transition.</strong> You cannot enter the coal mine without the lamp. The guard reads the blackboard.</li>
+      <li><strong>NPC behaviour is a small behaviour tree.</strong> Gandalf wandering off in <em>The Hobbit</em>, Floyd in <em>Planetfall</em>, MUD mobs &mdash; sequence/selector logic over the same shared state.</li>
+      <li><strong>The parser is the leaf.</strong> And it is the slot where the genre bottlenecked. &ldquo;GUESS THE VERB&rdquo; was a meme because the cage was rich but the interpreter was a hundred-word lookup table. Players knew what they wanted; the system couldn&rsquo;t read intent.</li>
+    </ul>
+
+    <p>That last point is exactly the seam harebrain proposes filling. Forty years ago the genre had the cage drawn correctly and the leaves nearly empty. An LLM in the parser slot &mdash; reading intent, choosing an action, mutating the world flags &mdash; is the harebrain pattern applied to interactive fiction.</p>
+
+    <div class="callout warn">
+      <h4>The opposite mistake, in case the lesson sounds easy</h4>
+      <p><em>AI Dungeon</em> and its descendants went the other way: an LLM authoring the world freely, with no cage at all. The failure mode is the predictable one &mdash; the model forgets the dragon you killed three rooms back, the troll resurrects mid-paragraph, the inventory dissolves into ambient hallucination. The 80s had the right division of labour. They were missing the second half, not the first.</p>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>What the cage gives the brain</h2>
+    <p>Four payoffs, in order of how much they pay back.</p>
+
+    <h3>Blackboard plus working-memory facts &mdash; context discipline</h3>
+    <p>Long-running LLM agents lose the plot in two predictable ways. They forget important facts because the context window has rolled past them. Or they hallucinate from stale ones because old observations sit in context with no expiration. A typed, keyed blackboard fixes the first. F.E.A.R.&rsquo;s working-memory-fact pattern &mdash; facts with timestamps and confidence &mdash; fixes the second. The agent doesn&rsquo;t read its rolling transcript; it reads named slots, and stale facts decay into &ldquo;low confidence&rdquo; rather than persisting as if fresh.</p>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 580 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A blackboard table where each fact has a value, an age in seconds, and a decaying confidence bar.">
+        <rect x="20" y="14" width="540" height="200" rx="6" stroke="var(--ink)" stroke-width="1.4" fill="var(--paper-edge-2)"/>
+        <text x="34" y="34" font-family="Fraunces, serif" font-size="13" font-style="italic" fill="var(--ink)">Working-memory facts</text>
+
+        <!-- header row -->
+        <g font-family="JetBrains Mono, monospace" font-size="9" fill="var(--muted)" letter-spacing="0.12em">
+          <text x="38" y="56">KEY</text>
+          <text x="180" y="56">VALUE</text>
+          <text x="320" y="56">AGE</text>
+          <text x="400" y="56">CONFIDENCE</text>
+        </g>
+        <line x1="30" y1="62" x2="550" y2="62" stroke="var(--rule-soft)"/>
+
+        <!-- row helpers via repeated svg elements -->
+        <!-- row 1 -->
+        <text x="38" y="83" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--blueprint)">target_user</text>
+        <text x="180" y="83" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--ink)">u_4f29</text>
+        <text x="320" y="83" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--ink)">2 s</text>
+        <rect x="400" y="74" width="120" height="10" stroke="var(--rule-soft)" fill="none"/>
+        <rect x="400" y="74" width="112" height="10" fill="var(--sage)" opacity="0.85"/>
+        <text x="528" y="83" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--sage)">0.93</text>
+
+        <!-- row 2 -->
+        <text x="38" y="108" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--blueprint)">last_error</text>
+        <text x="180" y="108" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--ink)">timeout/db</text>
+        <text x="320" y="108" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--ink)">14 s</text>
+        <rect x="400" y="99" width="120" height="10" stroke="var(--rule-soft)" fill="none"/>
+        <rect x="400" y="99" width="86" height="10" fill="var(--sage)" opacity="0.7"/>
+        <text x="528" y="108" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--sage)">0.71</text>
+
+        <!-- row 3 -->
+        <text x="38" y="133" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--blueprint)">repro_steps</text>
+        <text x="180" y="133" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--ink)">[3 lines]</text>
+        <text x="320" y="133" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--ink)">42 s</text>
+        <rect x="400" y="124" width="120" height="10" stroke="var(--rule-soft)" fill="none"/>
+        <rect x="400" y="124" width="56" height="10" fill="var(--sepia)" opacity="0.75"/>
+        <text x="528" y="133" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--sepia)">0.46</text>
+
+        <!-- row 4 -->
+        <text x="38" y="158" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--blueprint)">hypothesis</text>
+        <text x="180" y="158" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--ink)">conn-pool</text>
+        <text x="320" y="158" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--ink)">94 s</text>
+        <rect x="400" y="149" width="120" height="10" stroke="var(--rule-soft)" fill="none"/>
+        <rect x="400" y="149" width="32" height="10" fill="var(--oxblood)" opacity="0.7"/>
+        <text x="528" y="158" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--oxblood)">0.27</text>
+
+        <!-- row 5 -->
+        <text x="38" y="183" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--blueprint)">user_said</text>
+        <text x="180" y="183" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--ink)">&ldquo;don&rsquo;t touch X&rdquo;</text>
+        <text x="320" y="183" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--ink)">&infin;</text>
+        <rect x="400" y="174" width="120" height="10" stroke="var(--ink)" fill="none"/>
+        <rect x="400" y="174" width="120" height="10" fill="var(--blueprint)" opacity="0.85"/>
+        <text x="528" y="183" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--blueprint)">pinned</text>
+
+        <text x="34" y="207" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--muted)" letter-spacing="0.1em">decay rate per key &middot; pinned facts ignore age &middot; LLM reads slots, not transcript</text>
+      </svg>
+      <figcaption>Each fact has a half-life. The agent prompt is built from the blackboard, not from a rolling transcript &mdash; so the model sees fresh evidence first and stale evidence flagged as such.</figcaption>
+    </figure>
+
+    <p>This is essentially the problem game AI solved twenty years ago for shooter NPCs that had to track &ldquo;where is the player likely now?&rdquo; through occlusion and noise. The solution is mature. We just haven&rsquo;t ported it.</p>
+
+    <p>The blackboard pattern also has a more rigorous sibling worth knowing about. MPLv2&rsquo;s <strong>Manifest</strong> generalizes the same idea: an immutable snapshot of the entire system &mdash; active regions, signals, variables, and regionmaps &mdash; recomputed atomically every tick. A blackboard tells you <em>what the agent knows</em>. The Manifest tells you <em>what the world is, this tick</em> &mdash; a strict superset.</p>
+
+    <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Axis</th><th>Blackboard (UE / F.E.A.R.)</th><th>Manifest (MPLv2)</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Shape</td>
+          <td>Keyed, typed slots</td>
+          <td>Keyed typed slots <em>plus</em> active regions, signals, regionmaps</td>
+        </tr>
+        <tr>
+          <td>Scope</td>
+          <td>Per-agent (one BB per <code>AAIController</code>)</td>
+          <td>Whole simulation, one Manifest</td>
+        </tr>
+        <tr>
+          <td>Mutation</td>
+          <td>In-place, any time</td>
+          <td>Immutable per tick; atomic swap to next</td>
+        </tr>
+        <tr>
+          <td>Concurrent writes</td>
+          <td>Last-write-wins</td>
+          <td>Resolved by <code>@priority</code> &rarr; <code>@weight</code> &rarr; seeded RNG</td>
+        </tr>
+        <tr>
+          <td>Coupling</td>
+          <td>Producer / consumer decoupled by key</td>
+          <td>Same &mdash; plus declared <code>receives</code> / <code>emits</code> interfaces for signals</td>
+        </tr>
+        <tr>
+          <td>Role in execution</td>
+          <td>Side-data store the BT consults</td>
+          <td>The execution-model primitive itself</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 620 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The Manifest tick cycle: snapshot at t, rules read it, proposals are collected, conflicts resolved, snapshot at t+1 lands atomically.">
+        <!-- Manifest_t -->
+        <rect x="20" y="40" width="120" height="120" rx="6" stroke="var(--ink)" stroke-width="1.5" fill="var(--paper-edge-2)"/>
+        <text x="80" y="60" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" fill="var(--ink)">Manifest&#x209C;</text>
+        <line x1="30" y1="70" x2="130" y2="70" stroke="var(--rule-soft)"/>
+        <g font-family="JetBrains Mono, monospace" font-size="9" fill="var(--ink)">
+          <text x="35" y="86">active regions</text>
+          <text x="35" y="102">signals</text>
+          <text x="35" y="118">vars</text>
+          <text x="35" y="134">maps</text>
+        </g>
+        <text x="80" y="180" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" fill="var(--muted)">immutable snapshot</text>
+
+        <!-- arrow read -->
+        <line x1="142" y1="100" x2="180" y2="100" stroke="var(--ink)" stroke-width="1.4"/>
+        <polygon points="180,100 174,97 174,103" fill="var(--ink)"/>
+        <text x="161" y="92" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" fill="var(--muted)">read</text>
+
+        <!-- Proposals -->
+        <rect x="184" y="40" width="130" height="120" rx="6" stroke="var(--blueprint)" stroke-width="1.4" fill="var(--blueprint-tint)"/>
+        <text x="249" y="60" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" fill="var(--blueprint)">proposals</text>
+        <line x1="194" y1="70" x2="304" y2="70" stroke="var(--rule-soft)"/>
+        <g font-family="JetBrains Mono, monospace" font-size="9" fill="var(--blueprint-deep)">
+          <text x="199" y="86">R1: =&gt; Synth.</text>
+          <text x="199" y="102">R2: =&gt; Plan</text>
+          <text x="199" y="118">R3: hp -= 5</text>
+          <text x="199" y="134">R4: emit Found</text>
+        </g>
+        <text x="249" y="180" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" fill="var(--muted)">may conflict</text>
+
+        <!-- arrow to resolution -->
+        <line x1="316" y1="100" x2="354" y2="100" stroke="var(--ink)" stroke-width="1.4"/>
+        <polygon points="354,100 348,97 348,103" fill="var(--ink)"/>
+
+        <!-- Resolution -->
+        <rect x="358" y="60" width="120" height="80" rx="6" stroke="var(--oxblood)" stroke-width="1.4" fill="var(--oxblood-tint)"/>
+        <text x="418" y="80" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" fill="var(--oxblood)">resolve</text>
+        <g font-family="JetBrains Mono, monospace" font-size="9" fill="var(--oxblood)">
+          <text x="418" y="100" text-anchor="middle">@priority</text>
+          <text x="418" y="114" text-anchor="middle">@weight</text>
+          <text x="418" y="128" text-anchor="middle">seeded RNG</text>
+        </g>
+
+        <!-- arrow apply -->
+        <line x1="480" y1="100" x2="500" y2="100" stroke="var(--ink)" stroke-width="1.4"/>
+        <polygon points="500,100 494,97 494,103" fill="var(--ink)"/>
+        <text x="490" y="92" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" fill="var(--muted)">apply</text>
+
+        <!-- Manifest_{t+1} -->
+        <rect x="504" y="40" width="116" height="120" rx="6" stroke="var(--ink)" stroke-width="1.5" fill="var(--paper-edge-2)"/>
+        <text x="562" y="60" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" fill="var(--ink)">Manifest&#x209C;&#x208A;&#x2081;</text>
+        <line x1="514" y1="70" x2="614" y2="70" stroke="var(--rule-soft)"/>
+        <g font-family="JetBrains Mono, monospace" font-size="9" fill="var(--ink)">
+          <text x="519" y="86">active regions&prime;</text>
+          <text x="519" y="102">signals&prime;</text>
+          <text x="519" y="118">vars&prime;</text>
+          <text x="519" y="134">maps&prime;</text>
+        </g>
+        <text x="562" y="180" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" fill="var(--muted)">atomic swap</text>
+
+        <text x="310" y="208" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" fill="var(--muted)" letter-spacing="0.1em">no mid-tick mutation &middot; same seed + same M&#x2080; replays the entire run</text>
+      </svg>
+      <figcaption>Each tick is a transaction: rules read M&#x209C;, propose changes, the engine resolves conflicts, M&#x209C;&#x208A;&#x2081; lands atomically.</figcaption>
+    </figure>
+
+    <p>The Manifest tightens four things the blackboard pattern leaves loose: it is global rather than per-agent, immutable per tick rather than mutated in place, conflict-resolved rather than last-write-wins, and central to the execution model rather than a side store. None of these matter for a single shooter NPC with a private blackboard. They start to matter the moment you have multiple cooperating LLM agents, want deterministic replay of an entire run, or need a guard that reads across sub-charts without racing its writers.</p>
+
+    <div class="callout idea">
+      <h4>Upgrade path for the harebrain runtime</h4>
+      <p>Begin with a per-agent blackboard &mdash; cheap, familiar, enough for one workflow. Promote to a Manifest the moment you need any of: multi-agent coordination, replayability for diagnosis, or transactional guards that read across sub-charts. The two patterns share the same API surface (named typed slots), so the upgrade is mostly a runtime swap, not a rewrite of the chart or the prompts.</p>
+    </div>
+
+    <h3>HSM as workflow scaffold; LLM as the task leaf</h3>
+    <p>The single biggest failure mode of long-horizon agents is premature conclusion &mdash; the model decides it&rsquo;s done before it actually is, or jumps from <code>gather</code> straight to <code>report</code> without <code>synthesize</code>. A hierarchical statechart enforces topology: you are <em>in</em> <code>Investigate.GatherEvidence</code>, not somewhere else, and the transition out requires a satisfied guard. The LLM is rich and creative inside the leaf. The chart owns &ldquo;where am I, and what&rsquo;s next.&rdquo;</p>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 580 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A hierarchical statechart whose leaves each host a small LLM task, with guarded transitions.">
+        <!-- outer Investigation state -->
+        <rect x="20" y="20" width="540" height="240" rx="12" stroke="var(--ink)" stroke-width="1.6" fill="none"/>
+        <text x="34" y="40" font-family="Fraunces, serif" font-size="13" font-style="italic" fill="var(--ink)">Investigation</text>
+
+        <!-- default into Gather -->
+        <circle cx="34" cy="100" r="3" fill="var(--blueprint)"/>
+        <line x1="36" y1="100" x2="56" y2="100" stroke="var(--blueprint)" stroke-width="1.4"/>
+        <polygon points="56,100 51,97 51,103" fill="var(--blueprint)"/>
+
+        <!-- Gather -->
+        <g>
+          <rect x="60" y="76" width="140" height="58" rx="8" stroke="var(--blueprint)" stroke-width="1.5" fill="var(--blueprint-tint)"/>
+          <text x="74" y="92" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--blueprint)" letter-spacing="0.12em">GATHER</text>
+          <ellipse cx="130" cy="113" rx="48" ry="13" stroke="var(--blueprint)" stroke-width="1.2" fill="var(--paper)"/>
+          <text x="130" y="116" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle" fill="var(--blueprint-deep)">LLM &middot; ask</text>
+        </g>
+
+        <!-- Synthesize -->
+        <g>
+          <rect x="220" y="76" width="140" height="58" rx="8" stroke="var(--blueprint)" stroke-width="1.5" fill="var(--blueprint-tint)"/>
+          <text x="234" y="92" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--blueprint)" letter-spacing="0.12em">SYNTHESIZE</text>
+          <ellipse cx="290" cy="113" rx="48" ry="13" stroke="var(--blueprint)" stroke-width="1.2" fill="var(--paper)"/>
+          <text x="290" y="116" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle" fill="var(--blueprint-deep)">LLM &middot; reason</text>
+        </g>
+
+        <!-- Report -->
+        <g>
+          <rect x="380" y="76" width="140" height="58" rx="8" stroke="var(--blueprint)" stroke-width="1.5" fill="var(--blueprint-tint)"/>
+          <text x="394" y="92" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--blueprint)" letter-spacing="0.12em">REPORT</text>
+          <ellipse cx="450" cy="113" rx="48" ry="13" stroke="var(--blueprint)" stroke-width="1.2" fill="var(--paper)"/>
+          <text x="450" y="116" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle" fill="var(--blueprint-deep)">LLM &middot; write</text>
+        </g>
+
+        <!-- transitions across leaves -->
+        <line x1="200" y1="105" x2="220" y2="105" class="sv-edge"/>
+        <polygon points="220,105 214,102 214,108" fill="var(--ink)"/>
+        <text x="210" y="98" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--oxblood)" text-anchor="middle">[open_qs=0]</text>
+
+        <line x1="360" y1="105" x2="380" y2="105" class="sv-edge"/>
+        <polygon points="380,105 374,102 374,108" fill="var(--ink)"/>
+        <text x="370" y="98" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--oxblood)" text-anchor="middle">[verified]</text>
+
+        <!-- back-edge (re-enter Gather if conf drops) -->
+        <path d="M 290 134 Q 290 200 130 200 Q 60 200 60 134" stroke="var(--oxblood)" stroke-width="1.2" fill="none" stroke-dasharray="4 3"/>
+        <polygon points="60,134 57,140 63,140" fill="var(--oxblood)"/>
+        <text x="200" y="218" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--oxblood)" text-anchor="middle">[conf &lt; 0.5] &mdash; director re-entry</text>
+
+        <!-- exit from Report -->
+        <line x1="520" y1="105" x2="556" y2="105" class="sv-edge"/>
+        <polygon points="556,105 550,102 550,108" fill="var(--ink)"/>
+        <text x="540" y="98" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--ink)" text-anchor="middle">done</text>
+
+        <text x="34" y="248" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--muted)" letter-spacing="0.1em">guards inspect blackboard &middot; transitions enforce ordering &middot; LLM cannot skip a state</text>
+      </svg>
+      <figcaption>Each leaf hosts a single LLM call shaped by its enclosing state. The model can be brilliant inside <em>Gather</em> without escaping to <em>Report</em> &mdash; the guard <code>[open_qs=0]</code> stands in the way.</figcaption>
+    </figure>
+
+    <p>MPLv2&rsquo;s deterministic conflict resolution &mdash; <code>@priority</code> then <code>@weight</code> then a seeded RNG &mdash; maps directly onto &ldquo;two sub-tools both want to fire.&rdquo; The LLM proposes; the chart resolves. EDD&rsquo;s expectations attach naturally to states: in <code>Synthesize</code>, the agent must produce evidence covering each open question. The expectation becomes the transition guard.</p>
+
+    <h3>Utility AI for tool and sub-agent selection</h3>
+    <p>Today, an agent picks tools by prompt heuristic: the model reads its tool list and chooses. A utility-AI scoring layer &mdash; one normalized response curve per signal (cost, recent success rate, confidence in the relevant fact, blast radius) multiplied per candidate &mdash; makes the choice inspectable, tunable, and replayable. It also gives the director a handle when behavior degrades: <em>tool X has been winning every score for six consecutive ticks &mdash; raise its cost penalty.</em></p>
+
+    <p>The construction is identical to the curve-and-bar diagram in <em>Traditional Game AI Primitives</em>. The novelty is the inputs: instead of <code>health</code> / <code>distance</code> / <code>ammo</code>, the curves run over <code>budget_remaining</code>, <code>fact_freshness</code>, <code>tool_success_rate_24h</code>. Same machinery. New tape.</p>
+
+    <h3>AI Director as the meta-prompt layer</h3>
+    <p><em>Left 4 Dead</em>&rsquo;s director is the dramaturgical pattern for an outer loop watching an inner one. Same mechanic translated: a non-embodied agent watches the workflow, modulates verbosity, escalates scrutiny when confidence drops, injects &ldquo;are you stuck?&rdquo; interrupts, restarts a sub-state on detected loops. EDD&rsquo;s adversarial-review step <em>is</em> a director &mdash; called once at the end. There&rsquo;s no reason it has to be once.</p>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 580 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The director loop: an outer loop sampling the agent's state and emitting interrupts back into the inner loop.">
+        <!-- inner loop circle -->
+        <ellipse cx="290" cy="125" rx="160" ry="70" stroke="var(--blueprint)" stroke-width="1.4" fill="var(--blueprint-tint)"/>
+        <text x="290" y="105" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" fill="var(--blueprint)">inner agent loop</text>
+        <text x="290" y="125" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle" fill="var(--blueprint-deep)">read bb &rarr; LLM &rarr; tool &rarr; write bb</text>
+        <text x="290" y="145" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" fill="var(--muted)">N transitions per state, then guard fires</text>
+
+        <!-- outer loop ring -->
+        <ellipse cx="290" cy="125" rx="225" ry="92" stroke="var(--oxblood)" stroke-width="1.4" fill="none" stroke-dasharray="6 4"/>
+
+        <!-- sample arrow (down) -->
+        <line x1="290" y1="33" x2="290" y2="55" stroke="var(--oxblood)" stroke-width="1.4"/>
+        <polygon points="290,55 287,49 293,49" fill="var(--oxblood)"/>
+        <text x="296" y="48" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--oxblood)">sample</text>
+
+        <!-- interrupt arrow (up) -->
+        <line x1="510" y1="125" x2="528" y2="125" stroke="var(--oxblood)" stroke-width="1.4"/>
+        <polygon points="528,125 522,122 522,128" fill="var(--oxblood)"/>
+        <text x="490" y="115" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--oxblood)">interrupt</text>
+
+        <!-- director's tools listed -->
+        <g font-family="JetBrains Mono, monospace" font-size="9" fill="var(--oxblood)">
+          <text x="46" y="40">&middot; raise budget penalty</text>
+          <text x="46" y="56">&middot; force re-entry</text>
+          <text x="46" y="72">&middot; widen tool set</text>
+          <text x="46" y="88">&middot; demand evidence</text>
+          <text x="46" y="104">&middot; pause &amp; ask user</text>
+        </g>
+
+        <text x="290" y="215" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--muted)" text-anchor="middle" letter-spacing="0.1em">director runs at lower frequency than the inner loop &middot; cheap to leave on</text>
+      </svg>
+      <figcaption>The director samples the blackboard and the chart&rsquo;s active state on its own clock. Its outputs are not actions; they&rsquo;re modulations of the inner loop.</figcaption>
+    </figure>
+
+    <div class="callout idea">
+      <h4>The four payoffs share one shape</h4>
+      <p>Each one moves something the LLM is bad at &mdash; durable memory, topology, comparable choice, self-supervision &mdash; into a structure the LLM doesn&rsquo;t own. The LLM gets to do what it&rsquo;s good at: rich, judgment-heavy work at the leaves. The cage handles the rest.</p>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>What the brain gives the cage</h2>
+    <p>The reverse direction is real but narrower. LLMs make game AI deeper in three specific places:</p>
+    <ul>
+      <li><strong>NPC dialogue and intent.</strong> The obvious one, already shipping.</li>
+      <li><strong>Fuzzy player-behaviour interpretation.</strong> &ldquo;The player keeps dying in the same spot &mdash; frustrated, or experimenting?&rdquo; An LLM sitting beside the director gives it a reading the director can&rsquo;t produce on its own.</li>
+      <li><strong>Offline authoring.</strong> Generate behaviour-tree branches, HTN methods, or state-tree sub-charts as drafts that designers accept or reject. The LLM is a co-author, not a runtime.</li>
+    </ul>
+
+    <div class="callout warn">
+      <h4>The trap to avoid</h4>
+      <p>Putting an LLM in the per-tick decision loop. Too slow, too non-deterministic, too expensive. The right division is asymmetric: <em>LLM offline</em> as authoring assistant; <em>LLM online</em> only at leaves where latency and non-determinism are acceptable.</p>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>The honest tradeoff</h2>
+    <p>The whole bet hinges on whether the workflow is small enough in <em>state</em> to express as a chart, while large enough in <em>per-state intelligence</em> to need an LLM at all. The chart wins when those two measures pull in opposite directions.</p>
+
+    <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Workflow</th><th>State space</th><th>Per-state judgment</th><th>Verdict</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Bug-fix on a known repo</td>
+          <td>Small &mdash; reproduce, locate, fix, verify</td>
+          <td>High &mdash; reading code, forming hypotheses</td>
+          <td>Good fit</td>
+        </tr>
+        <tr>
+          <td>Multi-stage research report</td>
+          <td>Small &mdash; gather, synthesize, draft, cite</td>
+          <td>High &mdash; judgment about what counts</td>
+          <td>Good fit</td>
+        </tr>
+        <tr>
+          <td>Runbook-driven incident response</td>
+          <td>Small &mdash; the runbook <em>is</em> the chart</td>
+          <td>High &mdash; reading logs, deciding severity</td>
+          <td>Good fit</td>
+        </tr>
+        <tr>
+          <td>Form-filling / data-entry workflow</td>
+          <td>Small</td>
+          <td>Low &mdash; shallow per step</td>
+          <td>Don&rsquo;t bother &mdash; a normal BT does fine</td>
+        </tr>
+        <tr>
+          <td>Open-ended creative collaboration</td>
+          <td>Large &mdash; ill-defined, evolving</td>
+          <td>High</td>
+          <td>Bad fit &mdash; chart becomes spaghetti</td>
+        </tr>
+        <tr>
+          <td>Per-tick game NPC behaviour</td>
+          <td>Small</td>
+          <td>Low</td>
+          <td>Bad fit &mdash; the LLM is dead weight</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <p>The interesting territory is the top three rows: small named state space, rich judgment per state. Any time you can sketch the workflow on a napkin but the work inside each box would take a senior person an hour, you&rsquo;re probably in the right cell.</p>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>What to build first</h2>
+    <p>The pragmatic first cut, in five steps:</p>
+    <ol>
+      <li>Pick one workflow with a small named state space and rich per-state judgment.</li>
+      <li>Wrap it in an MPLv2-style chart. States, transitions, guards.</li>
+      <li>Give it a typed blackboard with per-key decay and a few pinned slots for user constraints.</li>
+      <li>Put one LLM call per leaf. The prompt is built <em>from</em> the blackboard, not from a rolling transcript.</li>
+      <li>Add a director that runs an EDD-style adversarial check on each transition. Cheap to leave on; loud when it fires.</li>
+    </ol>
+
+    <p>Then measure one thing: <strong>does the agent finish the workflow without getting lost?</strong></p>
+
+    <div class="callout tip">
+      <h4>Why this is a good first bet even if the thesis is wrong</h4>
+      <p>Every drift is locatable to a state. Every memory loss is locatable to a fact decay rate. Every wrong choice is locatable to a utility weight. The diagnostic surface is the structure itself. Compared to &ldquo;the agent went sideways and we don&rsquo;t know where,&rdquo; that&rsquo;s already a better foundation.</p>
+    </div>
+
+    <p>If it works, the cage scales by adding more states, deeper sub-charts, sharper utility curves. If it doesn&rsquo;t, you&rsquo;ll have learned <em>which</em> piece &mdash; topology, memory, choice, supervision &mdash; the workflow refused. Either outcome moves the needle.</p>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>Where this sits in the series</h2>
+    <p>This note assembles the prior three.</p>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Source</th><th>What it contributes</th></tr></thead>
+      <tbody>
+        <tr><td><a href="harel.html">Statecharts, distilled</a></td><td>The vocabulary of the cage &mdash; depth, orthogonality, broadcast, history, default.</td></tr>
+        <tr><td><a href="mpl.html">MPLv2 vs. Harel</a></td><td>The cage made executable &mdash; the Manifest as transactional global state, ticks, deterministic conflict resolution, declared signal interfaces.</td></tr>
+        <tr><td><a href="game-ai.html">Traditional Game AI Primitives</a></td><td>The catalogue the LLM era should be raiding: blackboard, working-memory facts, utility AI, EQS, smart objects, AI director.</td></tr>
+        <tr><td><a href="edd.html">Expectation-Driven Development</a></td><td>The supervision protocol that becomes the director&rsquo;s job description.</td></tr>
+        <tr><td><a href="mebn-prowl.html">MEBN &amp; PR-OWL, distilled</a></td><td>The formal upgrade path for the blackboard &mdash; first-order probabilistic knowledge over a variable number of entities.</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <p class="citation"><strong>Sources.</strong> Harel, D., &ldquo;Statecharts: A Visual Formalism for Complex Systems&rdquo; (1987). MPLv2 &mdash; <code>github.com/lostinplace/mplv2</code>. Orkin, J., &ldquo;Three States and a Plan: The AI of F.E.A.R.&rdquo; GDC 2006. Booth, M., &ldquo;The AI Systems of Left 4 Dead,&rdquo; Valve, AIIDE 2009. Laforgia, A., &ldquo;Expectation-Driven Development&rdquo; (2025). Epic Games, <em>Mass AI / State Tree</em> documentation. Crowther, W. &amp; Woods, D., <em>Colossal Cave Adventure</em> (1976); Lebling, Blank &amp; Anderson, <em>Zork</em>, Infocom (1980); Bartle, R. &amp; Trubshaw, R., <em>MUD1</em> (1978). All diagrams above are original SVGs drawn for this page.</p>
+
+  <div class="colophon">
+    <span>&sect;</span><span class="dot">&bull;</span><span>harebrain</span><span class="dot">&bull;</span><span>fin</span><span class="dot">&bull;</span><span>&sect;</span>
+  </div>
+
+</article>
+</body>
+</html>
