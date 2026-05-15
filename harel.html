@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Statecharts &mdash; Cliff Notes on Harel 1987</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..900,0..100,0..1;1,9..144,300..900,0..100,0..1&family=Spectral:ital,wght@0,300;0,400;0,500;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light dark;
+    --paper:        #f3eddc;
+    --paper-grid:   rgba(40, 36, 24, 0.045);
+    --paper-edge:   #ece3c9;
+    --ink:          #1a1810;
+    --muted:        #5d553f;
+    --rule:         #a99a76;
+    --rule-soft:    #d4c8a4;
+    --blueprint:    #1f4f7a;
+    --blueprint-deep:#143553;
+    --blueprint-tint: rgba(31, 79, 122, 0.07);
+    --oxblood:      #8b1f2c;
+    --oxblood-tint: rgba(139, 31, 44, 0.06);
+    --sage:         #4f6b3f;
+    --sage-tint:    rgba(79, 107, 63, 0.08);
+    --sepia:        #8a6b2d;
+    --sepia-tint:   rgba(138, 107, 45, 0.10);
+    --code-bg:      #ebe2c5;
+    --table-bg:     rgba(255, 252, 238, 0.5);
+    --table-head:   rgba(0, 0, 0, 0.025);
+    --hover-tint:   rgba(31, 79, 122, 0.05);
+    --diagram-bg:   rgba(255, 252, 238, 0.55);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper:        #14130c;
+      --paper-grid:   rgba(255, 245, 215, 0.035);
+      --paper-edge:   #1c1a12;
+      --ink:          #ede2c4;
+      --muted:        #a89c7d;
+      --rule:         #5a5037;
+      --rule-soft:    #3a3327;
+      --blueprint:    #88c0e8;
+      --blueprint-deep:#bcdcf2;
+      --blueprint-tint: rgba(136, 192, 232, 0.10);
+      --oxblood:      #e09098;
+      --oxblood-tint: rgba(224, 144, 152, 0.10);
+      --sage:         #b1c98c;
+      --sage-tint:    rgba(177, 201, 140, 0.10);
+      --sepia:        #d4b884;
+      --sepia-tint:   rgba(212, 184, 132, 0.10);
+      --code-bg:      #221f15;
+      --table-bg:     rgba(255, 245, 215, 0.025);
+      --table-head:   rgba(255, 245, 215, 0.05);
+      --hover-tint:   rgba(136, 192, 232, 0.08);
+      --diagram-bg:   rgba(255, 245, 215, 0.03);
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  html { background: var(--paper); }
+
+  body {
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(var(--paper-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--paper-grid) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-position: 0 0;
+    color: var(--ink);
+    font-family: 'Spectral', Georgia, "Iowan Old Style", "Times New Roman", serif;
+    font-size: 1.05rem;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    counter-reset: section figure;
+  }
+
+  /* ------- layout ------- */
+  .page {
+    max-width: 74ch;
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(1.2rem, 4vw, 3rem) 6rem;
+    position: relative;
+  }
+
+  /* ------- masthead ------- */
+  .masthead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    border-top: 3px double var(--ink);
+    border-bottom: 1px solid var(--rule);
+    padding: 0.75rem 0 0.55rem;
+    margin: 0 0 2.4rem;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .masthead .vol  { color: var(--blueprint); }
+  .masthead .date { color: var(--oxblood); }
+
+  /* ------- decorative glyph ------- */
+  .glyph { display: block; margin: 0 0 1.4rem; color: var(--ink); }
+  .glyph svg { display: block; }
+
+  /* ------- title block ------- */
+  h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'SOFT' 30, 'WONK' 0;
+    font-weight: 500;
+    font-size: clamp(2.2rem, 5.4vw, 3.6rem);
+    line-height: 1.02;
+    letter-spacing: -0.012em;
+    margin: 0 0 0.55rem;
+    color: var(--ink);
+  }
+  h1 em {
+    font-style: italic;
+    font-variation-settings: 'opsz' 144, 'SOFT' 90, 'WONK' 1;
+    color: var(--blueprint);
+  }
+
+  p.lede {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 24, 'SOFT' 100, 'WONK' 0;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 1.18rem;
+    line-height: 1.46;
+    color: var(--muted);
+    margin: 0.4rem 0 0;
+    max-width: 56ch;
+  }
+  p.lede code { font-style: normal; }
+
+  .ornament {
+    display: flex; align-items: center; gap: 0.6rem;
+    margin: 2.6rem 0 2rem;
+    color: var(--rule);
+  }
+  .ornament::before, .ornament::after {
+    content: ""; flex: 1; height: 1px; background: var(--rule);
+  }
+  .ornament span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--muted);
+  }
+
+  /* ------- section headers ------- */
+  h2 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 60, 'SOFT' 25, 'WONK' 0;
+    font-weight: 600;
+    font-size: clamp(1.32rem, 2.4vw, 1.6rem);
+    line-height: 1.2;
+    margin: 3.2rem 0 1rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--rule);
+    position: relative;
+    counter-increment: section;
+  }
+  h2::before {
+    content: "§ " counter(section, decimal-leading-zero);
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--blueprint);
+    font-weight: 500;
+    margin-bottom: 0.35rem;
+  }
+
+  h3 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 24, 'SOFT' 50, 'WONK' 0;
+    font-weight: 600;
+    font-size: 1.1rem;
+    line-height: 1.3;
+    margin: 1.9rem 0 0.55rem;
+    color: var(--sage);
+  }
+  h3::before {
+    content: "▸";
+    color: var(--sage);
+    margin-right: 0.45rem;
+    font-size: 0.9em;
+  }
+
+  /* drop cap on first paragraph of opening section */
+  .opening > p:first-of-type::first-letter {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'SOFT' 0, 'WONK' 1;
+    font-weight: 700;
+    float: left;
+    font-size: 3.9em;
+    line-height: 0.82;
+    padding: 0.06em 0.12em 0 0;
+    color: var(--blueprint);
+  }
+
+  /* ------- prose ------- */
+  p { margin: 0 0 1.05rem; }
+  strong { font-weight: 700; color: var(--ink); }
+  em { font-style: italic; }
+  a {
+    color: var(--blueprint);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+  }
+  a:hover { color: var(--oxblood); }
+
+  ul, ol { margin: 0 0 1.2rem; padding-left: 1.45rem; }
+  li { margin-bottom: 0.55rem; }
+  ul li::marker { color: var(--blueprint); }
+  ol li::marker { color: var(--blueprint); font-family: 'JetBrains Mono', monospace; }
+
+  blockquote {
+    margin: 1.4rem 0;
+    padding: 0.85rem 1.2rem;
+    background: var(--blueprint-tint);
+    border-left: 3px solid var(--blueprint);
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 36, 'SOFT' 80, 'WONK' 0;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--ink);
+    font-size: 1.05rem;
+    line-height: 1.5;
+  }
+
+  /* ------- code ------- */
+  code {
+    font-family: 'JetBrains Mono', ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 0.85em;
+    background: var(--code-bg);
+    padding: 0.08em 0.36em;
+    border-radius: 2px;
+    color: var(--ink);
+    word-break: keep-all;
+  }
+  pre {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    background: var(--code-bg);
+    border: 1px solid var(--rule-soft);
+    border-left: 3px solid var(--blueprint);
+    padding: 1.1rem 1.2rem 1rem;
+    margin: 1.4rem 0;
+    overflow-x: auto;
+    position: relative;
+  }
+  pre code { background: transparent; padding: 0; font-size: inherit; color: var(--ink); }
+
+  /* ------- callouts ------- */
+  .callout {
+    margin: 1.5rem 0;
+    padding: 0.9rem 1.2rem 0.95rem;
+    background: var(--blueprint-tint);
+    border-left: 3px solid var(--blueprint);
+    position: relative;
+  }
+  .callout::before {
+    content: "KEY";
+    position: absolute;
+    top: 0.55rem; right: 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.22em;
+    color: var(--blueprint);
+    font-weight: 700;
+    opacity: 0.6;
+  }
+  .callout h4 {
+    margin: 0 0 0.45rem;
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 24, 'SOFT' 30, 'WONK' 0;
+    font-weight: 600;
+    font-size: 1.02rem;
+    color: var(--blueprint-deep);
+    line-height: 1.25;
+  }
+  .callout p { margin: 0 0 0.55rem; font-size: 0.99rem; line-height: 1.5; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout code { font-size: 0.84em; }
+
+  .callout.def {
+    background: var(--oxblood-tint);
+    border-left-color: var(--oxblood);
+  }
+  .callout.def::before { content: "DEF"; color: var(--oxblood); }
+  .callout.def h4 { color: var(--oxblood); }
+
+  .callout.idea {
+    background: var(--sage-tint);
+    border-left-color: var(--sage);
+  }
+  .callout.idea::before { content: "IDEA"; color: var(--sage); }
+  .callout.idea h4 { color: var(--sage); }
+
+  .callout.tip {
+    background: var(--sepia-tint);
+    border-left-color: var(--sepia);
+  }
+  .callout.tip::before { content: "NOTE"; color: var(--sepia); }
+  .callout.tip h4 { color: var(--sepia); }
+
+  .callout.formula {
+    text-align: center;
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-variation-settings: 'opsz' 60, 'SOFT' 80, 'WONK' 0;
+    font-size: 1.18rem;
+    color: var(--ink);
+    padding: 1.1rem 1rem;
+  }
+  .callout.formula::before { content: "AXIOM"; }
+  .callout.formula code {
+    font-style: normal;
+    font-size: 0.92em;
+    background: transparent;
+  }
+
+  /* ------- definition list ------- */
+  dl.terms {
+    margin: 1.4rem 0 1.8rem;
+    padding: 0;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.55rem 1.3rem;
+  }
+  dl.terms dt {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--oxblood);
+    font-weight: 600;
+    padding-top: 0.18rem;
+    white-space: nowrap;
+  }
+  dl.terms dd {
+    margin: 0;
+    font-size: 0.97rem;
+    line-height: 1.5;
+  }
+  dl.terms dd code { font-size: 0.84em; }
+
+  /* ------- table ------- */
+  .table-wrap {
+    margin: 1.5rem -0.4rem 2.2rem;
+    overflow-x: auto;
+    padding: 0 0.4rem;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.94rem;
+    background: var(--table-bg);
+    border-top: 2px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
+  }
+  thead th {
+    text-align: left;
+    padding: 0.7rem 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--muted);
+    border-bottom: 1px solid var(--ink);
+    background: var(--table-head);
+  }
+  tbody td {
+    padding: 0.78rem 0.85rem;
+    vertical-align: top;
+    border-bottom: 1px dashed var(--rule-soft);
+    font-size: 0.94rem;
+    line-height: 1.5;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr { transition: background 0.18s ease; }
+  tbody tr:hover { background: var(--hover-tint); }
+  td:first-child {
+    font-family: 'Spectral', serif;
+    font-weight: 500;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  td code { font-size: 0.82em; }
+
+  /* ------- figures / diagrams ------- */
+  figure.diagram {
+    margin: 1.8rem 0 2rem;
+    padding: 1.1rem 1rem 0.9rem;
+    background: var(--diagram-bg);
+    border: 1px solid var(--rule-soft);
+    border-radius: 4px;
+    counter-increment: figure;
+  }
+  figure.diagram svg {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  figure.diagram figcaption {
+    margin-top: 0.7rem;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  figure.diagram figcaption::before {
+    content: "FIG. " counter(figure, decimal-leading-zero) " · ";
+    color: var(--blueprint);
+  }
+  figure.diagram .pair {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+  }
+  figure.diagram .pair > svg { flex: 0 0 auto; }
+  figure.diagram .vs {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--oxblood);
+    text-transform: uppercase;
+  }
+
+  /* SVG common */
+  .sv-box   { fill: none; stroke: var(--ink); stroke-width: 1.4; }
+  .sv-box-r { rx: 8; ry: 8; }
+  .sv-dash  { stroke-dasharray: 5 4; }
+  .sv-edge  { fill: none; stroke: var(--ink); stroke-width: 1.2; }
+  .sv-edge-r{ stroke: var(--oxblood); }
+  .sv-edge-b{ stroke: var(--blueprint); }
+  .sv-text  { fill: var(--ink); font-family: 'Fraunces', Georgia, serif; font-size: 13px; font-style: italic; }
+  .sv-label { fill: var(--oxblood); font-family: 'JetBrains Mono', monospace; font-size: 10px; }
+  .sv-meta  { fill: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .sv-dot   { fill: var(--ink); }
+  .sv-fill  { fill: var(--blueprint-tint); }
+
+  /* ------- citation ------- */
+  .citation {
+    margin-top: 4rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--rule);
+    color: var(--sepia);
+    font-family: 'Spectral', serif;
+    font-style: italic;
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+  .citation code { font-style: normal; background: transparent; padding: 0; color: var(--sepia); }
+  .citation strong { color: var(--sepia); font-weight: 600; font-style: normal; }
+
+  .colophon {
+    margin-top: 3rem;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.4em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .colophon .dot { color: var(--blueprint); margin: 0 0.4rem; }
+
+  /* ------- responsive ------- */
+  @media (max-width: 720px) {
+    body { font-size: 1rem; }
+    .masthead { font-size: 0.62rem; }
+    table { font-size: 0.88rem; }
+    dl.terms { grid-template-columns: 1fr; gap: 0.1rem 0; }
+    dl.terms dt { padding-top: 0.6rem; }
+  }
+
+  /* ------- page-load reveal ------- */
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .page > *, .page > section > * {
+    animation: rise 0.55s cubic-bezier(.2,.7,.2,1) both;
+  }
+  .page > *:nth-child(1) { animation-delay: 0s; }
+  .page > *:nth-child(2) { animation-delay: 0.05s; }
+  .page > *:nth-child(3) { animation-delay: 0.1s; }
+  .page > *:nth-child(4) { animation-delay: 0.15s; }
+  .page > *:nth-child(5) { animation-delay: 0.2s; }
+  .page > *:nth-child(n+6) { animation-delay: 0.25s; }
+  @media (prefers-reduced-motion: reduce) {
+    .page > *, .page > section > * { animation: none; }
+  }
+
+  ::selection { background: var(--blueprint); color: var(--paper); }
+</style>
+</head>
+<body>
+<article class="page">
+
+  <header class="masthead">
+    <span class="vol">Vol. 8 &middot; 1987 &middot; pp. 231&ndash;274</span>
+    <span>Cliff Notes &middot; Harel</span>
+    <span class="date">A visual formalism</span>
+  </header>
+
+  <div class="glyph" aria-hidden="true">
+    <svg width="172" height="50" viewBox="0 0 172 50" fill="none">
+      <!-- left: XOR nest (depth/clustering) -->
+      <rect x="1" y="3" width="68" height="44" rx="7" class="sv-box"/>
+      <rect x="9" y="12" width="22" height="14" rx="3" class="sv-box" style="stroke-width:1"/>
+      <rect x="38" y="12" width="22" height="14" rx="3" class="sv-box" style="stroke-width:1"/>
+      <circle cx="20" cy="38" r="2" class="sv-dot"/>
+      <line x1="20" y1="36" x2="20" y2="28" class="sv-edge"/>
+      <polygon points="20,26 18,30 22,30" fill="var(--ink)"/>
+      <!-- middle arrow -->
+      <line x1="73" y1="25" x2="96" y2="25" stroke="var(--oxblood)" stroke-width="1.3"/>
+      <polygon points="99,25 93,22 93,28" fill="var(--oxblood)"/>
+      <text x="76" y="20" font-family="JetBrains Mono, monospace" font-size="7.5" letter-spacing="0.6" fill="var(--oxblood)">e[C]/a</text>
+      <!-- right: AND dashed-split (orthogonality) -->
+      <rect x="102" y="3" width="68" height="44" rx="7" class="sv-box" stroke="var(--blueprint)"/>
+      <line x1="102" y1="25" x2="170" y2="25" stroke="var(--blueprint)" stroke-width="1" stroke-dasharray="3 3"/>
+      <text x="113" y="17" class="sv-text" fill="var(--blueprint)">A</text>
+      <text x="113" y="40" class="sv-text" fill="var(--blueprint)">B</text>
+    </svg>
+  </div>
+
+  <h1>Statecharts, <em>distilled</em></h1>
+  <p class="lede">Cliff notes for Harel&rsquo;s 1987 paper, <em>&ldquo;Statecharts: A Visual Formalism for Complex Systems&rdquo;</em> &mdash; the 44-page article that gave reactive systems their first humane diagram.</p>
+
+  <div class="ornament" aria-hidden="true"><span>&sect;</span></div>
+
+  <!-- ===================================================== -->
+  <section class="opening">
+    <h2>The problem Harel set out to fix</h2>
+    <p>Reactive systems &mdash; phones, watches, avionics, controllers &mdash; never stop. They wait, react, wait again. A transformational program runs once and finishes; a reactive system runs forever. Engineers therefore need a notation that scales with hierarchy and concurrency, not against them.</p>
+    <p>The flat state-transition diagram cannot. Add three independent on/off switches and the diagram needs eight states. Add a fourth switch and it needs sixteen. Every clarification multiplies the boxes.</p>
+    <div class="callout">
+      <h4>Harel&rsquo;s thesis, in one line</h4>
+      <p>Take the conventional state diagram. Bolt on three things and you can specify a wristwatch, an avionics bay, or a missile guidance unit on a single page that a human can read.</p>
+    </div>
+    <div class="callout formula"><code>statecharts = state&#8209;diagrams + depth + orthogonality + broadcast&#8209;communication</code></div>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>Vocabulary at a glance</h2>
+    <p>The paper introduces a small lexicon and never leaves it. Learn these eight terms and the rest of the paper reads itself.</p>
+
+    <dl class="terms">
+      <dt>state</dt>            <dd>A rounded box. The system sits in one at any instant of its life.</dd>
+      <dt>event</dt>            <dd>Something that happens instantaneously &mdash; a button press, a tick, a timeout. Labels arrows.</dd>
+      <dt>condition</dt>        <dd>A boolean predicate, written <code>[C]</code> after an event, that guards a transition.</dd>
+      <dt>action</dt>           <dd>An output emitted when an arrow fires, written after a slash: <code>e[C]/a</code>.</dd>
+      <dt>cluster</dt>          <dd>Wrap several states in one super-state. The super-state means &ldquo;exactly one of these&rdquo; (XOR).</dd>
+      <dt>refine</dt>           <dd>The same move from the other direction &mdash; split a state into substates. Top-down clustering.</dd>
+      <dt>orthogonal</dt>       <dd>A state split by a dashed line into independent components, all active at once (AND).</dd>
+      <dt>broadcast</dt>        <dd>Any component sees every event. No subscriptions, no addresses, no routing.</dd>
+    </dl>
+
+    <div class="callout def">
+      <h4>Higraph &mdash; the underlying primitive</h4>
+      <p>Statecharts are drawn on a <em>higraph</em>: rounded boxes that nest (Euler-circle style) and split (Venn-diagram style). Area carries meaning; lines and points do not. Hierarchy and concurrency fall out of geometry, not syntax.</p>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>Depth: clustering and refinement</h2>
+    <p>Group three states into a fourth and the diagram shrinks. An arrow drawn out of the wrapper stands for an arrow out of every child. Harel calls the relationship <em>XOR</em>: in the super-state you are in exactly one of the children.</p>
+
+    <figure class="diagram">
+      <div class="pair">
+        <!-- Fig. 1 — flat: A, B, C with arrows -->
+        <svg width="200" height="150" viewBox="0 0 200 150" aria-label="Fig. 1 flat state diagram">
+          <rect x="20"  y="15"  width="46" height="28" rx="6" class="sv-box"/>
+          <rect x="135" y="60"  width="46" height="28" rx="6" class="sv-box"/>
+          <rect x="20"  y="105" width="46" height="28" rx="6" class="sv-box"/>
+          <text x="40"  y="34"  class="sv-text">A</text>
+          <text x="155" y="79"  class="sv-text">B</text>
+          <text x="40"  y="124" class="sv-text">C</text>
+          <!-- α: A → B -->
+          <path d="M 66 30 Q 105 35 135 65" class="sv-edge"/>
+          <polygon points="135,65 128,62 132,58" fill="var(--ink)"/>
+          <text x="105" y="42" class="sv-label">&alpha;</text>
+          <!-- β: A → B and C → B (two arrows) -->
+          <path d="M 66 38 Q 100 55 135 70" class="sv-edge"/>
+          <polygon points="135,70 128,67 132,63" fill="var(--ink)"/>
+          <text x="100" y="65" class="sv-label">&beta;</text>
+          <path d="M 66 115 Q 100 95 135 82" class="sv-edge"/>
+          <polygon points="135,82 128,86 132,90" fill="var(--ink)"/>
+          <text x="100" y="105" class="sv-label">&beta;</text>
+          <!-- δ: C → B -->
+          <path d="M 66 122 Q 110 130 135 90" class="sv-edge"/>
+          <polygon points="135,90 128,93 132,97" fill="var(--ink)"/>
+          <text x="105" y="135" class="sv-label">&delta;</text>
+          <!-- γ(P): A → C -->
+          <path d="M 30 43 V 105" class="sv-edge"/>
+          <polygon points="30,105 27,99 33,99" fill="var(--ink)"/>
+          <text x="3" y="78" class="sv-label">&gamma;(P)</text>
+        </svg>
+        <span class="vs">cluster &rarr;</span>
+        <!-- Fig. 2 — clustered: D wraps A and C -->
+        <svg width="220" height="150" viewBox="0 0 220 150" aria-label="Fig. 2 clustered diagram">
+          <rect x="10" y="8" width="90" height="135" rx="10" class="sv-box"/>
+          <text x="18" y="20" class="sv-meta">D</text>
+          <rect x="30" y="28" width="46" height="28" rx="6" class="sv-box"/>
+          <rect x="30" y="98" width="46" height="28" rx="6" class="sv-box"/>
+          <text x="48" y="47" class="sv-text">A</text>
+          <text x="48" y="117" class="sv-text">C</text>
+          <rect x="155" y="60" width="46" height="28" rx="6" class="sv-box"/>
+          <text x="173" y="79" class="sv-text">B</text>
+          <!-- α: A → B (inter-level) -->
+          <path d="M 76 38 Q 115 38 155 65" class="sv-edge"/>
+          <polygon points="155,65 148,62 152,58" fill="var(--ink)"/>
+          <text x="120" y="42" class="sv-label">&alpha;</text>
+          <!-- β: D → B (one arrow stands for two) -->
+          <path d="M 100 75 Q 130 70 155 75" class="sv-edge-r"/>
+          <polygon points="155,75 148,72 152,68" fill="var(--oxblood)"/>
+          <text x="120" y="68" class="sv-label">&beta;</text>
+          <!-- δ: C → B (inter-level) -->
+          <path d="M 76 115 Q 115 115 155 88" class="sv-edge"/>
+          <polygon points="155,88 148,91 152,95" fill="var(--ink)"/>
+          <text x="120" y="125" class="sv-label">&delta;</text>
+          <!-- γ(P): A → C -->
+          <path d="M 40 56 V 98" class="sv-edge"/>
+          <polygon points="40,98 37,92 43,92" fill="var(--ink)"/>
+          <text x="12" y="80" class="sv-label">&gamma;(P)</text>
+        </svg>
+      </div>
+      <figcaption>Six arrows collapse to four. The single red &beta; out of D replaces &beta; from A and &beta; from C.</figcaption>
+    </figure>
+
+    <div class="callout idea">
+      <h4>Two directions, one relationship</h4>
+      <p><strong>Clustering</strong> works bottom-up: wrap related states into a super-state to economize on arrows. <strong>Refinement</strong> works top-down: zoom into a state and reveal its substates. Both produce the same XOR nesting; pick the direction that fits your design moment.</p>
+    </div>
+
+    <p>Because the super-state stands for every child, arrows may originate or terminate at any level. Harel calls these <em>inter-level transitions</em>, and they are the visual lever that keeps complex specifications readable.</p>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>Default arrows and history</h2>
+    <p>Entering a super-state from outside requires a rule. The <em>default arrow</em> &mdash; a small filled circle on a short stub &mdash; names the substate to enter. Harel treats it as the visual analog of an automaton&rsquo;s start state.</p>
+
+    <figure class="diagram">
+      <div class="pair">
+        <!-- Fig. 6 default arrow -->
+        <svg width="120" height="120" viewBox="0 0 120 120" aria-label="default arrow">
+          <rect x="10" y="20" width="100" height="80" rx="9" class="sv-box"/>
+          <text x="18" y="34" class="sv-meta">D</text>
+          <rect x="38" y="58" width="44" height="28" rx="6" class="sv-box"/>
+          <text x="56" y="77" class="sv-text">A</text>
+          <circle cx="60" cy="44" r="2.5" class="sv-dot"/>
+          <line x1="60" y1="46" x2="60" y2="56" class="sv-edge"/>
+          <polygon points="60,58 57,53 63,53" fill="var(--ink)"/>
+        </svg>
+        <!-- Fig. 10 history -->
+        <svg width="160" height="160" viewBox="0 0 160 160" aria-label="history entrance">
+          <rect x="10" y="18" width="140" height="135" rx="10" class="sv-box"/>
+          <text x="18" y="32" class="sv-meta">alarm1</text>
+          <rect x="40" y="48" width="50" height="24" rx="5" class="sv-box"/>
+          <rect x="40" y="110" width="50" height="24" rx="5" class="sv-box"/>
+          <text x="58" y="65" class="sv-text">off</text>
+          <text x="60" y="127" class="sv-text">on</text>
+          <line x1="65" y1="72" x2="65" y2="110" class="sv-edge"/>
+          <polygon points="65,110 62,104 68,104" fill="var(--ink)"/>
+          <text x="68" y="92" class="sv-label">d</text>
+          <line x1="60" y1="134" x2="60" y2="72" class="sv-edge"/>
+          <polygon points="60,72 57,78 63,78" fill="var(--ink)"/>
+          <text x="46" y="92" class="sv-label">d</text>
+          <!-- H circle -->
+          <circle cx="120" cy="55" r="11" stroke="var(--oxblood)" stroke-width="1.4" fill="var(--paper)"/>
+          <text x="115" y="59" font-family="Fraunces, serif" font-size="13" font-style="italic" fill="var(--oxblood)">H</text>
+          <line x1="120" y1="20" x2="120" y2="44" stroke="var(--oxblood)" stroke-width="1.2" stroke-dasharray="3 3"/>
+          <line x1="113" y1="60" x2="90" y2="60" class="sv-edge"/>
+          <polygon points="90,60 96,57 96,63" fill="var(--ink)"/>
+          <text x="100" y="55" class="sv-label">a</text>
+        </svg>
+      </div>
+      <figcaption>Left: default arrow &mdash; on entering D, go to A. Right: enter <code>alarm1</code> by history (H) &mdash; resume whichever of <code>off</code> or <code>on</code> the watch last saw.</figcaption>
+    </figure>
+
+    <div class="callout def">
+      <h4>H vs H&star;</h4>
+      <p><code>H</code> applies only at the level on which it is drawn &mdash; one substate deep. <code>H&star;</code> (deep history) applies all the way down, restoring the entire substate stack. Action <code>clear-history(s)</code> erases that memory; <code>clear-history(s&star;)</code> erases it everywhere below.</p>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>Orthogonality: concurrency without combinatorics</h2>
+    <p>A dashed line splits a state into two or more <em>components</em>. Being in the parent means being in some substate of <em>every</em> component at once. The components share events and may guard on each other through <code>in&thinsp;(state)</code> conditions, but they hold their own substate independently.</p>
+
+    <figure class="diagram">
+      <div class="pair">
+        <!-- Fig. 19 — Y = A AND D -->
+        <svg width="270" height="170" viewBox="0 0 270 170" aria-label="AND-decomposed state Y">
+          <rect x="10" y="14" width="250" height="150" rx="10" class="sv-box"/>
+          <text x="18" y="28" class="sv-meta">Y</text>
+          <line x1="135" y1="14" x2="135" y2="164" class="sv-edge sv-dash" stroke="var(--blueprint)"/>
+          <text x="22" y="44" class="sv-meta" fill="var(--blueprint)">A</text>
+          <text x="146" y="44" class="sv-meta" fill="var(--blueprint)">D</text>
+          <!-- A component: B (default) and C -->
+          <rect x="32" y="56" width="40" height="24" rx="5" class="sv-box"/>
+          <rect x="86" y="124" width="40" height="24" rx="5" class="sv-box"/>
+          <text x="46" y="73" class="sv-text">B</text>
+          <text x="100" y="141" class="sv-text">C</text>
+          <circle cx="40" cy="48" r="2" class="sv-dot"/>
+          <line x1="40" y1="50" x2="40" y2="56" class="sv-edge"/>
+          <polygon points="40,58 37,53 43,53" fill="var(--ink)"/>
+          <path d="M 60 80 Q 65 100 95 124" class="sv-edge"/>
+          <polygon points="95,124 89,121 92,117" fill="var(--ink)"/>
+          <text x="78" y="105" class="sv-label">&beta;(inG)</text>
+          <!-- D component: E, F (default), G -->
+          <rect x="160" y="56" width="40" height="22" rx="5" class="sv-box"/>
+          <rect x="216" y="92" width="36" height="22" rx="5" class="sv-box"/>
+          <rect x="160" y="124" width="40" height="22" rx="5" class="sv-box"/>
+          <text x="172" y="71" class="sv-text">E</text>
+          <text x="225" y="107" class="sv-text">F</text>
+          <text x="172" y="139" class="sv-text">G</text>
+          <circle cx="225" cy="86" r="2" class="sv-dot"/>
+          <line x1="225" y1="88" x2="225" y2="92" class="sv-edge"/>
+          <path d="M 216 100 Q 195 80 200 72" class="sv-edge"/>
+          <polygon points="200,72 197,77 203,77" fill="var(--ink)"/>
+          <text x="200" y="92" class="sv-label">&mu;</text>
+          <path d="M 200 70 Q 175 100 175 124" class="sv-edge"/>
+          <polygon points="175,124 172,118 178,118" fill="var(--ink)"/>
+          <text x="156" y="100" class="sv-label">&gamma;</text>
+          <path d="M 195 135 Q 230 130 225 114" class="sv-edge"/>
+          <polygon points="225,114 222,120 228,120" fill="var(--ink)"/>
+          <text x="218" y="135" class="sv-label">&delta;</text>
+        </svg>
+      </div>
+      <figcaption>Y = A &otimes; D. Three substates on each side encode all six combinations &mdash; n + m boxes for n &times; m configurations.</figcaption>
+    </figure>
+
+    <div class="callout formula"><code>n &times; m</code> behaviours, drawn with <code>n + m</code> boxes</div>
+
+    <p>The flat equivalent looks like Harel&rsquo;s Fig. 20: six product states (B,E), (B,F), (B,G), (C,E), (C,F), (C,G), wired by every transition that fires in either side. Two components with a thousand states each produce a million product states &mdash; this is the explosion orthogonality avoids.</p>
+
+    <figure class="diagram">
+      <!-- Fig. 20 — flat AND-free equivalent -->
+      <svg width="380" height="200" viewBox="0 0 380 200" aria-label="flat AND-free equivalent">
+        <g class="sv-box">
+          <rect x="20"  y="20"  width="64" height="28" rx="6"/>
+          <rect x="158" y="20"  width="64" height="28" rx="6"/>
+          <rect x="296" y="20"  width="64" height="28" rx="6"/>
+          <rect x="20"  y="150" width="64" height="28" rx="6"/>
+          <rect x="158" y="150" width="64" height="28" rx="6"/>
+          <rect x="296" y="150" width="64" height="28" rx="6"/>
+        </g>
+        <g class="sv-text" text-anchor="middle">
+          <text x="52"  y="40">B,E</text>
+          <text x="190" y="40">B,F</text>
+          <text x="328" y="40">B,G</text>
+          <text x="52"  y="170">C,E</text>
+          <text x="190" y="170">C,F</text>
+          <text x="328" y="170">C,G</text>
+        </g>
+        <g class="sv-edge">
+          <line x1="84"  y1="34" x2="158" y2="34"/><polygon points="158,34 152,31 152,37" fill="var(--ink)"/>
+          <line x1="222" y1="34" x2="296" y2="34"/><polygon points="296,34 290,31 290,37" fill="var(--ink)"/>
+          <line x1="84"  y1="164" x2="158" y2="164"/><polygon points="158,164 152,161 152,167" fill="var(--ink)"/>
+          <line x1="222" y1="164" x2="296" y2="164"/><polygon points="296,164 290,161 290,167" fill="var(--ink)"/>
+          <line x1="52"  y1="48" x2="52" y2="150"/><polygon points="52,150 49,144 55,144" fill="var(--ink)"/>
+          <line x1="190" y1="48" x2="190" y2="150"/><polygon points="190,150 187,144 193,144" fill="var(--ink)"/>
+          <line x1="328" y1="48" x2="328" y2="150"/><polygon points="328,150 325,144 331,144" fill="var(--ink)"/>
+        </g>
+        <text x="190" y="100" class="sv-meta" text-anchor="middle" fill="var(--oxblood)">&times; six product states, ~twelve arrows &mdash; growth is multiplicative</text>
+      </svg>
+      <figcaption>Same behaviour as the orthogonal version above, drawn without the dashed split.</figcaption>
+    </figure>
+
+    <div class="callout idea">
+      <h4>Synchronization and independence, side by side</h4>
+      <p>One event can fire in <em>both</em> regions simultaneously (synchronization). Another event may touch only one (independence). The dashed line carries both meanings without ceremony.</p>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>Transitions: events, conditions, actions</h2>
+    <p>An arrow carries a label of the form <code>event[condition]/action</code>. Any part may be omitted. The action is Mealy-style &mdash; it fires on the transition, not in the state. Broadcast means the action is itself an event that any other component may react to in the same step.</p>
+
+    <div class="table-wrap">
+    <table>
+    <thead>
+      <tr><th>Notation</th><th>Reads as</th><th>Example</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>e</code></td>
+        <td>Take the transition when event <em>e</em> occurs.</td>
+        <td><code>button-pressed</code></td>
+      </tr>
+      <tr>
+        <td><code>e[C]</code></td>
+        <td>Take the transition when <em>e</em> occurs, provided condition <em>C</em> holds.</td>
+        <td><code>tick [hour = 12]</code></td>
+      </tr>
+      <tr>
+        <td><code>e/a</code></td>
+        <td>Take the transition on <em>e</em>; while taking it, emit event <em>a</em>.</td>
+        <td><code>land/gear-down</code></td>
+      </tr>
+      <tr>
+        <td><code>e[C]/a</code></td>
+        <td>The full form: conditioned, guarded, and side-effecting.</td>
+        <td><code>T-hits-T1 [P1]/beep</code></td>
+      </tr>
+      <tr>
+        <td><code>in(s)</code></td>
+        <td>Condition that holds while the system occupies state <em>s</em> (often in another region).</td>
+        <td><code>e[in(alarms.on)]</code></td>
+      </tr>
+      <tr>
+        <td><code>k&nbsp;sec&nbsp;in&nbsp;s</code></td>
+        <td>Timeout: condition holds when the system has spent <em>k</em> seconds in <em>s</em>.</td>
+        <td><code>2 min in date</code></td>
+      </tr>
+    </tbody>
+    </table>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>Connectives: C and S</h2>
+    <p>When many arrows share a source, a target, or an event, the diagram clutters fast. Harel offers two circled connectives that fold the clutter into a single glyph.</p>
+
+    <figure class="diagram">
+      <div class="pair">
+        <!-- Fig. 33(b): conditional C connector -->
+        <svg width="220" height="180" viewBox="0 0 220 180" aria-label="conditional C connector">
+          <rect x="10" y="10" width="200" height="155" rx="10" class="sv-box"/>
+          <rect x="32" y="38" width="50" height="28" rx="5" class="sv-box"/>
+          <rect x="140" y="38" width="50" height="28" rx="5" class="sv-box"/>
+          <rect x="86" y="92" width="50" height="28" rx="5" class="sv-box"/>
+          <text x="50" y="57" class="sv-text">Q</text>
+          <text x="158" y="57" class="sv-text">P</text>
+          <text x="104" y="111" class="sv-text">R</text>
+          <!-- C circle -->
+          <circle cx="111" cy="148" r="11" stroke="var(--oxblood)" stroke-width="1.4" fill="var(--paper)"/>
+          <text x="106" y="152" font-family="Fraunces, serif" font-size="13" font-style="italic" fill="var(--oxblood)">C</text>
+          <line x1="111" y1="170" x2="111" y2="159" stroke="var(--oxblood)" stroke-width="1.2" stroke-dasharray="3 3"/>
+          <text x="118" y="170" class="sv-label">&alpha;</text>
+          <!-- branches from C to Q, P, R -->
+          <path d="M 111 137 Q 80 100 57 66" class="sv-edge"/>
+          <polygon points="57,66 60,72 54,72" fill="var(--ink)"/>
+          <text x="68" y="100" class="sv-label">(Q)</text>
+          <path d="M 111 137 Q 145 100 165 66" class="sv-edge"/>
+          <polygon points="165,66 162,72 168,72" fill="var(--ink)"/>
+          <text x="150" y="100" class="sv-label">(P)</text>
+          <path d="M 111 137 V 120" class="sv-edge"/>
+          <polygon points="111,120 108,126 114,126" fill="var(--ink)"/>
+          <text x="118" y="130" class="sv-label">(R)</text>
+        </svg>
+      </div>
+      <figcaption>Conditional connector. One event &alpha; routes to Q, P, or R depending on which guard holds.</figcaption>
+    </figure>
+
+    <dl class="terms">
+      <dt>C connective</dt>
+      <dd>One event fans out by guard. <em>&ldquo;On &alpha;, go to Q if P, R if Q&hellip;&rdquo;</em> collapses to a single arrow into a C-circle followed by guarded branches out.</dd>
+      <dt>S connective</dt>
+      <dd>One event fans out by <em>value</em>. The event has a parameter, and the diagram picks the target by inspecting it. Handy for keyboards, menus, and selectors.</dd>
+    </dl>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>The Citizen Quartz running example</h2>
+    <p>Harel works the whole formalism out on a single artefact: a Citizen Quartz Multi-Alarm III wristwatch. The watch is small enough to fit on a page and ornery enough to stress every construct. By Fig. 31 the entire device lives on one foldout statechart.</p>
+
+    <p>At the top, the watch&rsquo;s <em>alive</em> state splits orthogonally into six concurrent regions:</p>
+
+    <figure class="diagram">
+      <!-- Simplified Fig. 27 -->
+      <svg width="420" height="200" viewBox="0 0 420 200" aria-label="watch top-level orthogonal regions">
+        <rect x="10" y="10" width="400" height="180" rx="10" class="sv-box"/>
+        <text x="18" y="26" class="sv-meta">alive</text>
+        <!-- vertical splits -->
+        <g stroke="var(--blueprint)" stroke-width="1" stroke-dasharray="4 4">
+          <line x1="170" y1="32" x2="170" y2="188"/>
+          <line x1="230" y1="32" x2="230" y2="188"/>
+          <line x1="290" y1="32" x2="290" y2="188"/>
+          <line x1="350" y1="32" x2="350" y2="188"/>
+        </g>
+        <!-- horizontal split (alarm2 below alarm1) -->
+        <line x1="170" y1="110" x2="290" y2="110" stroke="var(--blueprint)" stroke-width="1" stroke-dasharray="4 4"/>
+        <line x1="350" y1="110" x2="410" y2="110" stroke="var(--blueprint)" stroke-width="1" stroke-dasharray="4 4"/>
+        <g class="sv-meta">
+          <text x="22"  y="44">main</text>
+          <text x="178" y="44">alarm1-status</text>
+          <text x="178" y="124">alarm2-status</text>
+          <text x="238" y="44">chime-status</text>
+          <text x="298" y="44">light</text>
+          <text x="358" y="44">power</text>
+        </g>
+        <g class="sv-text" text-anchor="middle">
+          <text x="90"  y="125">displays + alarms-beep</text>
+        </g>
+      </svg>
+      <figcaption>The watch&rsquo;s top level: six independent regions, all active together, each refined further inside.</figcaption>
+    </figure>
+
+    <div class="callout idea">
+      <h4>What orthogonality buys here</h4>
+      <p>Pressing button <em>b</em> in update mode turns on the light <em>and</em> exits update. That&rsquo;s two independent rules in two regions reacting to one broadcast event &mdash; the payoff of the dashed line.</p>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>What can go wrong</h2>
+    <p>The formalism is geometric, so it is forgiving but not bulletproof. Harel calls out four traps the modeler must dodge.</p>
+
+    <div class="table-wrap">
+    <table>
+    <thead>
+      <tr><th>Hazard</th><th>What it is</th><th>How to spot it</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Default contradiction</td>
+        <td>An entered super-state has no consistent default, or two defaults compete.</td>
+        <td>Trace every entry arrow; verify each lands on exactly one leaf.</td>
+      </tr>
+      <tr>
+        <td>&alpha;-contradiction</td>
+        <td>The same event fires two outgoing arrows whose targets disagree.</td>
+        <td>Walk each event upward through ancestor peripheries.</td>
+      </tr>
+      <tr>
+        <td>Over-deep history</td>
+        <td>An <code>H</code> remembers a substate that was itself a transient artefact.</td>
+        <td>Combine <code>H</code> with <code>clear-history</code> on transitions that retire the memory.</td>
+      </tr>
+      <tr>
+        <td>Naming the dashed product</td>
+        <td>An orthogonal product has no natural geometry for its outer name.</td>
+        <td>Attach the name to the outside corner, or wrap the product in a labelled super-state.</td>
+      </tr>
+    </tbody>
+    </table>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>Advanced features, listed</h2>
+    <p>Section 4 of the paper sketches features that did not surface in the watch. Harel treats them as part of the core formalism, not extensions.</p>
+
+    <dl class="terms">
+      <dt>activities</dt>
+      <dd>Continuous behaviours bound to a state &mdash; the &ldquo;beep continuously&rdquo; or &ldquo;run timer&rdquo; that the state diagram alone cannot express.</dd>
+      <dt>delays</dt>
+      <dd>Transitions guarded by elapsed time. The watch&rsquo;s &ldquo;2 min in date&rdquo; is the canonical example.</dd>
+      <dt>compound transitions</dt>
+      <dd>Multi-step arrows that pass through connectives without halting in any intermediate state.</dd>
+      <dt>parameters</dt>
+      <dd>Events that carry values; the receiving condition or action may read them.</dd>
+      <dt>actions on states</dt>
+      <dd><code>entry</code> and <code>exit</code> actions distinct from arrow actions &mdash; the move modern statechart tools made standard.</dd>
+    </dl>
+
+    <div class="callout tip">
+      <h4>What Harel deferred</h4>
+      <p>Section 6 floats two open questions: marry statecharts with <strong>temporal logic</strong> for verification, and admit <strong>probabilistic</strong> transitions for stochastic systems. Both arrived later &mdash; the first in STATEMATE&rsquo;s simulators, the second in Markov-decision and game-AI tooling.</p>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <h2>Why the paper still matters</h2>
+    <p>Harel claimed that depth, orthogonality, and broadcast were enough to keep state diagrams readable as systems grow. The forty years since have agreed. STATEMATE shipped the first commercial implementation; UML adopted statecharts wholesale; Stateflow drives Simulink; SCXML is a W3C standard; XState ships them to web developers; embedded firmware ships them to microcontrollers. The vocabulary &mdash; super-state, default, history, orthogonal region, broadcast event &mdash; remains the one practitioners use.</p>
+
+    <div class="callout">
+      <h4>Three ideas, one diagram per page</h4>
+      <p>That is the bargain Harel offered, and it is why a 1987 paper still describes the wristwatch on your wrist.</p>
+    </div>
+  </section>
+
+  <p class="citation"><strong>Source.</strong> Harel, D., &ldquo;Statecharts: A Visual Formalism for Complex Systems,&rdquo; <em>Science of Computer Programming</em> 8 (1987), pp. 231&ndash;274. Communicated by A. Pnueli; received December 1984; revised July 1986. Department of Applied Mathematics, The Weizmann Institute of Science.</p>
+
+  <div class="colophon">
+    <span>&sect;</span><span class="dot">&bull;</span><span>cliff notes</span><span class="dot">&bull;</span><span>fin</span><span class="dot">&bull;</span><span>&sect;</span>
+  </div>
+
+</article>
+</body>
+</html>

@@ -14,6 +14,7 @@
     --paper:        #f3eddc;
     --paper-grid:   rgba(40, 36, 24, 0.045);
     --paper-edge:   #ece3c9;
+    --paper-edge-2: #e4dbc1;
     --ink:          #1a1810;
     --muted:        #5d553f;
     --rule:         #a99a76;
@@ -31,12 +32,16 @@
     --table-bg:     rgba(255, 252, 238, 0.5);
     --table-head:   rgba(0, 0, 0, 0.025);
     --hover-tint:   rgba(31, 79, 122, 0.05);
+    --heat-low:     #2a4a78;
+    --heat-mid:     #c9a14a;
+    --heat-high:    #8b1f2c;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --paper:        #14130c;
       --paper-grid:   rgba(255, 245, 215, 0.035);
       --paper-edge:   #1c1a12;
+      --paper-edge-2: #221f15;
       --ink:          #ede2c4;
       --muted:        #a89c7d;
       --rule:         #5a5037;
@@ -54,6 +59,9 @@
       --table-bg:     rgba(255, 245, 215, 0.025);
       --table-head:   rgba(255, 245, 215, 0.05);
       --hover-tint:   rgba(136, 192, 232, 0.08);
+      --heat-low:     #4a78a8;
+      --heat-mid:     #d4b884;
+      --heat-high:    #e09098;
     }
   }
 
@@ -77,7 +85,6 @@
     counter-reset: section figure;
   }
 
-  /* ------- layout ------- */
   .page {
     max-width: 76ch;
     margin: 0 auto;
@@ -85,7 +92,6 @@
     position: relative;
   }
 
-  /* ------- masthead ------- */
   .masthead {
     display: flex;
     align-items: baseline;
@@ -105,15 +111,9 @@
   .masthead .vol { color: var(--blueprint); }
   .masthead .date { color: var(--oxblood); }
 
-  /* ------- decorative glyph ------- */
-  .glyph {
-    display: block;
-    margin: 0 0 1.4rem;
-    color: var(--ink);
-  }
+  .glyph { display: block; margin: 0 0 1.4rem; color: var(--ink); }
   .glyph svg { display: block; }
 
-  /* ------- title block ------- */
   h1 {
     font-family: 'Fraunces', Georgia, serif;
     font-variation-settings: 'opsz' 144, 'SOFT' 30, 'WONK' 0;
@@ -143,7 +143,6 @@
   }
   p.lede code { font-style: normal; }
 
-  /* legend bar */
   .legend {
     margin: 2rem 0 0;
     padding: 0.6rem 0;
@@ -161,29 +160,20 @@
   }
   .legend .label { color: var(--muted); margin-right: 0.3rem; }
 
-  /* horizontal rule between lede and body */
   .ornament {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
+    display: flex; align-items: center; gap: 0.6rem;
     margin: 2.6rem 0 2rem;
     color: var(--rule);
   }
   .ornament::before, .ornament::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: var(--rule);
+    content: ""; flex: 1; height: 1px; background: var(--rule);
   }
   .ornament span {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: var(--muted);
+    font-size: 0.65rem; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--muted);
   }
 
-  /* ------- section headers ------- */
   h2 {
     font-family: 'Fraunces', Georgia, serif;
     font-variation-settings: 'opsz' 60, 'SOFT' 25, 'WONK' 0;
@@ -200,52 +190,32 @@
     content: "§ " counter(section, decimal-leading-zero);
     display: block;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.66rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--blueprint);
-    font-weight: 500;
-    margin-bottom: 0.35rem;
+    font-size: 0.66rem; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--blueprint);
+    font-weight: 500; margin-bottom: 0.35rem;
   }
 
   h3 {
     font-family: 'Fraunces', Georgia, serif;
     font-variation-settings: 'opsz' 24, 'SOFT' 50, 'WONK' 0;
     font-weight: 600;
-    font-size: 1.15rem;
-    line-height: 1.3;
+    font-size: 1.15rem; line-height: 1.3;
     margin: 1.9rem 0 0.5rem;
     color: var(--sage);
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
+    display: flex; flex-wrap: wrap; align-items: baseline;
     gap: 0.55rem;
   }
-  h3 .tags {
-    display: inline-flex;
-    flex-wrap: wrap;
-    gap: 0.3rem;
-    margin-left: 0.1rem;
-  }
+  h3 .tags { display: inline-flex; flex-wrap: wrap; gap: 0.3rem; margin-left: 0.1rem; }
 
-  /* ------- prose ------- */
   p { margin: 0 0 1rem; }
   strong { font-weight: 700; color: var(--ink); }
   em { font-style: italic; }
-  a {
-    color: var(--blueprint);
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 0.18em;
-  }
-  a:hover { color: var(--oxblood); }
 
   ul, ol { margin: 0 0 1.2rem; padding-left: 1.45rem; }
   li { margin-bottom: 0.5rem; }
   ul li::marker { color: var(--blueprint); }
   ol li::marker { color: var(--blueprint); font-family: 'JetBrains Mono', monospace; }
 
-  /* ------- primitive blocks ------- */
   .primitive {
     margin: 0.4rem 0 1.7rem;
     padding-left: 0.95rem;
@@ -253,137 +223,130 @@
   }
   .when {
     font-family: 'Spectral', serif;
-    font-size: 0.94rem;
-    color: var(--muted);
-    margin: 0.5rem 0 0;
-    line-height: 1.5;
+    font-size: 0.94rem; color: var(--muted);
+    margin: 0.5rem 0 0; line-height: 1.5;
   }
   .when strong { color: var(--ink); font-weight: 600; }
 
-  /* ------- UE callout ------- */
   .ue-note {
     margin: 0.7rem 0;
     padding: 0.7rem 1rem 0.7rem 1.05rem;
     background: var(--blueprint-tint);
     border-left: 3px solid var(--blueprint);
-    font-size: 0.94rem;
-    line-height: 1.5;
-    color: var(--ink);
-    position: relative;
+    font-size: 0.94rem; line-height: 1.5;
+    color: var(--ink); position: relative;
   }
   .ue-note::before {
     content: "UE";
-    position: absolute;
-    top: 0.55rem;
-    right: 0.7rem;
+    position: absolute; top: 0.55rem; right: 0.7rem;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.58rem;
-    letter-spacing: 0.2em;
-    color: var(--blueprint);
-    font-weight: 700;
-    opacity: 0.55;
+    font-size: 0.58rem; letter-spacing: 0.2em;
+    color: var(--blueprint); font-weight: 700; opacity: 0.55;
   }
   .ue-note strong { color: var(--blueprint-deep); }
   .ue-note code { background: transparent; color: var(--blueprint-deep); padding: 0 0.1em; }
 
-  /* ------- tags ------- */
   .tag {
     display: inline-block;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.6rem;
-    font-weight: 600;
+    font-size: 0.6rem; font-weight: 600;
     padding: 0.18rem 0.5rem;
     border-radius: 2px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    vertical-align: middle;
-    line-height: 1.1;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    vertical-align: middle; line-height: 1.1;
     border: 1px solid transparent;
   }
   .tag.ue       { background: var(--blueprint-tint); color: var(--blueprint); border-color: var(--blueprint); }
   .tag.classic  { background: var(--sepia-tint);    color: var(--sepia);    border-color: var(--sepia); }
   .tag.modern   { background: var(--sage-tint);     color: var(--sage);     border-color: var(--sage); }
 
-  /* ------- code ------- */
   code {
     font-family: 'JetBrains Mono', ui-monospace, "SF Mono", Consolas, monospace;
     font-size: 0.85em;
     background: var(--code-bg);
     padding: 0.08em 0.36em;
-    border-radius: 2px;
-    color: var(--ink);
+    border-radius: 2px; color: var(--ink);
     word-break: keep-all;
   }
 
-  /* ------- table ------- */
-  .table-wrap {
-    margin: 1.5rem -0.4rem 2.2rem;
-    overflow-x: auto;
-    padding: 0 0.4rem;
+  /* ------- figures ------- */
+  figure.fig {
+    margin: 1.1rem 0 0.6rem;
+    padding: 1.1rem 1rem 0.6rem;
+    background: var(--paper-edge);
+    border: 1px solid var(--rule-soft);
+    border-radius: 2px;
+    position: relative;
+    counter-increment: figure;
   }
+  figure.fig::before {
+    content: "FIG. " counter(figure, decimal-leading-zero);
+    position: absolute; top: 0.55rem; left: 0.85rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem; letter-spacing: 0.22em;
+    color: var(--muted); text-transform: uppercase;
+    font-weight: 600;
+  }
+  figure.fig svg {
+    display: block;
+    margin: 0.9rem auto 0.4rem;
+    max-width: 100%; height: auto;
+  }
+  figure.fig figcaption {
+    font-family: 'Spectral', serif;
+    font-style: italic;
+    font-size: 0.85rem;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.45;
+    padding: 0 0.5rem 0.3rem;
+  }
+
+  /* table */
+  .table-wrap { margin: 1.5rem -0.4rem 2.2rem; overflow-x: auto; padding: 0 0.4rem; }
   table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.94rem;
-    background: var(--table-bg);
-    border-top: 2px solid var(--ink);
-    border-bottom: 2px solid var(--ink);
+    width: 100%; border-collapse: collapse;
+    font-size: 0.94rem; background: var(--table-bg);
+    border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
   }
   thead th {
-    text-align: left;
-    padding: 0.7rem 0.8rem;
+    text-align: left; padding: 0.7rem 0.8rem;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.66rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    font-weight: 600;
+    font-size: 0.66rem; letter-spacing: 0.16em;
+    text-transform: uppercase; font-weight: 600;
     color: var(--muted);
     border-bottom: 1px solid var(--ink);
     background: var(--table-head);
   }
   tbody td {
-    padding: 0.75rem 0.85rem;
-    vertical-align: top;
+    padding: 0.75rem 0.85rem; vertical-align: top;
     border-bottom: 1px dashed var(--rule-soft);
-    font-size: 0.94rem;
-    line-height: 1.5;
+    font-size: 0.94rem; line-height: 1.5;
   }
   tbody tr:last-child td { border-bottom: none; }
   tbody tr { transition: background 0.18s ease; }
   tbody tr:hover { background: var(--hover-tint); }
-  td:first-child {
-    font-family: 'Spectral', serif;
-    font-weight: 500;
-    color: var(--ink);
-  }
+  td:first-child { font-family: 'Spectral', serif; font-weight: 500; color: var(--ink); }
   td code { font-size: 0.82em; }
 
-  /* ------- citation ------- */
   .citation {
-    margin-top: 4rem;
-    padding-top: 1.2rem;
+    margin-top: 4rem; padding-top: 1.2rem;
     border-top: 1px solid var(--rule);
     color: var(--sepia);
     font-family: 'Spectral', serif;
-    font-style: italic;
-    font-size: 0.92rem;
-    line-height: 1.5;
+    font-style: italic; font-size: 0.92rem; line-height: 1.5;
   }
   .citation code { font-style: normal; background: transparent; padding: 0; color: var(--sepia); }
   .citation strong { color: var(--sepia); font-weight: 600; font-style: normal; }
 
   .colophon {
-    margin-top: 3rem;
-    text-align: center;
+    margin-top: 3rem; text-align: center;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.62rem;
-    letter-spacing: 0.4em;
-    color: var(--muted);
-    text-transform: uppercase;
+    font-size: 0.62rem; letter-spacing: 0.4em;
+    color: var(--muted); text-transform: uppercase;
   }
   .colophon .dot { color: var(--blueprint); margin: 0 0.4rem; }
 
-  /* ------- responsive ------- */
   @media (max-width: 720px) {
     body { font-size: 1rem; }
     .masthead { font-size: 0.62rem; }
@@ -391,13 +354,11 @@
     thead th, tbody td { padding: 0.55rem 0.6rem; }
   }
 
-  /* ------- page-load reveal ------- */
   @keyframes rise {
     from { opacity: 0; transform: translateY(6px); }
     to   { opacity: 1; transform: none; }
   }
-  .page > *,
-  .page > section > * {
+  .page > *, .page > section > * {
     animation: rise 0.55s cubic-bezier(.2,.7,.2,1) both;
   }
   .page > *:nth-child(1) { animation-delay: 0s; }
@@ -414,6 +375,28 @@
 </style>
 </head>
 <body>
+
+<!-- ============ shared SVG marker defs ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="g-arr-ink" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" style="fill: var(--ink);"/>
+    </marker>
+    <marker id="g-arr-blue" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" style="fill: var(--blueprint);"/>
+    </marker>
+    <marker id="g-arr-ox" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" style="fill: var(--oxblood);"/>
+    </marker>
+    <marker id="g-arr-sage" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" style="fill: var(--sage);"/>
+    </marker>
+    <marker id="g-arr-muted" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" style="fill: var(--muted);"/>
+    </marker>
+  </defs>
+</svg>
+
 <article class="page">
 
   <header class="masthead">
@@ -424,27 +407,21 @@
 
   <div class="glyph" aria-hidden="true">
     <svg width="170" height="58" viewBox="0 0 170 58" fill="none">
-      <!-- behavior tree: root selector + sequence + leaves -->
       <g style="stroke: var(--ink); fill: var(--ink);">
-        <!-- root (Selector ?) -->
         <rect x="74" y="2" width="22" height="14" rx="2" stroke-width="1.2" fill="none"/>
         <text x="82" y="13" font-family="JetBrains Mono, monospace" font-size="9" stroke="none">?</text>
-        <!-- branches -->
         <line x1="85" y1="16" x2="40" y2="26" stroke-width="1"/>
         <line x1="85" y1="16" x2="130" y2="26" stroke-width="1"/>
-        <!-- sequence (left) -->
         <rect x="29" y="26" width="22" height="14" rx="2" stroke-width="1.2" fill="none"/>
         <text x="36" y="37" font-family="JetBrains Mono, monospace" font-size="9" stroke="none">&rarr;</text>
       </g>
       <g style="stroke: var(--blueprint); fill: var(--blueprint);">
-        <!-- leaves under left sequence -->
         <line x1="40" y1="40" x2="20" y2="50" stroke-width="1"/>
         <line x1="40" y1="40" x2="60" y2="50" stroke-width="1"/>
         <circle cx="20" cy="54" r="3.5" fill="none" stroke-width="1.2"/>
         <circle cx="60" cy="54" r="3.5" fill="none" stroke-width="1.2"/>
       </g>
       <g style="stroke: var(--oxblood); fill: var(--oxblood);">
-        <!-- parallel (right) -->
         <rect x="119" y="26" width="22" height="14" rx="2" stroke-width="1.2" fill="none"/>
         <text x="123" y="37" font-family="JetBrains Mono, monospace" font-size="9" stroke="none">||</text>
         <line x1="130" y1="40" x2="110" y2="50" stroke-width="1"/>
@@ -480,6 +457,41 @@
       <p>Discrete states with transitions on events or conditions. The original
       workhorse of game AI &mdash; Half-Life, Halo, F.E.A.R.&rsquo;s squad-level coordination layer.
       Easy to author, easy to debug, but combinatorial explosion as states multiply.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 460 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A four-state finite state machine: Idle, Patrol, Engage, Flee, with labeled transitions.">
+          <g style="stroke: var(--ink); fill: none;" stroke-width="1.5">
+            <rect x="35" y="30" width="100" height="40" rx="20"/>
+            <rect x="325" y="30" width="100" height="40" rx="20"/>
+            <rect x="325" y="130" width="100" height="40" rx="20"/>
+            <rect x="35" y="130" width="100" height="40" rx="20"/>
+          </g>
+          <g style="fill: var(--ink); stroke: none;" font-family="Spectral, serif" font-size="14" text-anchor="middle">
+            <text x="85" y="55">Idle</text>
+            <text x="375" y="55">Engage</text>
+            <text x="375" y="155">Flee</text>
+            <text x="85" y="155">Patrol</text>
+          </g>
+          <g style="stroke: var(--ink); fill: none;" stroke-width="1.2">
+            <line x1="135" y1="50" x2="320" y2="50" marker-end="url(#g-arr-ink)"/>
+            <line x1="375" y1="70" x2="375" y2="125" marker-end="url(#g-arr-ink)"/>
+            <line x1="325" y1="150" x2="140" y2="150" marker-end="url(#g-arr-ink)"/>
+            <line x1="85" y1="130" x2="85" y2="75" marker-end="url(#g-arr-ink)"/>
+          </g>
+          <g style="fill: var(--oxblood);" font-family="JetBrains Mono, monospace" font-size="10">
+            <text x="227" y="42" text-anchor="middle">sees enemy</text>
+            <text x="383" y="100">hp &lt; 30%</text>
+            <text x="227" y="165" text-anchor="middle">10s safe</text>
+            <text x="0" y="105">timer</text>
+          </g>
+          <g style="fill: var(--blueprint); stroke: var(--blueprint);">
+            <circle cx="22" cy="50" r="3"/>
+            <line x1="25" y1="50" x2="35" y2="50" stroke-width="1.4" marker-end="url(#g-arr-blue)"/>
+          </g>
+        </svg>
+        <figcaption>Each circle is a discrete state; arrows are transitions labelled with the event or condition that fires them. The small filled dot is the default-entry arrow.</figcaption>
+      </figure>
+
       <p class="when"><strong>Good for:</strong> simple enemies, animation state, weapon modes.
       <strong>Falls down on:</strong> agents with many overlapping concerns.</p>
     </div>
@@ -491,6 +503,38 @@
       <p>Harel&rsquo;s 1987 statecharts &mdash; states cluster into super-states (XOR),
       orthogonal regions run in parallel (AND), events broadcast across regions.
       Fixes the FSM combinatorial blow-up.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A statechart with a superstate Combat that contains two orthogonal regions Mode and Awareness.">
+          <rect x="15" y="30" width="470" height="180" rx="12" style="stroke: var(--ink); fill: none;" stroke-width="2"/>
+          <text x="32" y="50" font-family="Fraunces, serif" font-size="13" font-style="italic" style="fill: var(--ink);">Combat</text>
+          <line x1="250" y1="55" x2="250" y2="200" style="stroke: var(--blueprint);" stroke-width="1.2" stroke-dasharray="5 4"/>
+
+          <text x="125" y="72" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" style="fill: var(--muted); letter-spacing: 0.16em;">MODE</text>
+          <rect x="55" y="85" width="140" height="34" rx="6" style="stroke: var(--ink); fill: none;" stroke-width="1.3"/>
+          <text x="125" y="106" font-family="Spectral, serif" font-size="13" text-anchor="middle" style="fill: var(--ink);">Ranged</text>
+          <rect x="55" y="155" width="140" height="34" rx="6" style="stroke: var(--ink); fill: none;" stroke-width="1.3"/>
+          <text x="125" y="176" font-family="Spectral, serif" font-size="13" text-anchor="middle" style="fill: var(--ink);">Melee</text>
+          <line x1="115" y1="119" x2="115" y2="153" style="stroke: var(--ink);" stroke-width="1.2" marker-end="url(#g-arr-ink)"/>
+          <line x1="135" y1="155" x2="135" y2="121" style="stroke: var(--ink);" stroke-width="1.2" marker-end="url(#g-arr-ink)"/>
+          <text x="200" y="142" font-family="JetBrains Mono, monospace" font-size="9" style="fill: var(--oxblood);">dist&lt;3m</text>
+          <circle cx="40" cy="102" r="3" style="fill: var(--blueprint);"/>
+          <line x1="43" y1="102" x2="55" y2="102" style="stroke: var(--blueprint);" stroke-width="1.4" marker-end="url(#g-arr-blue)"/>
+
+          <text x="375" y="72" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" style="fill: var(--muted); letter-spacing: 0.16em;">AWARENESS</text>
+          <rect x="305" y="85" width="140" height="34" rx="6" style="stroke: var(--ink); fill: none;" stroke-width="1.3"/>
+          <text x="375" y="106" font-family="Spectral, serif" font-size="13" text-anchor="middle" style="fill: var(--ink);">Alert</text>
+          <rect x="305" y="155" width="140" height="34" rx="6" style="stroke: var(--ink); fill: none;" stroke-width="1.3"/>
+          <text x="375" y="176" font-family="Spectral, serif" font-size="13" text-anchor="middle" style="fill: var(--ink);">Calm</text>
+          <line x1="365" y1="119" x2="365" y2="153" style="stroke: var(--ink);" stroke-width="1.2" marker-end="url(#g-arr-ink)"/>
+          <line x1="385" y1="155" x2="385" y2="121" style="stroke: var(--ink);" stroke-width="1.2" marker-end="url(#g-arr-ink)"/>
+          <text x="450" y="142" font-family="JetBrains Mono, monospace" font-size="9" style="fill: var(--oxblood);">10s</text>
+          <circle cx="290" cy="172" r="3" style="fill: var(--blueprint);"/>
+          <line x1="293" y1="172" x2="305" y2="172" style="stroke: var(--blueprint);" stroke-width="1.4" marker-end="url(#g-arr-blue)"/>
+        </svg>
+        <figcaption>A superstate <em>Combat</em> contains two orthogonal regions (separated by the dashed line) that run in parallel: <em>Mode</em> (Ranged XOR Melee) and <em>Awareness</em> (Alert XOR Calm). One event can affect both regions at once.</figcaption>
+      </figure>
+
       <p class="when"><strong>Good for:</strong> agents with several concurrent concerns
       (movement &times; combat &times; awareness). <strong>Common forms:</strong> UML statecharts,
       Stateflow, SCXML.</p>
@@ -504,6 +548,67 @@
       Sequence, Parallel) drive control flow, <em>decorators</em> guard branches with
       conditions, <em>tasks</em> are leaves that do work. Popularized by Halo 2 (2004),
       now the default in commercial engines.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 520 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A behavior tree with a root Selector, child Sequence, and leaf task nodes.">
+          <g style="stroke: var(--ink); fill: none;" stroke-width="1.4">
+            <rect x="230" y="15" width="60" height="34" rx="4"/>
+          </g>
+          <text x="260" y="38" font-family="JetBrains Mono, monospace" font-size="18" text-anchor="middle" style="fill: var(--blueprint);">?</text>
+          <text x="260" y="9" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" style="fill: var(--muted);">SELECTOR</text>
+
+          <g style="stroke: var(--ink); fill: none;" stroke-width="1.2">
+            <line x1="240" y1="49" x2="100" y2="85" marker-end="url(#g-arr-ink)"/>
+            <line x1="260" y1="49" x2="260" y2="85" marker-end="url(#g-arr-ink)"/>
+            <line x1="280" y1="49" x2="420" y2="85" marker-end="url(#g-arr-ink)"/>
+          </g>
+
+          <g style="stroke: var(--ink); fill: none;" stroke-width="1.4">
+            <rect x="70" y="90" width="60" height="34" rx="4"/>
+          </g>
+          <text x="100" y="113" font-family="JetBrains Mono, monospace" font-size="18" text-anchor="middle" style="fill: var(--sage);">&rarr;</text>
+          <text x="100" y="84" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" style="fill: var(--muted);">SEQUENCE</text>
+
+          <g style="stroke: var(--ink); fill: none;" stroke-width="1.4">
+            <rect x="230" y="90" width="60" height="34" rx="17" stroke-dasharray="3 2"/>
+          </g>
+          <text x="260" y="111" font-family="Spectral, serif" font-size="11" text-anchor="middle" style="fill: var(--ink);">Wander</text>
+          <text x="260" y="84" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" style="fill: var(--muted);">TASK</text>
+
+          <g style="stroke: var(--ink); fill: none;" stroke-width="1.4">
+            <rect x="390" y="90" width="60" height="34" rx="17" stroke-dasharray="3 2"/>
+          </g>
+          <text x="420" y="111" font-family="Spectral, serif" font-size="11" text-anchor="middle" style="fill: var(--ink);">Idle</text>
+
+          <g style="stroke: var(--ink); fill: none;" stroke-width="1.2">
+            <line x1="80" y1="124" x2="35" y2="170" marker-end="url(#g-arr-ink)"/>
+            <line x1="100" y1="124" x2="100" y2="170" marker-end="url(#g-arr-ink)"/>
+            <line x1="120" y1="124" x2="165" y2="170" marker-end="url(#g-arr-ink)"/>
+          </g>
+
+          <g style="stroke: var(--ink); fill: none;" stroke-width="1.4">
+            <rect x="5" y="175" width="60" height="34" rx="17"/>
+            <rect x="70" y="175" width="60" height="34" rx="17"/>
+            <rect x="135" y="175" width="60" height="34" rx="17"/>
+          </g>
+          <g font-family="Spectral, serif" font-size="11" text-anchor="middle" style="fill: var(--ink);">
+            <text x="35" y="196">SeeFoe?</text>
+            <text x="100" y="196">MoveTo</text>
+            <text x="165" y="196">Attack</text>
+          </g>
+          <text x="35" y="222" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" style="fill: var(--muted);">CONDITION</text>
+          <text x="100" y="222" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" style="fill: var(--muted);">TASK</text>
+          <text x="165" y="222" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" style="fill: var(--muted);">TASK</text>
+
+          <g style="fill: var(--muted);" font-family="JetBrains Mono, monospace" font-size="9">
+            <text x="475" y="42">tries L&rarr;R</text>
+            <text x="475" y="55">first SUCCESS</text>
+            <text x="475" y="68">wins</text>
+          </g>
+        </svg>
+        <figcaption>A Selector tries each child until one succeeds. The Sequence here runs <em>SeeFoe?</em>, <em>MoveTo</em>, <em>Attack</em> in order, succeeding only if all do. Behavior trees scale by composing these few primitives.</figcaption>
+      </figure>
+
       <div class="ue-note"><strong>Unreal:</strong> <code>UBehaviorTree</code> asset, edited in the
       Behavior Tree editor. Reads/writes a <code>Blackboard</code>. Standard nodes
       (<code>BTComposite_Selector</code>, <code>BTTask_MoveTo</code>, <code>BTDecorator_Blackboard</code>...) plus
@@ -520,6 +625,59 @@
       <p>UE5&rsquo;s newer hybrid: hierarchical states (like HSMs) where each state&rsquo;s
       selection is driven by an enter-condition evaluator (like a BT selector).
       Replaces the BT&rsquo;s tick-and-traverse model with event-driven state changes.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 500 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="State Tree: hierarchical states with enter-conditions on each branch.">
+          <g style="stroke: var(--ink); fill: none;" stroke-width="1.4">
+            <rect x="210" y="15" width="80" height="34" rx="6"/>
+          </g>
+          <text x="250" y="38" font-family="Spectral, serif" font-size="13" text-anchor="middle" style="fill: var(--ink);">Combat</text>
+          <text x="250" y="9" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" style="fill: var(--muted);">ROOT</text>
+
+          <g style="stroke: var(--ink); fill: none;" stroke-width="1.2">
+            <path d="M 230 49 Q 230 75 100 80" marker-end="url(#g-arr-ink)"/>
+            <path d="M 250 49 L 250 80" marker-end="url(#g-arr-ink)"/>
+            <path d="M 270 49 Q 270 75 400 80" marker-end="url(#g-arr-ink)"/>
+          </g>
+
+          <g style="fill: var(--blueprint-tint); stroke: var(--blueprint);" stroke-width="1">
+            <rect x="65" y="55" width="80" height="20" rx="10"/>
+            <rect x="215" y="55" width="70" height="20" rx="10"/>
+            <rect x="370" y="55" width="80" height="20" rx="10"/>
+          </g>
+          <g font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" style="fill: var(--blueprint);">
+            <text x="105" y="69">hp &lt; 30</text>
+            <text x="250" y="69">has LOS</text>
+            <text x="410" y="69">default</text>
+          </g>
+
+          <g style="stroke: var(--ink); fill: none;" stroke-width="1.4">
+            <rect x="60" y="85" width="90" height="34" rx="6"/>
+            <rect x="205" y="85" width="90" height="34" rx="6"/>
+            <rect x="365" y="85" width="90" height="34" rx="6"/>
+          </g>
+          <g font-family="Spectral, serif" font-size="13" text-anchor="middle" style="fill: var(--ink);">
+            <text x="105" y="108">Flee</text>
+            <text x="250" y="108">Engage</text>
+            <text x="410" y="108">Hold</text>
+          </g>
+
+          <g style="stroke: var(--ink); fill: none;" stroke-width="1.2">
+            <path d="M 250 119 L 250 138" marker-end="url(#g-arr-ink)"/>
+          </g>
+          <g style="fill: var(--blueprint-tint); stroke: var(--blueprint);" stroke-width="1">
+            <rect x="190" y="138" width="120" height="20" rx="10"/>
+          </g>
+          <text x="250" y="152" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" style="fill: var(--blueprint);">in_range &amp;&amp; ammo&gt;0</text>
+
+          <g style="stroke: var(--ink); fill: none;" stroke-width="1.4">
+            <rect x="205" y="165" width="90" height="28" rx="6"/>
+          </g>
+          <text x="250" y="184" font-family="Spectral, serif" font-size="13" text-anchor="middle" style="fill: var(--ink);">Fire</text>
+        </svg>
+        <figcaption>State Trees graft BT-style enter-conditions (the blue pills) onto an HSM. The first branch whose pill evaluates true is the active substate &mdash; no constant tree-walking.</figcaption>
+      </figure>
+
       <div class="ue-note"><strong>Unreal:</strong> <code>UStateTree</code> asset.
       Used standalone or wrapped by Mass AI. Pitched by Epic as a successor to
       Behavior Trees for new projects.</div>
@@ -536,6 +694,69 @@
       primitive actions. The planner picks a decomposition whose preconditions
       are satisfied. Used famously in <em>Killzone 2/3</em> and <em>Transformers: War for
       Cybertron</em>.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 520 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="HTN task decomposition tree: AttackEnemy expands into a sequence which expands into primitives.">
+          <g style="stroke: var(--ink); fill: var(--paper-edge-2);" stroke-width="1.4">
+            <rect x="210" y="10" width="120" height="32" rx="4"/>
+          </g>
+          <text x="270" y="31" font-family="Spectral, serif" font-size="13" text-anchor="middle" style="fill: var(--ink); font-style: italic;">AttackEnemy</text>
+          <text x="270" y="4" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" style="fill: var(--muted);">COMPOUND TASK</text>
+
+          <g style="stroke: var(--muted); fill: none;" stroke-width="1.1" stroke-dasharray="3 3">
+            <line x1="270" y1="42" x2="270" y2="65"/>
+          </g>
+          <text x="280" y="58" font-family="JetBrains Mono, monospace" font-size="9" style="fill: var(--muted); font-style: italic;">method: has_cover &amp;&amp; has_ammo</text>
+
+          <g style="stroke: var(--sage); fill: var(--sage-tint);" stroke-width="1.3">
+            <rect x="170" y="68" width="200" height="26" rx="13"/>
+          </g>
+          <text x="270" y="86" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle" style="fill: var(--sage);">METHOD &rarr; sequence</text>
+
+          <g style="stroke: var(--ink); fill: none;" stroke-width="1.2">
+            <line x1="200" y1="94" x2="80" y2="130" marker-end="url(#g-arr-ink)"/>
+            <line x1="270" y1="94" x2="270" y2="130" marker-end="url(#g-arr-ink)"/>
+            <line x1="340" y1="94" x2="460" y2="130" marker-end="url(#g-arr-ink)"/>
+          </g>
+
+          <g style="stroke: var(--ink); fill: var(--paper-edge-2);" stroke-width="1.4">
+            <rect x="20" y="135" width="120" height="32" rx="4"/>
+            <rect x="210" y="135" width="120" height="32" rx="4"/>
+            <rect x="400" y="135" width="120" height="32" rx="4"/>
+          </g>
+          <g font-family="Spectral, serif" font-size="12" text-anchor="middle" style="fill: var(--ink); font-style: italic;">
+            <text x="80" y="156">TakeCover</text>
+            <text x="270" y="156">Aim</text>
+            <text x="460" y="156">Fire</text>
+          </g>
+
+          <g style="stroke: var(--muted); fill: none;" stroke-width="1.1" stroke-dasharray="3 3">
+            <line x1="80" y1="167" x2="80" y2="190"/>
+          </g>
+
+          <g style="stroke: var(--ink); fill: var(--blueprint-tint);" stroke-width="1.2">
+            <rect x="10" y="195" width="65" height="28" rx="14"/>
+            <rect x="85" y="195" width="65" height="28" rx="14"/>
+            <rect x="210" y="170" width="120" height="28" rx="14"/>
+            <rect x="400" y="170" width="120" height="28" rx="14"/>
+          </g>
+          <g font-family="Spectral, serif" font-size="11" text-anchor="middle" style="fill: var(--blueprint-deep);">
+            <text x="42" y="214">MoveTo</text>
+            <text x="117" y="214">Crouch</text>
+            <text x="270" y="188">aim_at(target)</text>
+            <text x="460" y="188">shoot()</text>
+          </g>
+
+          <g font-family="JetBrains Mono, monospace" font-size="8" style="fill: var(--muted); letter-spacing: 0.1em;">
+            <text x="10" y="244">PRIMITIVE</text>
+            <text x="85" y="244">PRIMITIVE</text>
+            <text x="210" y="216">PRIMITIVE</text>
+            <text x="400" y="216">PRIMITIVE</text>
+          </g>
+        </svg>
+        <figcaption>Top compound task <em>AttackEnemy</em> is decomposed by a method (chosen because its preconditions hold) into three subtasks. Each subtask is either a further compound task or a primitive action the agent can directly execute.</figcaption>
+      </figure>
+
       <p class="when"><strong>Good for:</strong> multi-step coordinated behavior with
       designer-authored &ldquo;recipes.&rdquo; <strong>Compared to GOAP:</strong> more structured,
       more authorable, less emergent.</p>
@@ -548,6 +769,48 @@
       <p>Each action has preconditions and effects expressed as world-state symbols.
       Agent picks a goal, planner runs A* through action-space to find a sequence
       satisfying the goal. Made famous by <em>F.E.A.R.</em> (2005) for emergent squad behavior.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 520 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="GOAP planner finds a sequence of actions whose preconditions and effects chain into the goal state.">
+          <g style="stroke: var(--rule-soft); fill: var(--paper-edge-2);" stroke-width="1.1">
+            <rect x="10" y="60" width="100" height="48" rx="6"/>
+            <rect x="200" y="20" width="100" height="48" rx="6"/>
+            <rect x="200" y="100" width="100" height="48" rx="6"/>
+            <rect x="380" y="60" width="100" height="48" rx="6"/>
+          </g>
+          <g style="stroke: var(--sage); fill: var(--sage-tint);" stroke-width="1.6">
+            <rect x="10" y="60" width="100" height="48" rx="6"/>
+            <rect x="200" y="100" width="100" height="48" rx="6"/>
+            <rect x="380" y="60" width="100" height="48" rx="6"/>
+          </g>
+
+          <g font-family="Spectral, serif" font-size="12" text-anchor="middle" style="fill: var(--ink);">
+            <text x="60" y="80" font-weight="600">START</text>
+            <text x="60" y="100" font-style="italic" font-size="10" fill="var(--muted)">no ammo</text>
+            <text x="250" y="42" font-weight="600">Attack</text>
+            <text x="250" y="60" font-style="italic" font-size="10" fill="var(--muted)">needs ammo</text>
+            <text x="250" y="122" font-weight="600">Reload</text>
+            <text x="250" y="140" font-style="italic" font-size="10" fill="var(--muted)">needs clip</text>
+            <text x="430" y="80" font-weight="600">GOAL</text>
+            <text x="430" y="100" font-style="italic" font-size="10" fill="var(--muted)">enemy dead</text>
+          </g>
+
+          <g style="stroke: var(--rule); fill: none;" stroke-width="1" stroke-dasharray="3 3">
+            <line x1="110" y1="84" x2="200" y2="44" marker-end="url(#g-arr-muted)"/>
+          </g>
+
+          <g style="stroke: var(--sage); fill: none;" stroke-width="2">
+            <line x1="110" y1="84" x2="200" y2="124" marker-end="url(#g-arr-sage)"/>
+            <line x1="300" y1="124" x2="250" y2="68" marker-end="url(#g-arr-sage)"/>
+            <line x1="300" y1="44" x2="380" y2="80" marker-end="url(#g-arr-sage)"/>
+          </g>
+
+          <text x="260" y="195" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle" style="fill: var(--sage);">plan = [ Reload &rarr; Attack ] &nbsp;&middot;&nbsp; chosen by A*</text>
+          <text x="260" y="175" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" style="fill: var(--muted);">action space (gray = explored, sage = chosen path)</text>
+        </svg>
+        <figcaption>Actions are graph edges connecting world-state nodes. The planner runs A* from the current state to the goal state; the sage path is the cheapest chained sequence whose preconditions are satisfied.</figcaption>
+      </figure>
+
       <p class="when"><strong>Good for:</strong> agents that should look &ldquo;smart&rdquo; by surprising
       the player with novel sequences. <strong>Cost:</strong> harder to debug and constrain
       than HTN; performance scales poorly with action count.</p>
@@ -561,6 +824,63 @@
       of normalized response curves over inputs &mdash; health, distance, ammo, threat).
       Highest-scoring action wins, optionally with weighted-random sampling among
       the top candidates. <em>The Sims</em> series is the canonical example.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 520 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three normalized response curves combined into action utility scores.">
+          <g font-family="JetBrains Mono, monospace" font-size="9" style="fill: var(--muted); letter-spacing: 0.12em;">
+            <text x="20" y="14">FLEE U(health)</text>
+            <text x="180" y="14">ATTACK U(distance)</text>
+            <text x="375" y="14">RELOAD U(ammo)</text>
+          </g>
+          <g style="stroke: var(--rule); fill: none;" stroke-width="1">
+            <line x1="20" y1="100" x2="140" y2="100"/>
+            <line x1="20" y1="25" x2="20" y2="100"/>
+            <line x1="180" y1="100" x2="300" y2="100"/>
+            <line x1="180" y1="25" x2="180" y2="100"/>
+            <line x1="375" y1="100" x2="495" y2="100"/>
+            <line x1="375" y1="25" x2="375" y2="100"/>
+          </g>
+          <g style="stroke: var(--oxblood); fill: none;" stroke-width="2">
+            <path d="M 20 35 Q 60 35 80 65 Q 95 95 140 95"/>
+          </g>
+          <g style="stroke: var(--sage); fill: none;" stroke-width="2">
+            <path d="M 180 95 Q 215 35 240 35 Q 265 35 300 95"/>
+          </g>
+          <g style="stroke: var(--blueprint); fill: none;" stroke-width="2">
+            <path d="M 375 35 Q 395 35 415 65 Q 440 95 495 95"/>
+          </g>
+          <g font-family="JetBrains Mono, monospace" font-size="8" style="fill: var(--muted);">
+            <text x="20" y="113">low</text>
+            <text x="125" y="113">high</text>
+            <text x="180" y="113">close</text>
+            <text x="280" y="113">far</text>
+            <text x="375" y="113">empty</text>
+            <text x="475" y="113">full</text>
+          </g>
+
+          <text x="260" y="142" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle" style="fill: var(--muted);">multiply &rarr; per-action score &rarr; pick highest</text>
+
+          <g style="stroke: var(--ink); fill: none;" stroke-width="1.2">
+            <line x1="60" y1="160" x2="60" y2="200"/>
+            <line x1="60" y1="200" x2="460" y2="200"/>
+          </g>
+          <g>
+            <rect x="100" y="180" width="40" height="20" style="fill: var(--oxblood-tint); stroke: var(--oxblood);" stroke-width="1.2"/>
+            <text x="120" y="194" font-family="Spectral, serif" font-size="10" text-anchor="middle" style="fill: var(--oxblood);">Flee</text>
+            <text x="120" y="174" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" style="fill: var(--muted);">0.21</text>
+
+            <rect x="220" y="160" width="40" height="40" style="fill: var(--sage-tint); stroke: var(--sage);" stroke-width="1.6"/>
+            <text x="240" y="184" font-family="Spectral, serif" font-size="10" text-anchor="middle" style="fill: var(--sage);">Attack</text>
+            <text x="240" y="154" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" style="fill: var(--sage);">0.74 &larr; pick</text>
+
+            <rect x="340" y="172" width="40" height="28" style="fill: var(--blueprint-tint); stroke: var(--blueprint);" stroke-width="1.2"/>
+            <text x="360" y="190" font-family="Spectral, serif" font-size="10" text-anchor="middle" style="fill: var(--blueprint);">Reload</text>
+            <text x="360" y="166" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" style="fill: var(--muted);">0.42</text>
+          </g>
+        </svg>
+        <figcaption>Each action&rsquo;s utility is the product of its response curves over relevant inputs. Below, the bars show one tick&rsquo;s combined scores &mdash; <em>Attack</em> wins.</figcaption>
+      </figure>
+
       <p class="when"><strong>Good for:</strong> agents that must continuously trade off
       many soft pressures. <strong>Falls down on:</strong> strict sequencing &mdash; utility AI
       has no native notion of &ldquo;do A then B then C.&rdquo;</p>
@@ -573,6 +893,53 @@
       <p>Brooks (1986). Behaviors stacked in priority layers; higher layers can
       <em>subsume</em> (override) lower ones. Less common in modern AAA but conceptually
       underlies a lot of layered behavior-blending in shipping titles.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 500 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Subsumption: stacked behavior layers, higher layers can suppress lower ones on the way to the motors.">
+          <g font-family="JetBrains Mono, monospace" font-size="9" style="fill: var(--muted); letter-spacing: 0.12em;">
+            <text x="20" y="20">SENSORS</text>
+            <text x="430" y="20">MOTORS</text>
+          </g>
+          <g style="stroke: var(--ink); fill: none;" stroke-width="1.4">
+            <rect x="20" y="28" width="70" height="160" rx="4"/>
+            <rect x="410" y="28" width="70" height="160" rx="4"/>
+          </g>
+
+          <g style="stroke: var(--ink); fill: var(--paper-edge-2);" stroke-width="1.4">
+            <rect x="120" y="30" width="270" height="32" rx="3"/>
+            <rect x="120" y="78" width="270" height="32" rx="3"/>
+            <rect x="120" y="126" width="270" height="32" rx="3"/>
+          </g>
+
+          <g font-family="Spectral, serif" font-size="13" style="fill: var(--ink);">
+            <text x="135" y="51">Explore</text>
+            <text x="135" y="99">Wander</text>
+            <text x="135" y="147">Avoid obstacle</text>
+          </g>
+          <g font-family="JetBrains Mono, monospace" font-size="8" style="fill: var(--muted);">
+            <text x="370" y="51" text-anchor="end">layer 3</text>
+            <text x="370" y="99" text-anchor="end">layer 2</text>
+            <text x="370" y="147" text-anchor="end">layer 1</text>
+          </g>
+
+          <g style="stroke: var(--ink); fill: none;" stroke-width="1.2">
+            <line x1="90" y1="46" x2="120" y2="46" marker-end="url(#g-arr-ink)"/>
+            <line x1="90" y1="94" x2="120" y2="94" marker-end="url(#g-arr-ink)"/>
+            <line x1="90" y1="142" x2="120" y2="142" marker-end="url(#g-arr-ink)"/>
+            <line x1="390" y1="46" x2="410" y2="46" marker-end="url(#g-arr-ink)"/>
+            <line x1="390" y1="94" x2="410" y2="94" marker-end="url(#g-arr-ink)"/>
+            <line x1="390" y1="142" x2="410" y2="142" marker-end="url(#g-arr-ink)"/>
+          </g>
+
+          <g style="stroke: var(--oxblood); fill: none;" stroke-width="1.4">
+            <path d="M 390 142 Q 405 110 405 95 Q 405 60 393 47"/>
+          </g>
+          <circle cx="405" cy="95" r="3.5" style="fill: var(--oxblood);"/>
+          <text x="405" y="80" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" style="fill: var(--oxblood);">S</text>
+          <text x="410" y="115" font-family="JetBrains Mono, monospace" font-size="9" style="fill: var(--oxblood);">suppress</text>
+        </svg>
+        <figcaption>Three behavioral layers run in parallel. The lower-priority <em>Avoid Obstacle</em> can intercept and suppress the output of <em>Wander</em> on the way to the motors (the dot marked <strong>S</strong>).</figcaption>
+      </figure>
     </div>
 
     <h3>Rule-Based / Production Systems
@@ -618,6 +985,69 @@
       <p>A keyed, strongly-typed bag of facts (&ldquo;EnemyActor&rdquo;, &ldquo;LastKnownLocation&rdquo;,
       &ldquo;TargetVisible&rdquo;) shared between perception, decision-making, and tasks.
       Decouples producers from consumers.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 520 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A central blackboard with producers writing keys on the left and consumers reading on the right.">
+          <g style="stroke: var(--ink); fill: var(--paper-edge-2);" stroke-width="1.6">
+            <rect x="180" y="20" width="160" height="180" rx="6"/>
+          </g>
+          <text x="260" y="42" font-family="Fraunces, serif" font-size="14" font-style="italic" text-anchor="middle" style="fill: var(--ink);">Blackboard</text>
+          <line x1="195" y1="52" x2="325" y2="52" style="stroke: var(--rule-soft);" stroke-width="1"/>
+
+          <g font-family="JetBrains Mono, monospace" font-size="10">
+            <text x="195" y="70" style="fill: var(--blueprint);">EnemyActor</text>
+            <text x="325" y="70" text-anchor="end" style="fill: var(--ink);">Pawn_3</text>
+            <text x="195" y="92" style="fill: var(--blueprint);">LastKnown</text>
+            <text x="325" y="92" text-anchor="end" style="fill: var(--ink);">[12,0,4]</text>
+            <text x="195" y="114" style="fill: var(--blueprint);">TargetVisible</text>
+            <text x="325" y="114" text-anchor="end" style="fill: var(--ink);">true</text>
+            <text x="195" y="136" style="fill: var(--blueprint);">Health</text>
+            <text x="325" y="136" text-anchor="end" style="fill: var(--ink);">68</text>
+            <text x="195" y="158" style="fill: var(--blueprint);">AmmoCount</text>
+            <text x="325" y="158" text-anchor="end" style="fill: var(--ink);">12</text>
+            <text x="195" y="180" style="fill: var(--blueprint);">PatrolPoint</text>
+            <text x="325" y="180" text-anchor="end" style="fill: var(--ink);">PP_7</text>
+          </g>
+
+          <g style="stroke: var(--ink); fill: none;" stroke-width="1.3">
+            <rect x="15" y="40" width="120" height="30" rx="4"/>
+            <rect x="15" y="90" width="120" height="30" rx="4"/>
+            <rect x="15" y="140" width="120" height="30" rx="4"/>
+          </g>
+          <g font-family="Spectral, serif" font-size="11" text-anchor="middle" style="fill: var(--ink);">
+            <text x="75" y="59">Perception</text>
+            <text x="75" y="109">Sight Sense</text>
+            <text x="75" y="159">DamageTaken</text>
+          </g>
+
+          <g style="stroke: var(--sage); fill: none;" stroke-width="1.4">
+            <line x1="135" y1="55" x2="180" y2="80" marker-end="url(#g-arr-sage)"/>
+            <line x1="135" y1="105" x2="180" y2="105" marker-end="url(#g-arr-sage)"/>
+            <line x1="135" y1="155" x2="180" y2="145" marker-end="url(#g-arr-sage)"/>
+          </g>
+          <text x="155" y="35" font-family="JetBrains Mono, monospace" font-size="8" style="fill: var(--sage);">write</text>
+
+          <g style="stroke: var(--ink); fill: none;" stroke-width="1.3">
+            <rect x="385" y="40" width="120" height="30" rx="4"/>
+            <rect x="385" y="90" width="120" height="30" rx="4"/>
+            <rect x="385" y="140" width="120" height="30" rx="4"/>
+          </g>
+          <g font-family="Spectral, serif" font-size="11" text-anchor="middle" style="fill: var(--ink);">
+            <text x="445" y="59">BT decorator</text>
+            <text x="445" y="109">BT task</text>
+            <text x="445" y="159">EQS query</text>
+          </g>
+
+          <g style="stroke: var(--blueprint); fill: none;" stroke-width="1.4">
+            <line x1="340" y1="80" x2="385" y2="55" marker-end="url(#g-arr-blue)"/>
+            <line x1="340" y1="105" x2="385" y2="105" marker-end="url(#g-arr-blue)"/>
+            <line x1="340" y1="145" x2="385" y2="155" marker-end="url(#g-arr-blue)"/>
+          </g>
+          <text x="365" y="35" font-family="JetBrains Mono, monospace" font-size="8" style="fill: var(--blueprint);">read</text>
+        </svg>
+        <figcaption>The blackboard is the single shared keyspace. Producers (left) never know who reads their facts; consumers (right) never know who wrote them. That decoupling is what lets BT, EQS, and tasks compose cleanly.</figcaption>
+      </figure>
+
       <div class="ue-note"><strong>Unreal:</strong> <code>UBlackboardData</code> asset defines keys;
       <code>UBlackboardComponent</code> holds runtime values. BT decorators and tasks
       read/write keys directly. Forms the contract between perception and BT.</div>
@@ -630,6 +1060,40 @@
       <p>Stimulus producers (the noisy gun, the visible pawn) and stimulus
       consumers (the AI senses) modeled as first-class components. Sight, hearing,
       damage, prediction, team affiliation.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="An AI agent with a forward sight cone and circular hearing radius, with stimuli inside and outside each.">
+          <circle cx="170" cy="120" r="100" style="fill: var(--blueprint-tint); stroke: var(--blueprint);" stroke-width="1" stroke-dasharray="4 4"/>
+          <text x="170" y="32" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" style="fill: var(--blueprint); letter-spacing: 0.12em;">HEARING RADIUS</text>
+
+          <path d="M 170 120 L 360 50 A 200 200 0 0 1 360 190 Z" style="fill: var(--sage-tint); stroke: var(--sage);" stroke-width="1.2"/>
+          <text x="285" y="44" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" style="fill: var(--sage); letter-spacing: 0.12em;">SIGHT CONE</text>
+
+          <g style="fill: var(--ink); stroke: var(--ink);" stroke-width="1.4">
+            <polygon points="160,110 185,120 160,130" style="fill: var(--ink);"/>
+          </g>
+          <text x="170" y="148" font-family="Spectral, serif" font-size="10" text-anchor="middle" style="fill: var(--muted); font-style: italic;">agent</text>
+
+          <g style="fill: var(--oxblood);">
+            <circle cx="320" cy="105" r="6"/>
+          </g>
+          <text x="335" y="108" font-family="JetBrains Mono, monospace" font-size="9" style="fill: var(--oxblood);">stimulus &mdash; seen</text>
+
+          <g style="stroke: var(--oxblood); fill: none;" stroke-width="1.5">
+            <circle cx="120" cy="180" r="6"/>
+            <circle cx="120" cy="180" r="12" stroke-dasharray="2 2"/>
+            <circle cx="120" cy="180" r="18" stroke-dasharray="2 2"/>
+          </g>
+          <text x="135" y="200" font-family="JetBrains Mono, monospace" font-size="9" style="fill: var(--oxblood);">stimulus &mdash; heard</text>
+
+          <g style="fill: var(--muted);">
+            <circle cx="450" cy="170" r="5"/>
+          </g>
+          <text x="460" y="173" font-family="JetBrains Mono, monospace" font-size="9" style="fill: var(--muted);">undetected</text>
+        </svg>
+        <figcaption>Each sense has its own geometry. The sight cone fires only inside its angular bounds; the hearing radius is omnidirectional. Stimuli outside every sense&rsquo;s region are simply unseen and unheard.</figcaption>
+      </figure>
+
       <div class="ue-note"><strong>Unreal:</strong> <code>UAIPerceptionComponent</code> on the controller,
       <code>UAISense_Sight</code> / <code>UAISense_Hearing</code> / <code>UAISense_Damage</code> /
       <code>UAISense_Touch</code> / <code>UAISense_Team</code> / <code>UAISense_Prediction</code>.
@@ -644,6 +1108,52 @@
       visibility, occupancy, scent. Decay and propagate across neighbours each
       tick. Used heavily in RTS AI (<em>StarCraft</em>, <em>Supreme Commander</em>) for tactical
       reasoning, and by squad AI for cover and flank scoring.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 520 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="An influence map: a grid where each cell is shaded by accumulated threat from two enemy positions.">
+          <defs>
+            <radialGradient id="influence-a" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="var(--heat-high)" stop-opacity="0.85"/>
+              <stop offset="40%" stop-color="var(--heat-mid)" stop-opacity="0.55"/>
+              <stop offset="100%" stop-color="var(--heat-low)" stop-opacity="0.05"/>
+            </radialGradient>
+            <radialGradient id="influence-b" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="var(--heat-high)" stop-opacity="0.7"/>
+              <stop offset="40%" stop-color="var(--heat-mid)" stop-opacity="0.45"/>
+              <stop offset="100%" stop-color="var(--heat-low)" stop-opacity="0.05"/>
+            </radialGradient>
+          </defs>
+
+          <g style="stroke: var(--rule-soft); fill: var(--paper);" stroke-width="0.6">
+            <!-- grid 16x8, cell 28 -->
+            <g>
+              <rect x="50" y="20" width="448" height="160"/>
+            </g>
+          </g>
+
+          <ellipse cx="155" cy="75" rx="120" ry="85" fill="url(#influence-a)"/>
+          <ellipse cx="385" cy="125" rx="105" ry="75" fill="url(#influence-b)"/>
+
+          <g style="stroke: var(--rule-soft); fill: none;" stroke-width="0.5">
+            <path d="M 78 20 L 78 180 M 106 20 L 106 180 M 134 20 L 134 180 M 162 20 L 162 180 M 190 20 L 190 180 M 218 20 L 218 180 M 246 20 L 246 180 M 274 20 L 274 180 M 302 20 L 302 180 M 330 20 L 330 180 M 358 20 L 358 180 M 386 20 L 386 180 M 414 20 L 414 180 M 442 20 L 442 180 M 470 20 L 470 180"/>
+            <path d="M 50 40 L 498 40 M 50 60 L 498 60 M 50 80 L 498 80 M 50 100 L 498 100 M 50 120 L 498 120 M 50 140 L 498 140 M 50 160 L 498 160"/>
+            <rect x="50" y="20" width="448" height="160" stroke="var(--ink)" stroke-width="1.2"/>
+          </g>
+
+          <g style="fill: var(--ink); stroke: var(--paper);" stroke-width="1.5">
+            <polygon points="148,69 168,75 148,81" />
+            <polygon points="378,119 398,125 378,131" />
+          </g>
+          <text x="155" y="60" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" style="fill: var(--ink);">enemy A</text>
+          <text x="385" y="148" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" style="fill: var(--ink);">enemy B</text>
+
+          <g style="stroke: var(--blueprint); fill: none;" stroke-width="1.4">
+            <rect x="246" y="100" width="28" height="20"/>
+          </g>
+          <text x="260" y="195" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" style="fill: var(--blueprint);">cheapest flank cell &mdash; lowest threat between sources</text>
+        </svg>
+        <figcaption>Threat accumulates per cell from each enemy and bleeds into neighbours over time. The agent picks the cell with the desired score &mdash; here, the highlighted low-threat cell between the two threat sources.</figcaption>
+      </figure>
     </div>
 
     <h3>Tactical Position / Cover Systems
@@ -664,6 +1174,69 @@
       them with chained tests (distance, line-of-sight, dot-product to player
       facing). Returns the best item or a weighted ranking. EQS is Unreal&rsquo;s
       general answer to &ldquo;where should the agent move/aim/look?&rdquo;</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 520 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EQS query: candidate points generated around an agent, each scored, with the highest-score point highlighted.">
+          <g style="fill: var(--ink);">
+            <polygon points="240,120 270,135 240,150"/>
+          </g>
+          <text x="255" y="170" font-family="Spectral, serif" font-size="10" font-style="italic" style="fill: var(--muted);">agent</text>
+
+          <g style="fill: var(--oxblood);">
+            <circle cx="430" cy="120" r="7"/>
+          </g>
+          <text x="445" y="124" font-family="Spectral, serif" font-size="10" style="fill: var(--oxblood);">player</text>
+
+          <g style="stroke: var(--rule); fill: none;" stroke-width="1" stroke-dasharray="3 3">
+            <circle cx="255" cy="135" r="50"/>
+            <circle cx="255" cy="135" r="90"/>
+          </g>
+
+          <g>
+            <!-- ring of candidates, color by score (cosine of approach + distance) -->
+            <circle cx="305" cy="135" r="5" fill="var(--oxblood)" opacity="0.7"/>
+            <circle cx="295" cy="170" r="5" fill="var(--heat-mid)" opacity="0.85"/>
+            <circle cx="270" cy="190" r="5" fill="var(--sage)" opacity="0.9"/>
+            <circle cx="235" cy="195" r="5" fill="var(--sage)" opacity="0.9"/>
+            <circle cx="200" cy="180" r="5" fill="var(--sage)" opacity="0.95"/>
+            <circle cx="175" cy="155" r="5" fill="var(--sage)" opacity="0.95"/>
+            <circle cx="165" cy="125" r="5" fill="var(--heat-mid)" opacity="0.85"/>
+            <circle cx="175" cy="100" r="5" fill="var(--heat-mid)" opacity="0.8"/>
+            <circle cx="200" cy="80" r="5" fill="var(--oxblood)" opacity="0.6"/>
+            <circle cx="235" cy="70" r="5" fill="var(--oxblood)" opacity="0.55"/>
+            <circle cx="275" cy="75" r="5" fill="var(--oxblood)" opacity="0.55"/>
+            <circle cx="305" cy="95" r="5" fill="var(--oxblood)" opacity="0.65"/>
+            <!-- outer ring -->
+            <circle cx="345" cy="135" r="5" fill="var(--sage)" opacity="0.9"/>
+            <circle cx="320" cy="200" r="5" fill="var(--sage)" opacity="0.95"/>
+            <circle cx="255" cy="225" r="5" fill="var(--sage)" opacity="0.95"/>
+            <circle cx="185" cy="220" r="5" fill="var(--heat-mid)" opacity="0.85"/>
+            <circle cx="135" cy="180" r="5" fill="var(--heat-mid)" opacity="0.7"/>
+            <circle cx="120" cy="125" r="5" fill="var(--heat-mid)" opacity="0.7"/>
+            <circle cx="145" cy="75" r="5" fill="var(--oxblood)" opacity="0.6"/>
+            <circle cx="200" cy="45" r="5" fill="var(--oxblood)" opacity="0.5"/>
+            <circle cx="280" cy="45" r="5" fill="var(--oxblood)" opacity="0.55"/>
+            <circle cx="335" cy="70" r="5" fill="var(--oxblood)" opacity="0.6"/>
+          </g>
+
+          <!-- best -->
+          <g style="stroke: var(--blueprint); fill: none;" stroke-width="2">
+            <circle cx="200" cy="180" r="10"/>
+            <line x1="200" y1="170" x2="200" y2="195"/>
+            <line x1="187" y1="180" x2="213" y2="180"/>
+          </g>
+          <text x="200" y="210" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" style="fill: var(--blueprint);">best</text>
+
+          <!-- legend -->
+          <g style="fill: var(--muted);" font-family="JetBrains Mono, monospace" font-size="9">
+            <text x="380" y="190" letter-spacing="0.12em">GENERATOR &rarr; donut around agent</text>
+            <text x="380" y="206" letter-spacing="0.12em">TEST 1 &rarr; distance from player</text>
+            <text x="380" y="222" letter-spacing="0.12em">TEST 2 &rarr; LOS, dot-product to player</text>
+          </g>
+        </svg>
+        <figcaption>The generator produces candidate points; each test scores them. Sage = high score (flank, line-of-sight to player); oxblood = low score (too close, exposed). The crosshair marks the winner.</figcaption>
+      </figure>
+
       <div class="ue-note"><strong>Unreal:</strong> <code>UEnvQuery</code> asset. Composed of
       <em>generators</em> (<code>EnvQueryGenerator_OnCircle</code>,
       <code>EnvQueryGenerator_ActorsOfClass</code>, ...) and <em>tests</em>
@@ -704,6 +1277,60 @@
       <p>Walkable surface represented as a polygon mesh, queried by A* (or
       similar) for paths. Hierarchical or &ldquo;off-mesh link&rdquo; extensions for jumps,
       ladders, doors.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 520 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A NavMesh: a triangulated walkable region with obstacle cutouts and a highlighted path from start to goal.">
+          <!-- walkable area as polygons -->
+          <g style="fill: var(--sage-tint); stroke: var(--sage);" stroke-width="1">
+            <polygon points="30,30 200,20 380,50 490,30 500,180 380,200 220,190 60,200 20,140"/>
+          </g>
+          <!-- obstacle cutouts -->
+          <g style="fill: var(--paper); stroke: var(--ink);" stroke-width="1.3">
+            <polygon points="160,80 240,75 250,130 180,140"/>
+            <polygon points="330,110 410,100 420,170 350,170"/>
+          </g>
+
+          <!-- triangulation hints -->
+          <g style="stroke: var(--sage); fill: none;" stroke-width="0.6" opacity="0.7">
+            <line x1="30" y1="30" x2="100" y2="100"/>
+            <line x1="100" y1="100" x2="160" y2="80"/>
+            <line x1="100" y1="100" x2="60" y2="200"/>
+            <line x1="200" y1="20" x2="160" y2="80"/>
+            <line x1="200" y1="20" x2="240" y2="75"/>
+            <line x1="240" y1="75" x2="330" y2="110"/>
+            <line x1="380" y1="50" x2="330" y2="110"/>
+            <line x1="380" y1="50" x2="490" y2="30"/>
+            <line x1="490" y1="30" x2="500" y2="180"/>
+            <line x1="500" y1="180" x2="420" y2="170"/>
+            <line x1="420" y1="170" x2="380" y2="200"/>
+            <line x1="380" y1="200" x2="350" y2="170"/>
+            <line x1="350" y1="170" x2="250" y2="130"/>
+            <line x1="250" y1="130" x2="220" y2="190"/>
+            <line x1="220" y1="190" x2="180" y2="140"/>
+            <line x1="220" y1="190" x2="60" y2="200"/>
+            <line x1="180" y1="140" x2="60" y2="200"/>
+            <line x1="180" y1="140" x2="100" y2="100"/>
+            <line x1="20" y1="140" x2="100" y2="100"/>
+            <line x1="20" y1="140" x2="60" y2="200"/>
+          </g>
+
+          <!-- path -->
+          <g style="stroke: var(--blueprint); fill: none;" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="65,170 130,150 175,145 250,140 290,150 340,180 410,185 460,140"/>
+          </g>
+          <g style="fill: var(--blueprint);">
+            <circle cx="65" cy="170" r="6"/>
+            <circle cx="460" cy="140" r="6"/>
+          </g>
+          <text x="60" y="195" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" style="fill: var(--blueprint);">start</text>
+          <text x="460" y="125" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" style="fill: var(--blueprint);">goal</text>
+
+          <text x="190" y="100" font-family="Spectral, serif" font-size="10" style="fill: var(--muted); font-style: italic;">obstacle</text>
+          <text x="360" y="140" font-family="Spectral, serif" font-size="10" style="fill: var(--muted); font-style: italic;">obstacle</text>
+        </svg>
+        <figcaption>The walkable area is triangulated; obstacles are cut out. A* runs over the polygon graph (not the underlying world), then a string-pulling pass smooths the corridor into the final path.</figcaption>
+      </figure>
+
       <div class="ue-note"><strong>Unreal:</strong> <code>ARecastNavMesh</code> (Recast/Detour under
       the hood), <code>UNavigationSystemV1</code>. Tasks like <code>BTTask_MoveTo</code> use it transparently.</div>
     </div>
@@ -716,6 +1343,62 @@
       pursuit, evasion, wander, obstacle-avoidance &mdash; composed by weighted sum
       into a final acceleration. The substrate of flocking, crowd simulation,
       vehicle AI.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 540 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three flocking rules: separation, alignment, cohesion, each shown with three boids and the resulting force on the middle one.">
+          <g font-family="JetBrains Mono, monospace" font-size="9" style="fill: var(--muted); letter-spacing: 0.16em;">
+            <text x="90" y="20" text-anchor="middle">SEPARATION</text>
+            <text x="270" y="20" text-anchor="middle">ALIGNMENT</text>
+            <text x="450" y="20" text-anchor="middle">COHESION</text>
+          </g>
+          <g style="stroke: var(--rule-soft); fill: none;" stroke-width="1" stroke-dasharray="3 3">
+            <line x1="180" y1="40" x2="180" y2="180"/>
+            <line x1="360" y1="40" x2="360" y2="180"/>
+          </g>
+
+          <!-- separation: three boids; center pushed away from neighbors -->
+          <g transform="translate(90 110)">
+            <g style="fill: var(--ink);">
+              <polygon points="-50,-25 -32,-20 -50,-15"/>
+              <polygon points="50,15 32,20 50,25"/>
+              <polygon points="-12,5 6,10 -12,15"/>
+            </g>
+            <g style="stroke: var(--oxblood); fill: none;" stroke-width="1.8">
+              <line x1="-3" y1="10" x2="-30" y2="-10" marker-end="url(#g-arr-ox)"/>
+              <line x1="-3" y1="10" x2="25" y2="40" marker-end="url(#g-arr-ox)"/>
+            </g>
+            <text x="0" y="68" font-family="Spectral, serif" font-size="10" text-anchor="middle" style="fill: var(--oxblood); font-style: italic;">push away from neighbours</text>
+          </g>
+
+          <!-- alignment: three boids match heading -->
+          <g transform="translate(270 110)">
+            <g style="fill: var(--ink);">
+              <polygon points="-50,-25 -32,-20 -50,-15"/>
+              <polygon points="50,5 32,10 50,15"/>
+              <polygon points="-12,15 6,20 -12,25"/>
+            </g>
+            <g style="stroke: var(--blueprint); fill: none;" stroke-width="1.8">
+              <line x1="-3" y1="20" x2="25" y2="20" marker-end="url(#g-arr-blue)"/>
+            </g>
+            <text x="0" y="68" font-family="Spectral, serif" font-size="10" text-anchor="middle" style="fill: var(--blueprint); font-style: italic;">steer toward mean heading</text>
+          </g>
+
+          <!-- cohesion: three boids; center pulled toward centroid -->
+          <g transform="translate(450 110)">
+            <g style="fill: var(--ink);">
+              <polygon points="-40,-30 -22,-25 -40,-20"/>
+              <polygon points="40,-25 22,-20 40,-15"/>
+              <polygon points="-15,35 3,40 -15,45"/>
+            </g>
+            <g style="stroke: var(--sage); fill: none;" stroke-width="1.8">
+              <line x1="-6" y1="40" x2="0" y2="-5" marker-end="url(#g-arr-sage)"/>
+            </g>
+            <circle cx="0" cy="-13" r="3" style="fill: var(--sage);"/>
+            <text x="0" y="68" font-family="Spectral, serif" font-size="10" text-anchor="middle" style="fill: var(--sage); font-style: italic;">pull toward centroid</text>
+          </g>
+        </svg>
+        <figcaption>Three of Reynolds&rsquo; rules. Real flocking emerges from a weighted sum of all the rules &mdash; plus seek, avoid, wander &mdash; computed per agent per tick. No central choreographer.</figcaption>
+      </figure>
     </div>
 
     <h3>Crowd Avoidance (RVO / ORCA)
@@ -725,6 +1408,48 @@
       <p>Reciprocal Velocity Obstacles: each agent computes a velocity that
       jointly avoids collisions assuming peers do the same. Cheap, smooth,
       decentralized.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 500 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two agents on converging paths each adjust velocity, picking new directions that avoid the velocity-obstacle cone.">
+          <!-- agent A and its velocity -->
+          <g style="fill: var(--blueprint);">
+            <circle cx="80" cy="100" r="12"/>
+          </g>
+          <text x="80" y="104" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle" style="fill: var(--paper);">A</text>
+          <g style="stroke: var(--blueprint); fill: none;" stroke-width="1.5" stroke-dasharray="4 3">
+            <line x1="92" y1="100" x2="200" y2="100" marker-end="url(#g-arr-blue)"/>
+          </g>
+          <text x="150" y="92" font-family="JetBrains Mono, monospace" font-size="9" style="fill: var(--blueprint);">desired v</text>
+
+          <!-- agent B and its velocity -->
+          <g style="fill: var(--oxblood);">
+            <circle cx="380" cy="100" r="12"/>
+          </g>
+          <text x="380" y="104" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle" style="fill: var(--paper);">B</text>
+          <g style="stroke: var(--oxblood); fill: none;" stroke-width="1.5" stroke-dasharray="4 3">
+            <line x1="368" y1="100" x2="260" y2="100" marker-end="url(#g-arr-ox)"/>
+          </g>
+          <text x="310" y="92" font-family="JetBrains Mono, monospace" font-size="9" style="fill: var(--oxblood);">desired v</text>
+
+          <!-- velocity-obstacle cone -->
+          <g style="fill: var(--rule-soft); stroke: var(--muted);" stroke-width="1" stroke-dasharray="2 2" opacity="0.7">
+            <polygon points="80,100 380,75 380,125"/>
+          </g>
+          <text x="230" y="155" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" style="fill: var(--muted);">velocity-obstacle cone (collision velocities)</text>
+
+          <!-- chosen new velocities -->
+          <g style="stroke: var(--blueprint); fill: none;" stroke-width="2.2">
+            <path d="M 80 100 Q 130 65 210 60" marker-end="url(#g-arr-blue)"/>
+          </g>
+          <g style="stroke: var(--oxblood); fill: none;" stroke-width="2.2">
+            <path d="M 380 100 Q 330 135 250 140" marker-end="url(#g-arr-ox)"/>
+          </g>
+          <text x="150" y="50" font-family="JetBrains Mono, monospace" font-size="9" style="fill: var(--blueprint);">new v (skirts cone)</text>
+          <text x="245" y="170" font-family="JetBrains Mono, monospace" font-size="9" style="fill: var(--oxblood);">mirror choice on B&rsquo;s side</text>
+        </svg>
+        <figcaption>Each agent computes the cone of velocities that would lead to a collision with the other, then picks the nearest velocity outside it. Because the cone is symmetric and each agent takes <em>half</em> the work, no central coordinator is needed.</figcaption>
+      </figure>
+
       <div class="ue-note"><strong>Unreal:</strong> <code>UCrowdManager</code> +
       <code>UCrowdFollowingComponent</code>. Drop-in for any pawn using
       Detour-based navigation.</div>
@@ -848,7 +1573,8 @@
   <em>Game AI Pro</em> 1&ndash;3 (Steve Rabin, ed.);
   F.E.A.R. GDC postmortems (Jeff Orkin) for GOAP;
   Killzone 2/3 GDC talks (Tim Verweij, Arjen Beij) for HTN;
-  Epic&rsquo;s &ldquo;Mass AI / State Tree&rdquo; documentation for the modern Unreal stack.</p>
+  Epic&rsquo;s &ldquo;Mass AI / State Tree&rdquo; documentation for the modern Unreal stack.
+  All diagrams above are original SVGs drawn for this page.</p>
 
   <div class="colophon">
     <span>&sect;</span><span class="dot">&bull;</span><span>fin</span><span class="dot">&bull;</span><span>&sect;</span>
