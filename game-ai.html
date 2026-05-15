@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Traditional Game AI Primitives</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --muted: #555;
+    --rule: #ddd;
+    --accent: #b35900;
+    --ue: #2c5aa0;
+    --code-bg: #f6f4ef;
+    --table-bg: #fafaf7;
+    --tag-bg: #efece4;
+  }
+  html { background: #fbfaf6; }
+  body {
+    font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    color: var(--ink);
+    max-width: 880px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem;
+    line-height: 1.55;
+  }
+  h1 { font-size: 1.9rem; margin-bottom: 0.2rem; }
+  h2 {
+    font-size: 1.3rem;
+    margin-top: 2.4rem;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.25rem;
+  }
+  h3 {
+    font-size: 1.1rem;
+    margin-top: 1.6rem;
+    margin-bottom: 0.35rem;
+    color: var(--accent);
+  }
+  h3 .tags { font-size: 0.7rem; vertical-align: middle; margin-left: 0.5rem; }
+  p.lede { color: var(--muted); font-style: italic; margin-top: 0.2rem; }
+  p { margin: 0.5rem 0 0.9rem; }
+  code {
+    font-family: "SF Mono", Consolas, "Liberation Mono", monospace;
+    background: var(--code-bg);
+    border-radius: 3px;
+    padding: 0.05rem 0.3rem;
+    font-size: 0.9em;
+  }
+  .tag {
+    display: inline-block;
+    background: var(--tag-bg);
+    color: var(--muted);
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 0.72rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 3px;
+    margin-right: 0.25rem;
+    vertical-align: middle;
+    font-style: normal;
+    font-weight: normal;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .tag.ue { background: #dce6f5; color: var(--ue); }
+  .tag.classic { background: #e8e1d3; color: #6b4a1a; }
+  .tag.modern { background: #d8e8d3; color: #2c5a2c; }
+  .tag.utility { background: #f0dcd0; color: #8a4a1a; }
+  .primitive {
+    margin: 0.5rem 0 1.5rem;
+    padding-left: 0.75rem;
+    border-left: 3px solid var(--rule);
+  }
+  .when {
+    font-size: 0.92rem;
+    color: var(--muted);
+    margin-top: 0.3rem;
+  }
+  .when strong { color: var(--ink); }
+  .ue-note {
+    font-size: 0.88rem;
+    background: #f0f4fa;
+    border-left: 3px solid var(--ue);
+    padding: 0.4rem 0.7rem;
+    margin: 0.4rem 0;
+    color: #284a78;
+    border-radius: 0 3px 3px 0;
+  }
+  .ue-note strong { color: var(--ue); }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.8rem 0 1.4rem;
+    background: var(--table-bg);
+    font-size: 0.92rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.5rem 0.7rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  th { background: var(--tag-bg); font-weight: bold; }
+  .citation { color: var(--muted); font-size: 0.85em; margin-top: 2rem; }
+  .legend { font-size: 0.85rem; color: var(--muted); margin: 0.5rem 0 1.5rem; }
+</style>
+</head>
+<body>
+
+<h1>Traditional Game AI Primitives</h1>
+<p class="lede">First-class building blocks for game-AI design &mdash; the ones designers actually compose,
+not the algorithms hidden underneath them. Annotated for what ships in Unreal.</p>
+
+<p class="legend">
+  <span class="tag ue">UE built-in</span>
+  <span class="tag classic">Classic</span>
+  <span class="tag modern">Modern</span>
+  <span class="tag utility">Utility / support</span>
+</p>
+
+<h2>1. Decision &amp; Control Structures</h2>
+<p>These are the primitives a designer reaches for to answer
+<em>"what should this agent do right now?"</em>. They're the spine of any AI architecture.</p>
+
+<h3>Finite State Machines (FSM) <span class="tags"><span class="tag classic">Classic</span></span></h3>
+<div class="primitive">
+  <p>Discrete states with transitions on events or conditions. The original
+  workhorse of game AI &mdash; Half-Life, Halo, F.E.A.R.'s squad-level coordination
+  layer. Easy to author, easy to debug, but combinatorial explosion as states multiply.</p>
+  <p class="when"><strong>Good for:</strong> simple enemies, animation state, weapon modes.
+  <strong>Falls down on:</strong> agents with many overlapping concerns.</p>
+</div>
+
+<h3>Hierarchical State Machines / Statecharts (HSM) <span class="tags"><span class="tag classic">Classic</span></span></h3>
+<div class="primitive">
+  <p>Harel's 1987 statecharts &mdash; states cluster into super-states (XOR),
+  orthogonal regions run in parallel (AND), events broadcast across regions.
+  Fixes the FSM combinatorial blow-up.</p>
+  <p class="when"><strong>Good for:</strong> agents with several concurrent concerns
+  (movement &times; combat &times; awareness). <strong>Common forms:</strong> UML statecharts, Stateflow, SCXML.</p>
+</div>
+
+<h3>Behavior Trees (BT) <span class="tags"><span class="tag ue">UE built-in</span><span class="tag classic">Classic</span></span></h3>
+<div class="primitive">
+  <p>Tree of nodes evaluated top-down each tick: <em>composites</em> (Selector,
+  Sequence, Parallel) drive control flow, <em>decorators</em> guard branches with
+  conditions, <em>tasks</em> are leaves that do work. Popularized by Halo 2 (2004),
+  now the default in commercial engines.</p>
+  <div class="ue-note"><strong>Unreal:</strong> <code>UBehaviorTree</code> asset, edited in the
+  Behavior Tree editor. Reads/writes a <code>Blackboard</code>. Standard nodes
+  (<code>BTComposite_Selector</code>, <code>BTTask_MoveTo</code>, <code>BTDecorator_Blackboard</code>...) plus
+  C++/Blueprint custom nodes. Owned by an <code>AAIController</code>.</div>
+  <p class="when"><strong>Good for:</strong> reactive priority-based behavior with clear
+  fallbacks. <strong>Falls down on:</strong> long-horizon plans, deep procedural
+  decision-making (the tree can balloon).</p>
+</div>
+
+<h3>State Trees <span class="tags"><span class="tag ue">UE built-in</span><span class="tag modern">Modern</span></span></h3>
+<div class="primitive">
+  <p>UE5's newer hybrid: hierarchical states (like HSMs) where each state's
+  selection is driven by an enter-condition evaluator (like a BT selector).
+  Replaces the BT's tick-and-traverse model with event-driven state changes.</p>
+  <div class="ue-note"><strong>Unreal:</strong> <code>UStateTree</code> asset.
+  Used standalone or wrapped by Mass AI. Pitched by Epic as a successor to
+  Behavior Trees for new projects.</div>
+  <p class="when"><strong>Good for:</strong> agents that "live in" states for a while
+  (cover-fire, patrol-loop), with cheap condition evaluation per tick.</p>
+</div>
+
+<h3>Hierarchical Task Networks (HTN) <span class="tags"><span class="tag classic">Classic</span></span></h3>
+<div class="primitive">
+  <p>Plans by recursive task decomposition: a high-level task ("AttackPlayer")
+  expands into method choices, each expanding into subtasks, terminating in
+  primitive actions. The planner picks a decomposition whose preconditions
+  are satisfied. Used famously in <em>Killzone 2/3</em> and <em>Transformers: War for Cybertron</em>.</p>
+  <p class="when"><strong>Good for:</strong> multi-step coordinated behavior with
+  designer-authored "recipes." <strong>Compared to GOAP:</strong> more structured,
+  more authorable, less emergent.</p>
+</div>
+
+<h3>Goal-Oriented Action Planning (GOAP) <span class="tags"><span class="tag classic">Classic</span></span></h3>
+<div class="primitive">
+  <p>Each action has preconditions and effects expressed as world-state symbols.
+  Agent picks a goal, planner runs A* through action-space to find a sequence
+  satisfying the goal. Made famous by <em>F.E.A.R.</em> (2005) for emergent squad behavior.</p>
+  <p class="when"><strong>Good for:</strong> agents that should look "smart" by surprising
+  the player with novel sequences. <strong>Cost:</strong> harder to debug and constrain
+  than HTN; performance scales poorly with action count.</p>
+</div>
+
+<h3>Utility AI / Utility-Based AI <span class="tags"><span class="tag classic">Classic</span></span></h3>
+<div class="primitive">
+  <p>Every candidate action is scored by a utility function (often a product
+  of normalized response curves over inputs &mdash; health, distance, ammo, threat).
+  Highest-scoring action wins, optionally with weighted-random sampling among
+  the top candidates. <em>The Sims</em> series is the canonical example.</p>
+  <p class="when"><strong>Good for:</strong> agents that must continuously trade off
+  many soft pressures. <strong>Falls down on:</strong> strict sequencing &mdash; utility AI
+  has no native notion of "do A then B then C."</p>
+</div>
+
+<h3>Subsumption Architecture <span class="tags"><span class="tag classic">Classic</span></span></h3>
+<div class="primitive">
+  <p>Brooks (1986). Behaviors stacked in priority layers; higher layers can
+  <em>subsume</em> (override) lower ones. Less common in modern AAA but conceptually
+  underlies a lot of layered behavior-blending in shipping titles.</p>
+</div>
+
+<h3>Rule-Based / Production Systems <span class="tags"><span class="tag classic">Classic</span></span></h3>
+<div class="primitive">
+  <p>If-then rules over working memory, fired by a match-resolve-act loop
+  (Rete, CLIPS, etc.). Rarely the central architecture in modern games but
+  shows up inside other systems &mdash; e.g., trigger volumes, dialog selection,
+  director AI (Left 4 Dead's AI Director is essentially a rules-and-utility hybrid).</p>
+</div>
+
+<h3>Decision Trees &amp; Fuzzy Logic <span class="tags"><span class="tag classic">Classic</span></span></h3>
+<div class="primitive">
+  <p>Binary decision trees for cheap classification ("see player &amp; have ammo
+  &amp; healthy &rArr; engage"). Fuzzy logic generalizes to membership grades for
+  blending behaviors. Mostly absorbed into utility AI's response curves today,
+  but still showed up explicitly in older titles.</p>
+</div>
+
+<h3>Scripted Sequences / Triggers <span class="tags"><span class="tag classic">Classic</span></span></h3>
+<div class="primitive">
+  <p>Designer-placed scripted events: trigger volume + action sequence
+  ("when player enters room, ambush spawns and runs to cover points 1-3").
+  Crude but indispensable &mdash; nearly every shipped game has a layer of these
+  even when a fancier AI sits underneath.</p>
+</div>
+
+<h2>2. World-Knowledge &amp; Memory Primitives</h2>
+<p>The decision structures above are useless without a structured view of
+the world. These are the standard ways to <em>represent</em> what the agent knows.</p>
+
+<h3>Blackboards <span class="tags"><span class="tag ue">UE built-in</span><span class="tag classic">Classic</span></span></h3>
+<div class="primitive">
+  <p>A keyed, strongly-typed bag of facts ("EnemyActor", "LastKnownLocation",
+  "TargetVisible") shared between perception, decision-making, and tasks.
+  Decouples producers from consumers.</p>
+  <div class="ue-note"><strong>Unreal:</strong> <code>UBlackboardData</code> asset defines keys;
+  <code>UBlackboardComponent</code> holds runtime values. BT decorators and tasks
+  read/write keys directly. Forms the contract between perception and BT.</div>
+</div>
+
+<h3>AI Perception <span class="tags"><span class="tag ue">UE built-in</span></span></h3>
+<div class="primitive">
+  <p>Stimulus producers (the noisy gun, the visible pawn) and stimulus
+  consumers (the AI senses) modeled as first-class components. Sight, hearing,
+  damage, prediction, team affiliation.</p>
+  <div class="ue-note"><strong>Unreal:</strong> <code>UAIPerceptionComponent</code> on the controller,
+  <code>UAISense_Sight</code> / <code>UAISense_Hearing</code> / <code>UAISense_Damage</code> /
+  <code>UAISense_Touch</code> / <code>UAISense_Team</code> / <code>UAISense_Prediction</code>.
+  Stimuli flow into the Blackboard via standard listeners.</div>
+</div>
+
+<h3>Influence Maps <span class="tags"><span class="tag classic">Classic</span></span></h3>
+<div class="primitive">
+  <p>2D grids (or hex grids) recording per-cell scalar fields &mdash; threat,
+  visibility, occupancy, scent. Decay and propagate across neighbours each
+  tick. Used heavily in RTS AI (StarCraft, Supreme Commander) for tactical
+  reasoning, and by squad AI for cover and flank scoring.</p>
+</div>
+
+<h3>Tactical Position / Cover Systems <span class="tags"><span class="tag classic">Classic</span></span></h3>
+<div class="primitive">
+  <p>Designer-placed or procedurally-generated points annotated with metadata
+  (cover direction, exposed angles, height). The AI queries the set for
+  "best cover from <em>that</em> direction" each time it needs to reposition.</p>
+</div>
+
+<h3>Environment Query System (EQS) <span class="tags"><span class="tag ue">UE built-in</span></span></h3>
+<div class="primitive">
+  <p>Spatial query language: generate candidate points (grid around the
+  player, donut around the agent, nearby cover actors), then score and filter
+  them with chained tests (distance, line-of-sight, dot-product to player
+  facing). Returns the best item or a weighted ranking. EQS is Unreal's
+  general answer to "where should the agent move/aim/look?"</p>
+  <div class="ue-note"><strong>Unreal:</strong> <code>UEnvQuery</code> asset.
+  Composed of <em>generators</em> (<code>EnvQueryGenerator_OnCircle</code>,
+  <code>EnvQueryGenerator_ActorsOfClass</code>, ...) and <em>tests</em>
+  (<code>EnvQueryTest_Distance</code>, <code>EnvQueryTest_Trace</code>,
+  <code>EnvQueryTest_Dot</code>, ...). Invoked from a BT via
+  <code>BTTask_RunEQSQuery</code>.</div>
+</div>
+
+<h3>Smart Objects <span class="tags"><span class="tag ue">UE built-in</span><span class="tag modern">Modern</span></span></h3>
+<div class="primitive">
+  <p>Reverses the responsibility: instead of the AI knowing how to use a
+  chair, the chair tells the AI ("I afford sit-down; here's the slot, the
+  animation, the duration"). Origin in <em>The Sims</em>'s "advertisements."
+  Now a first-class Unreal subsystem.</p>
+  <div class="ue-note"><strong>Unreal:</strong> <code>USmartObjectComponent</code>,
+  <code>USmartObjectSubsystem</code>, definitions data-driven. Pairs naturally with
+  Mass AI and State Trees.</div>
+</div>
+
+<h3>Memory / Working Memory Facts <span class="tags"><span class="tag classic">Classic</span></span></h3>
+<div class="primitive">
+  <p>Time-stamped, decaying records of past events ("saw enemy at X 4 seconds
+  ago"). Distinct from a blackboard's "current value" because facts have
+  age and confidence. F.E.A.R.'s "WorkingMemoryFact" is the textbook example.</p>
+</div>
+
+<h2>3. Movement &amp; Navigation</h2>
+
+<h3>NavMesh / Navigation <span class="tags"><span class="tag ue">UE built-in</span><span class="tag classic">Classic</span></span></h3>
+<div class="primitive">
+  <p>Walkable surface represented as a polygon mesh, queried by A* (or
+  similar) for paths. Hierarchical or "off-mesh link" extensions for jumps,
+  ladders, doors.</p>
+  <div class="ue-note"><strong>Unreal:</strong> <code>ARecastNavMesh</code> (Recast/Detour under
+  the hood), <code>UNavigationSystemV1</code>. Tasks like <code>BTTask_MoveTo</code> use it transparently.</div>
+</div>
+
+<h3>Steering Behaviors / Boids <span class="tags"><span class="tag classic">Classic</span></span></h3>
+<div class="primitive">
+  <p>Reynolds (1987) &mdash; seek, flee, arrive, separation, alignment, cohesion,
+  pursuit, evasion, wander, obstacle-avoidance &mdash; composed by weighted sum
+  into a final acceleration. The substrate of flocking, crowd simulation,
+  vehicle AI.</p>
+</div>
+
+<h3>Crowd Avoidance (RVO / ORCA) <span class="tags"><span class="tag ue">UE built-in</span></span></h3>
+<div class="primitive">
+  <p>Reciprocal Velocity Obstacles: each agent computes a velocity that
+  jointly avoids collisions assuming peers do the same. Cheap, smooth,
+  decentralized.</p>
+  <div class="ue-note"><strong>Unreal:</strong> <code>UCrowdManager</code> +
+  <code>UCrowdFollowingComponent</code>. Drop-in for any pawn using
+  Detour-based navigation.</div>
+</div>
+
+<h3>ZoneGraph <span class="tags"><span class="tag ue">UE built-in</span><span class="tag modern">Modern</span></span></h3>
+<div class="primitive">
+  <p>Annotated lane graph for higher-level navigation than NavMesh: think
+  sidewalks, traffic lanes, NPC patrol routes with directionality and tags.
+  Feeds Mass AI for city-population behavior.</p>
+</div>
+
+<h3>Pathing Considerations <span class="tags"><span class="tag classic">Classic</span></span></h3>
+<div class="primitive">
+  <p>Beyond the bare shortest path: weighted regions ("avoid the open
+  street"), hierarchical pathfinding for large maps, theta-* / any-angle
+  pathfinding for natural-looking traversal, jump-point search for grids.</p>
+</div>
+
+<h2>4. Coordination &amp; Multi-Agent Primitives</h2>
+
+<h3>Squad / Team Coordinators <span class="tags"><span class="tag classic">Classic</span></span></h3>
+<div class="primitive">
+  <p>A higher-level agent that owns the squad as a unit, assigning roles
+  (suppressor, flanker, breacher) and slots to individual AIs. F.E.A.R.'s
+  squad layer sits above each agent's individual GOAP planner.</p>
+</div>
+
+<h3>Mass AI / ECS-Style Agents <span class="tags"><span class="tag ue">UE built-in</span><span class="tag modern">Modern</span></span></h3>
+<div class="primitive">
+  <p>Data-oriented, entity-component-system agents designed for crowds of
+  thousands. Each agent is a thin row in arrays; processors run over batches
+  rather than ticking individuals.</p>
+  <div class="ue-note"><strong>Unreal:</strong> <code>MassEntity</code>, <code>MassAI</code>,
+  <code>MassCrowd</code> plugins. Pairs with State Trees for per-entity behaviour
+  and ZoneGraph for navigation. Used in <em>The Matrix Awakens</em> city demo.</div>
+</div>
+
+<h3>Auction / Market-Based Task Allocation <span class="tags"><span class="tag classic">Classic</span></span></h3>
+<div class="primitive">
+  <p>Agents bid utility values for tasks; coordinator allocates. Cleaner than
+  hard role-assignment when the set of agents and tasks is dynamic.</p>
+</div>
+
+<h3>AI Director / Drama Manager <span class="tags"><span class="tag classic">Classic</span></span></h3>
+<div class="primitive">
+  <p>A non-embodied agent watching the overall experience and modulating
+  pacing &mdash; spawn rates, enemy types, tension. <em>Left 4 Dead</em>'s Director
+  is the canonical example; spiritual descendants in <em>Alien: Isolation</em>'s
+  alien-director, <em>Vampire Survivors</em>'s wave scheduler, etc.</p>
+</div>
+
+<h2>5. Lower-Level Algorithms (Substrate, Not Primitives)</h2>
+<p>These aren't "design primitives" in the sense above &mdash; designers don't
+author them directly &mdash; but every primitive on the page sits on at least one.</p>
+
+<table>
+<thead>
+  <tr><th>Algorithm</th><th>Used by</th></tr>
+</thead>
+<tbody>
+  <tr><td>A*, Dijkstra, JPS</td><td>NavMesh, GOAP, HTN planners</td></tr>
+  <tr><td>Recast / Detour</td><td>Unreal NavMesh generation &amp; path queries</td></tr>
+  <tr><td>Min-max, MCTS, alpha-beta</td><td>Board / strategy game AI</td></tr>
+  <tr><td>Markov Decision Processes</td><td>Reinforcement-learning bots, some director AIs</td></tr>
+  <tr><td>Behavior cloning / imitation learning</td><td>Modern ML-driven NPCs</td></tr>
+  <tr><td>Neural nets / RL</td><td>OpenAI Five, AlphaStar, Forza Drivatars</td></tr>
+</tbody>
+</table>
+
+<h2>6. Unreal at a Glance</h2>
+<p>For quick reference &mdash; the AI primitives Unreal ships out of the box,
+roughly ordered from "default reach" to "newer / opt-in":</p>
+
+<table>
+<thead>
+  <tr><th>Primitive</th><th>Asset / Class</th><th>Role</th></tr>
+</thead>
+<tbody>
+  <tr><td>AI Controller</td><td><code>AAIController</code></td><td>Possesses a pawn; owns the BT/StateTree, blackboard, perception</td></tr>
+  <tr><td>Behavior Tree</td><td><code>UBehaviorTree</code></td><td>Default decision-making asset</td></tr>
+  <tr><td>Blackboard</td><td><code>UBlackboardData</code></td><td>Shared keyed memory</td></tr>
+  <tr><td>AI Perception</td><td><code>UAIPerceptionComponent</code></td><td>Sight / hearing / damage / etc.</td></tr>
+  <tr><td>EQS</td><td><code>UEnvQuery</code></td><td>Spatial reasoning &amp; positioning</td></tr>
+  <tr><td>NavMesh</td><td><code>ARecastNavMesh</code></td><td>Pathfinding surface</td></tr>
+  <tr><td>Crowd Manager</td><td><code>UCrowdManager</code></td><td>RVO-style collision avoidance</td></tr>
+  <tr><td>Gameplay Tasks</td><td><code>UGameplayTask</code></td><td>Async unit of work an AI/controller can run</td></tr>
+  <tr><td>State Tree</td><td><code>UStateTree</code></td><td>Newer BT alternative; hierarchical + condition-driven</td></tr>
+  <tr><td>Smart Objects</td><td><code>USmartObjectComponent</code></td><td>World objects advertise affordances to AIs</td></tr>
+  <tr><td>ZoneGraph</td><td><code>UZoneGraphSubsystem</code></td><td>Annotated lane graph for high-level routing</td></tr>
+  <tr><td>Mass AI</td><td><code>MassAI</code> plugin</td><td>ECS-style crowd of thousands</td></tr>
+</tbody>
+</table>
+
+<p class="citation">References worth chasing:
+<em>Programming Game AI by Example</em> (Buckland);
+<em>AI for Games</em> (Millington &amp; Funge);
+<em>Game AI Pro</em> 1&ndash;3 (Steve Rabin, ed.);
+F.E.A.R. GDC postmortems (Jeff Orkin) for GOAP;
+Killzone 2/3 GDC talks (Tim Verweij, Arjen Beij) for HTN;
+Epic's "Mass AI / State Tree" documentation for the modern Unreal stack.</p>
+
+</body>
+</html>

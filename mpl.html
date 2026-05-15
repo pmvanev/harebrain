@@ -2,254 +2,634 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
 <title>MPLv2 vs. Harel Statecharts — a summary</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..900,0..100,0..1;1,9..144,300..900,0..100,0..1&family=Spectral:ital,wght@0,300;0,400;0,500;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --ink: #1a1a1a;
-    --muted: #555;
-    --rule: #ddd;
-    --accent: #b35900;
-    --code-bg: #f6f4ef;
-    --table-bg: #fafaf7;
+    color-scheme: light dark;
+    --paper:        #f3eddc;
+    --paper-grid:   rgba(40, 36, 24, 0.045);
+    --paper-edge:   #ece3c9;
+    --ink:          #1a1810;
+    --muted:        #5d553f;
+    --rule:         #a99a76;
+    --rule-soft:    #d4c8a4;
+    --blueprint:    #1f4f7a;
+    --blueprint-tint: rgba(31, 79, 122, 0.07);
+    --oxblood:      #8b1f2c;
+    --oxblood-tint: rgba(139, 31, 44, 0.06);
+    --sage:         #4f6b3f;
+    --sepia:        #8a6b2d;
+    --code-bg:      #ebe2c5;
+    --table-bg:     rgba(255, 252, 238, 0.5);
+    --table-head:   rgba(0, 0, 0, 0.025);
+    --hover-tint:   rgba(31, 79, 122, 0.05);
+    --gap-row:      rgba(139, 31, 44, 0.06);
+    --gap-row-hover:rgba(139, 31, 44, 0.10);
   }
-  html { background: #fbfaf6; }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper:        #14130c;
+      --paper-grid:   rgba(255, 245, 215, 0.035);
+      --paper-edge:   #1c1a12;
+      --ink:          #ede2c4;
+      --muted:        #a89c7d;
+      --rule:         #5a5037;
+      --rule-soft:    #3a3327;
+      --blueprint:    #88c0e8;
+      --blueprint-tint: rgba(136, 192, 232, 0.10);
+      --oxblood:      #e09098;
+      --oxblood-tint: rgba(224, 144, 152, 0.10);
+      --sage:         #b1c98c;
+      --sepia:        #d4b884;
+      --code-bg:      #221f15;
+      --table-bg:     rgba(255, 245, 215, 0.025);
+      --table-head:   rgba(255, 245, 215, 0.05);
+      --hover-tint:   rgba(136, 192, 232, 0.08);
+      --gap-row:      rgba(224, 144, 152, 0.08);
+      --gap-row-hover:rgba(224, 144, 152, 0.14);
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  html { background: var(--paper); }
+
   body {
-    font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(var(--paper-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--paper-grid) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-position: 0 0;
     color: var(--ink);
-    max-width: 820px;
-    margin: 2.5rem auto;
-    padding: 0 1.5rem;
-    line-height: 1.55;
+    font-family: 'Spectral', Georgia, "Iowan Old Style", "Times New Roman", serif;
+    font-size: 1.05rem;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    counter-reset: section figure;
   }
-  h1 { font-size: 1.9rem; margin-bottom: 0.2rem; }
-  h2 {
-    font-size: 1.25rem;
-    margin-top: 2.2rem;
+
+  /* ------- layout ------- */
+  .page {
+    max-width: 72ch;
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(1.2rem, 4vw, 3rem) 6rem;
+    position: relative;
+  }
+
+  /* ------- masthead ------- */
+  .masthead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    border-top: 3px double var(--ink);
     border-bottom: 1px solid var(--rule);
-    padding-bottom: 0.25rem;
+    padding: 0.75rem 0 0.55rem;
+    margin: 0 0 2.4rem;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
   }
-  h3 { font-size: 1.05rem; margin-top: 1.5rem; color: var(--accent); }
-  p.lede { color: var(--muted); font-style: italic; margin-top: 0.2rem; }
-  code, pre {
-    font-family: "SF Mono", Consolas, "Liberation Mono", monospace;
-    background: var(--code-bg);
-    border-radius: 3px;
+  .masthead .vol { color: var(--blueprint); }
+  .masthead .date { color: var(--oxblood); }
+
+  /* ------- decorative glyph ------- */
+  .glyph {
+    display: block;
+    margin: 0 0 1.4rem;
+    color: var(--ink);
   }
-  code { padding: 0.05rem 0.3rem; font-size: 0.9em; }
-  pre {
-    padding: 0.75rem 1rem;
-    overflow-x: auto;
+  .glyph svg { display: block; }
+
+  /* ------- title block ------- */
+  h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'SOFT' 30, 'WONK' 0;
+    font-weight: 500;
+    font-size: clamp(2.2rem, 5.4vw, 3.6rem);
+    line-height: 1.02;
+    letter-spacing: -0.012em;
+    margin: 0 0 0.55rem;
+    color: var(--ink);
+  }
+  h1 em {
+    font-style: italic;
+    font-variation-settings: 'opsz' 144, 'SOFT' 90, 'WONK' 1;
+    color: var(--blueprint);
+  }
+
+  p.lede {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 24, 'SOFT' 100, 'WONK' 0;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 1.18rem;
+    line-height: 1.46;
+    color: var(--muted);
+    margin: 0.4rem 0 0;
+    max-width: 56ch;
+  }
+  p.lede code { font-style: normal; }
+
+  /* horizontal rule between lede and body */
+  .ornament {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 2.6rem 0 2rem;
+    color: var(--rule);
+  }
+  .ornament::before, .ornament::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+  .ornament span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ------- section headers ------- */
+  h2 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 60, 'SOFT' 25, 'WONK' 0;
+    font-weight: 600;
+    font-size: clamp(1.32rem, 2.4vw, 1.6rem);
+    line-height: 1.2;
+    margin: 3.2rem 0 1rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--rule);
+    position: relative;
+    counter-increment: section;
+  }
+  h2::before {
+    content: "§ " counter(section, decimal-leading-zero);
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--blueprint);
+    font-weight: 500;
+    margin-bottom: 0.35rem;
+  }
+
+  h3 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 24, 'SOFT' 50, 'WONK' 0;
+    font-weight: 600;
+    font-size: 1.1rem;
+    line-height: 1.3;
+    margin: 1.9rem 0 0.55rem;
+    color: var(--sage);
+  }
+  h3.extra::before {
+    content: "▸";
+    color: var(--sage);
+    margin-right: 0.45rem;
+    font-size: 0.9em;
+  }
+
+  /* drop cap on first paragraph of opening section */
+  .opening > p:first-of-type::first-letter {
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 144, 'SOFT' 0, 'WONK' 1;
+    font-weight: 700;
+    float: left;
+    font-size: 3.9em;
+    line-height: 0.82;
+    padding: 0.06em 0.12em 0 0;
+    color: var(--blueprint);
+  }
+
+  /* ------- prose ------- */
+  p { margin: 0 0 1.05rem; }
+  strong { font-weight: 700; color: var(--ink); }
+  em { font-style: italic; }
+  a {
+    color: var(--blueprint);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+  }
+  a:hover { color: var(--oxblood); }
+
+  ul, ol { margin: 0 0 1.2rem; padding-left: 1.45rem; }
+  li { margin-bottom: 0.55rem; }
+  ul li::marker { color: var(--blueprint); }
+  ol li::marker { color: var(--blueprint); font-family: 'JetBrains Mono', monospace; }
+
+  blockquote {
+    margin: 1.4rem 0;
+    padding: 0.85rem 1.2rem;
+    background: var(--blueprint-tint);
+    border-left: 3px solid var(--blueprint);
+    font-family: 'Fraunces', Georgia, serif;
+    font-variation-settings: 'opsz' 36, 'SOFT' 80, 'WONK' 0;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--ink);
+    font-size: 1.05rem;
+    line-height: 1.5;
+  }
+
+  /* ------- code ------- */
+  code {
+    font-family: 'JetBrains Mono', ui-monospace, "SF Mono", Consolas, monospace;
     font-size: 0.85em;
-    line-height: 1.45;
-    border-left: 3px solid var(--accent);
+    background: var(--code-bg);
+    padding: 0.08em 0.36em;
+    border-radius: 2px;
+    color: var(--ink);
+    word-break: keep-all;
+  }
+  pre {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    background: var(--code-bg);
+    border: 1px solid var(--rule-soft);
+    border-left: 3px solid var(--blueprint);
+    padding: 1.1rem 1.2rem 1rem;
+    margin: 1.6rem 0;
+    overflow-x: auto;
+    position: relative;
+    counter-increment: figure;
+  }
+  pre::before {
+    content: "FIG. " counter(figure, decimal-leading-zero);
+    position: absolute;
+    top: 0.5rem;
+    right: 0.8rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  pre code {
+    background: transparent;
+    padding: 0;
+    font-size: inherit;
+    color: var(--ink);
+  }
+
+  /* ------- table ------- */
+  .table-wrap {
+    margin: 1.5rem -0.4rem 2.2rem;
+    overflow-x: auto;
+    padding: 0 0.4rem;
   }
   table {
     width: 100%;
     border-collapse: collapse;
-    margin: 1rem 0 1.5rem;
+    font-size: 0.94rem;
     background: var(--table-bg);
-    font-size: 0.95rem;
+    border-top: 2px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
   }
-  th, td {
+  thead th {
     text-align: left;
-    padding: 0.55rem 0.7rem;
-    border-bottom: 1px solid var(--rule);
-    vertical-align: top;
-  }
-  th { background: #efece4; font-weight: bold; }
-  td:first-child { width: 30%; }
-  td:nth-child(2) { width: 30%; }
-  .citation { color: var(--muted); font-size: 0.85em; }
-  .gap { color: #a33; }
-  .extra { color: #357; }
-  blockquote {
-    border-left: 3px solid var(--rule);
-    margin: 1rem 0;
-    padding: 0.2rem 1rem;
+    padding: 0.7rem 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 600;
     color: var(--muted);
-    font-style: italic;
+    border-bottom: 1px solid var(--ink);
+    background: var(--table-head);
   }
+  tbody td {
+    padding: 0.85rem 0.85rem;
+    vertical-align: top;
+    border-bottom: 1px dashed var(--rule-soft);
+    font-size: 0.96rem;
+    line-height: 1.5;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr { transition: background 0.18s ease; }
+  tbody tr:hover { background: var(--hover-tint); }
+  td:first-child {
+    width: 32%;
+    font-family: 'Spectral', serif;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  td:nth-child(2) { width: 33%; }
+  td code { font-size: 0.82em; }
+
+  tr.gap td {
+    color: var(--oxblood);
+    background: var(--gap-row);
+  }
+  tr.gap td:first-child {
+    position: relative;
+    padding-left: 1.6rem;
+  }
+  tr.gap td:first-child::before {
+    content: "△";
+    position: absolute;
+    left: 0.55rem;
+    top: 0.85rem;
+    color: var(--oxblood);
+    font-size: 0.9em;
+  }
+  tr.gap code { background: var(--oxblood-tint); color: var(--oxblood); }
+  tr.gap:hover { background: var(--gap-row-hover); }
+
+  /* ------- citation ------- */
+  .citation {
+    margin-top: 4rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--rule);
+    color: var(--sepia);
+    font-family: 'Spectral', serif;
+    font-style: italic;
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+  .citation code { font-style: normal; background: transparent; padding: 0; color: var(--sepia); }
+  .citation strong { color: var(--sepia); font-weight: 600; font-style: normal; }
+
+  .colophon {
+    margin-top: 3rem;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.4em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .colophon .dot { color: var(--blueprint); margin: 0 0.4rem; }
+
+  /* ------- responsive ------- */
+  @media (max-width: 720px) {
+    body { font-size: 1rem; }
+    .masthead { font-size: 0.62rem; }
+    td:first-child, td:nth-child(2) { width: auto; }
+    table { font-size: 0.88rem; }
+  }
+
+  /* ------- page-load reveal ------- */
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .page > *,
+  .page > section > * {
+    animation: rise 0.55s cubic-bezier(.2,.7,.2,1) both;
+  }
+  .page > *:nth-child(1) { animation-delay: 0s; }
+  .page > *:nth-child(2) { animation-delay: 0.05s; }
+  .page > *:nth-child(3) { animation-delay: 0.1s; }
+  .page > *:nth-child(4) { animation-delay: 0.15s; }
+  .page > *:nth-child(5) { animation-delay: 0.2s; }
+  .page > *:nth-child(n+6) { animation-delay: 0.25s; }
+  @media (prefers-reduced-motion: reduce) {
+    .page > *, .page > section > * { animation: none; }
+  }
+
+  ::selection { background: var(--blueprint); color: var(--paper); }
 </style>
 </head>
 <body>
+<article class="page">
 
-<h1>MPLv2, read against Harel's <em>Statecharts</em></h1>
-<p class="lede">A summary of <code>github.com/lostinplace/mplv2</code> framed by the 1987 paper
-"Statecharts: A Visual Formalism for Complex Systems" (Harel, <em>Sci. of Computer Programming</em> 8).</p>
+  <header class="masthead">
+    <span class="vol">Vol. I &middot; No. 1</span>
+    <span>Notes on Reactive Systems</span>
+    <span class="date">1987 &rarr; 2025</span>
+  </header>
 
-<h2>What the paper proposed</h2>
-<p>Harel's thesis is that the conventional flat state-transition diagram cannot
-describe a non-trivial reactive system without exploding combinatorially. His
-fix &mdash; <em>statecharts</em> &mdash; is a compact extension of state diagrams along
-three axes:</p>
-<blockquote>statecharts = state-diagrams + depth + orthogonality + broadcast-communication</blockquote>
-<ul>
-  <li><strong>Depth</strong> &mdash; states <em>cluster</em> into super-states (XOR-decomposition); a single
-      arrow leaving a super-state stands in for an arrow leaving every substate,
-      and arrows may originate or terminate at <em>any</em> level (inter-level transitions).</li>
-  <li><strong>Orthogonality</strong> &mdash; states <em>split</em> via dashed lines into AND-components
-      that are simultaneously active. The combined state of two orthogonal
-      regions with <em>n</em> and <em>m</em> substates is conceptually <em>n&times;m</em> without ever
-      drawing <em>n&middot;m</em> boxes. Components may synchronize on shared events or
-      depend on each other via <code>in(state)</code> conditions.</li>
-  <li><strong>Broadcast communication</strong> &mdash; an event raised by one component is
-      visible to <em>every</em> region that cares to react. There is no addressing.</li>
-</ul>
-<p>The paper also catalogs a handful of supporting devices: <em>default</em> arrows
-(initial state), <em>history</em> entrances (<code>H</code> and deep <code>H*</code>),
-conditional and selection connectives, transitions guarded by conditions,
-and Mealy-style outputs/actions on arrows. Harel works the entire formalism
-out on a single running example &mdash; the Citizen Quartz Multi-Alarm III wristwatch &mdash;
-arriving at the foldout statechart of Fig. 31.</p>
+  <div class="glyph" aria-hidden="true">
+    <svg width="148" height="46" viewBox="0 0 148 46" fill="none">
+      <g style="stroke: var(--ink); fill: var(--ink);">
+        <!-- XOR: nested rounded boxes (depth / clustering) -->
+        <rect x="1" y="1" width="56" height="44" rx="7" stroke-width="1.2" fill="none"/>
+        <rect x="8" y="10" width="20" height="14" rx="3" stroke-width="1" fill="none"/>
+        <rect x="33" y="10" width="17" height="14" rx="3" stroke-width="1" fill="none"/>
+        <circle cx="18" cy="34" r="2" stroke="none"/>
+        <line x1="18" y1="32" x2="18" y2="26" stroke-width="1"/>
+        <polygon points="18,24 16,28 20,28" stroke="none"/>
+      </g>
+      <g style="stroke: var(--oxblood); fill: var(--oxblood);">
+        <!-- transition arrow between clusters -->
+        <line x1="60" y1="23" x2="83" y2="23" stroke-width="1.3"/>
+        <polygon points="86,23 80,20 80,26" stroke="none"/>
+        <text x="64" y="19" font-family="JetBrains Mono, monospace" font-size="7" letter-spacing="0.5" stroke="none">e[C]/a</text>
+      </g>
+      <g style="stroke: var(--blueprint); fill: var(--blueprint);">
+        <!-- AND: dashed-split box (orthogonality) -->
+        <rect x="89" y="1" width="58" height="44" rx="7" stroke-width="1.2" fill="none"/>
+        <line x1="89" y1="23" x2="147" y2="23" stroke-width="1" stroke-dasharray="3 3"/>
+        <text x="100" y="16" font-family="Spectral, serif" font-size="8" font-style="italic" stroke="none">A</text>
+        <text x="100" y="36" font-family="Spectral, serif" font-size="8" font-style="italic" stroke="none">B</text>
+      </g>
+    </svg>
+  </div>
 
-<h2>What MPLv2 is</h2>
-<p>MPLv2 is a textual DSL plus a Python simulation engine for the same class of
-systems Harel had in mind: reactive, event-driven, hierarchical, concurrent.
-It compiles <code>.mpl</code> source via <code>lark</code> into a rule set executed
-tick-by-tick over an immutable <em>Manifest</em>.</p>
+  <h1>MPLv2, read against Harel&rsquo;s <em>Statecharts</em></h1>
+  <p class="lede">A summary of <code>github.com/lostinplace/mplv2</code> framed by the 1987 paper &ldquo;Statecharts: A Visual Formalism for Complex Systems&rdquo; (Harel, <em>Sci. of Computer Programming</em> 8).</p>
 
-<p>Its surface vocabulary maps onto Harel's almost line-for-line, with a few
-deliberate deviations &mdash; an explicit synchronous tick model, declared signal
-interfaces, deterministic conflict resolution, and first-class spatial data.</p>
+  <div class="ornament" aria-hidden="true"><span>&sect;</span></div>
 
-<h2>The mapping</h2>
+  <section class="opening">
+    <h2>What the paper proposed</h2>
+    <p>Harel&rsquo;s thesis is that the conventional flat state-transition diagram cannot
+    describe a non-trivial reactive system without exploding combinatorially. His
+    fix &mdash; <em>statecharts</em> &mdash; is a compact extension of state diagrams along
+    three axes:</p>
+    <blockquote>statecharts = state-diagrams + depth + orthogonality + broadcast-communication</blockquote>
+    <ul>
+      <li><strong>Depth</strong> &mdash; states <em>cluster</em> into super-states (XOR-decomposition); a single
+          arrow leaving a super-state stands in for an arrow leaving every substate,
+          and arrows may originate or terminate at <em>any</em> level (inter-level transitions).</li>
+      <li><strong>Orthogonality</strong> &mdash; states <em>split</em> via dashed lines into AND-components
+          that are simultaneously active. The combined state of two orthogonal
+          regions with <em>n</em> and <em>m</em> substates is conceptually <em>n&times;m</em> without ever
+          drawing <em>n&middot;m</em> boxes. Components may synchronize on shared events or
+          depend on each other via <code>in(state)</code> conditions.</li>
+      <li><strong>Broadcast communication</strong> &mdash; an event raised by one component is
+          visible to <em>every</em> region that cares to react. There is no addressing.</li>
+    </ul>
+    <p>The paper also catalogs a handful of supporting devices: <em>default</em> arrows
+    (initial state), <em>history</em> entrances (<code>H</code> and deep <code>H*</code>),
+    conditional and selection connectives, transitions guarded by conditions,
+    and Mealy-style outputs/actions on arrows. Harel works the entire formalism
+    out on a single running example &mdash; the Citizen Quartz Multi-Alarm III wristwatch &mdash;
+    arriving at the foldout statechart of Fig. 31.</p>
+  </section>
 
-<table>
-<thead>
-  <tr><th>Harel (1987)</th><th>MPLv2 construct</th><th>Notes</th></tr>
-</thead>
-<tbody>
-  <tr>
-    <td>XOR-decomposition (clustering / refinement)</td>
-    <td><code>state X { state A; state B; default state A; }</code></td>
-    <td>Exactly one child active. Direct correspondence to Harel's rounded-box nesting.</td>
-  </tr>
-  <tr>
-    <td>AND-decomposition (orthogonality, dashed-line split)</td>
-    <td><code>machine X { state A; state B; ... }</code></td>
-    <td>Machines are the AND-container; multiple child regions are simultaneously active.
-        MPLv2 distinguishes the two kinds of container <em>lexically</em> rather than typographically.</td>
-  </tr>
-  <tr>
-    <td>Default arrow (initial substate)</td>
-    <td><code>default state Idle;</code> and the <code>ENTER =&gt; ...</code> rule</td>
-    <td>Same semantics as Harel's small-dot arrow.</td>
-  </tr>
-  <tr>
-    <td>Transition with event / condition / action<br>(<code>e[C]/a</code>)</td>
-    <td><code>Src when cond =&gt; Dst then { action; }</code></td>
-    <td><code>=&gt;</code> is Harel's transition arrow. <code>when</code> is the bracketed condition.
-        <code>then { }</code> is the Mealy action (§5 of the paper).</td>
-  </tr>
-  <tr>
-    <td>Activities / continuous actions in a state (§5)</td>
-    <td><code>Running -&gt; { fuel -= 1; };</code></td>
-    <td>The <em>observation</em> operator <code>-&gt;</code> &mdash; doesn't exit the source &mdash; corresponds
-        to Harel's "activity" attached to a state.</td>
-  </tr>
-  <tr>
-    <td>Broadcast event (§3, §5)</td>
-    <td>Signals on the canonical bus <code>SIGNALS/X</code> + <code>receives { X } from { * }</code></td>
-    <td>MPLv2 keeps Harel's broadcast model but <em>declares the interface</em>: a machine only
-        hears what it explicitly subscribes to. Undeclared signals are inert.</td>
-  </tr>
-  <tr>
-    <td>"in (state)" condition (§3)</td>
-    <td>Same notion; cross-machine path references in <code>when</code> clauses</td>
-    <td>One orthogonal component can guard on another's active substate.</td>
-  </tr>
-  <tr>
-    <td>Conditional connective (C-entrance, Fig. 33)</td>
-    <td><code>choose(N) { @priority(...) ...; @weight(...) ...; }</code></td>
-    <td><code>choose</code> generalizes Harel's C-connector: instead of one of N branches
-        selected by a condition, MPLv2 selects up to N from a competing pool,
-        using priority then weight then seeded RNG.</td>
-  </tr>
-  <tr>
-    <td>Inter-level transitions and "exit independently"</td>
-    <td>Path-qualified targets: <code>=&gt; Machine/Sub/Leaf</code>, <code>=&gt; EXIT</code></td>
-    <td>Arrows in MPLv2 are fully qualified paths rather than diagram positions,
-        so they cross hierarchy levels naturally.</td>
-  </tr>
-  <tr>
-    <td>Delays and timeouts (§4.2, e.g. "2 min in date")</td>
-    <td>Tick-counter idioms over <code>vars</code> driven by <code>TICK/elapsed</code></td>
-    <td>Not a dedicated construct; the synchronous tick model makes timeouts a trivial
-        guard expression.</td>
-  </tr>
-  <tr>
-    <td class="gap">History entrance <code>H</code> / deep <code>H*</code> (§2)</td>
-    <td class="gap">&mdash; not a first-class construct &mdash;</td>
-    <td class="gap">Harel's "enter the most recently visited substate" connector has no direct
-        equivalent in MPLv2 today. It would have to be emulated with a <code>vars</code> slot
-        holding the last-active child and a guarded re-entry rule.</td>
-  </tr>
-  <tr>
-    <td class="gap">Selection connective <code>S</code> (Fig. 34)</td>
-    <td class="gap">&mdash; emulated with labelled signal payloads &mdash;</td>
-    <td class="gap">MPLv2's <code>signal as label</code> with per-payload iteration covers the
-        "event value selects target" case at the rule level rather than the diagram level.</td>
-  </tr>
-</tbody>
-</table>
+  <section>
+    <h2>What MPLv2 is</h2>
+    <p>MPLv2 is a textual DSL plus a Python simulation engine for the same class of
+    systems Harel had in mind: reactive, event-driven, hierarchical, concurrent.
+    It compiles <code>.mpl</code> source via <code>lark</code> into a rule set executed
+    tick-by-tick over an immutable <em>Manifest</em>.</p>
+    <p>Its surface vocabulary maps onto Harel&rsquo;s almost line-for-line, with a few
+    deliberate deviations &mdash; an explicit synchronous tick model, declared signal
+    interfaces, deterministic conflict resolution, and first-class spatial data.</p>
+  </section>
 
-<h2>What MPLv2 adds beyond the paper</h2>
-<p>These features extend rather than mirror Harel; they're choices the engine
-makes precisely because it has to <em>run</em>, not just be drawn.</p>
+  <section>
+    <h2>The mapping</h2>
+    <div class="table-wrap">
+    <table>
+    <thead>
+      <tr><th>Harel (1987)</th><th>MPLv2 construct</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>XOR-decomposition (clustering / refinement)</td>
+        <td><code>state X { state A; state B; default state A; }</code></td>
+        <td>Exactly one child active. Direct correspondence to Harel&rsquo;s rounded-box nesting.</td>
+      </tr>
+      <tr>
+        <td>AND-decomposition (orthogonality, dashed-line split)</td>
+        <td><code>machine X { state A; state B; ... }</code></td>
+        <td>Machines are the AND-container; multiple child regions are simultaneously active.
+            MPLv2 distinguishes the two kinds of container <em>lexically</em> rather than typographically.</td>
+      </tr>
+      <tr>
+        <td>Default arrow (initial substate)</td>
+        <td><code>default state Idle;</code> and the <code>ENTER =&gt; ...</code> rule</td>
+        <td>Same semantics as Harel&rsquo;s small-dot arrow.</td>
+      </tr>
+      <tr>
+        <td>Transition with event / condition / action<br>(<code>e[C]/a</code>)</td>
+        <td><code>Src when cond =&gt; Dst then { action; }</code></td>
+        <td><code>=&gt;</code> is Harel&rsquo;s transition arrow. <code>when</code> is the bracketed condition.
+            <code>then { }</code> is the Mealy action (&sect;5 of the paper).</td>
+      </tr>
+      <tr>
+        <td>Activities / continuous actions in a state (&sect;5)</td>
+        <td><code>Running -&gt; { fuel -= 1; };</code></td>
+        <td>The <em>observation</em> operator <code>-&gt;</code> &mdash; doesn&rsquo;t exit the source &mdash; corresponds
+            to Harel&rsquo;s &ldquo;activity&rdquo; attached to a state.</td>
+      </tr>
+      <tr>
+        <td>Broadcast event (&sect;3, &sect;5)</td>
+        <td>Signals on the canonical bus <code>SIGNALS/X</code> + <code>receives { X } from { * }</code></td>
+        <td>MPLv2 keeps Harel&rsquo;s broadcast model but <em>declares the interface</em>: a machine only
+            hears what it explicitly subscribes to. Undeclared signals are inert.</td>
+      </tr>
+      <tr>
+        <td>&ldquo;in (state)&rdquo; condition (&sect;3)</td>
+        <td>Same notion; cross-machine path references in <code>when</code> clauses</td>
+        <td>One orthogonal component can guard on another&rsquo;s active substate.</td>
+      </tr>
+      <tr>
+        <td>Conditional connective (C-entrance, Fig. 33)</td>
+        <td><code>choose(N) { @priority(...) ...; @weight(...) ...; }</code></td>
+        <td><code>choose</code> generalizes Harel&rsquo;s C-connector: instead of one of N branches
+            selected by a condition, MPLv2 selects up to N from a competing pool,
+            using priority then weight then seeded RNG.</td>
+      </tr>
+      <tr>
+        <td>Inter-level transitions and &ldquo;exit independently&rdquo;</td>
+        <td>Path-qualified targets: <code>=&gt; Machine/Sub/Leaf</code>, <code>=&gt; EXIT</code></td>
+        <td>Arrows in MPLv2 are fully qualified paths rather than diagram positions,
+            so they cross hierarchy levels naturally.</td>
+      </tr>
+      <tr>
+        <td>Delays and timeouts (&sect;4.2, e.g. &ldquo;2 min in date&rdquo;)</td>
+        <td>Tick-counter idioms over <code>vars</code> driven by <code>TICK/elapsed</code></td>
+        <td>Not a dedicated construct; the synchronous tick model makes timeouts a trivial
+            guard expression.</td>
+      </tr>
+      <tr class="gap">
+        <td>History entrance <code>H</code> / deep <code>H*</code> (&sect;2)</td>
+        <td>&mdash; not a first-class construct &mdash;</td>
+        <td>Harel&rsquo;s &ldquo;enter the most recently visited substate&rdquo; connector has no direct
+            equivalent in MPLv2 today. It would have to be emulated with a <code>vars</code> slot
+            holding the last-active child and a guarded re-entry rule.</td>
+      </tr>
+      <tr class="gap">
+        <td>Selection connective <code>S</code> (Fig. 34)</td>
+        <td>&mdash; emulated with labelled signal payloads &mdash;</td>
+        <td>MPLv2&rsquo;s <code>signal as label</code> with per-payload iteration covers the
+            &ldquo;event value selects target&rdquo; case at the rule level rather than the diagram level.</td>
+      </tr>
+    </tbody>
+    </table>
+    </div>
+  </section>
 
-<h3 class="extra">A synchronous tick with explicit next-tick causality</h3>
-<p>Statecharts (in the 1987 paper) leave step semantics informal &mdash; STATEMATE
-later filled in synchronous and super-step models. MPLv2 commits to one
-discrete tick: rules evaluate against Manifest<sub>t</sub>, propose changes, and
-the changes land atomically in Manifest<sub>t+1</sub>. Signals emitted at <em>t</em> are
-visible at <em>t+1</em>. This sidesteps Harel's "instantaneous chain reaction"
-ambiguity.</p>
+  <section>
+    <h2>What MPLv2 adds beyond the paper</h2>
+    <p>These features extend rather than mirror Harel; they&rsquo;re choices the engine
+    makes precisely because it has to <em>run</em>, not just be drawn.</p>
 
-<h3 class="extra">Deterministic conflict resolution</h3>
-<p>The paper acknowledges that competing transitions can deadlock or
-nondeterminize a step and warns the modeler to "carefully avoid"
-contradictions (Fig. 18). MPLv2 takes the opposite stance: contradictions
-are <em>expected</em>, and a three-stage pipeline picks a winner every time:</p>
-<pre>@priority(N)   &mdash; deterministic rank; highest priority group wins
+    <h3 class="extra">A synchronous tick with explicit next-tick causality</h3>
+    <p>Statecharts (in the 1987 paper) leave step semantics informal &mdash; STATEMATE
+    later filled in synchronous and super-step models. MPLv2 commits to one
+    discrete tick: rules evaluate against Manifest<sub>t</sub>, propose changes, and
+    the changes land atomically in Manifest<sub>t+1</sub>. Signals emitted at <em>t</em> are
+    visible at <em>t+1</em>. This sidesteps Harel&rsquo;s &ldquo;instantaneous chain reaction&rdquo;
+    ambiguity.</p>
+
+    <h3 class="extra">Deterministic conflict resolution</h3>
+    <p>The paper acknowledges that competing transitions can deadlock or
+    nondeterminize a step and warns the modeler to &ldquo;carefully avoid&rdquo;
+    contradictions (Fig. 18). MPLv2 takes the opposite stance: contradictions
+    are <em>expected</em>, and a three-stage pipeline picks a winner every time:</p>
+    <pre>@priority(N)   &mdash; deterministic rank; highest priority group wins
 @weight(W)     &mdash; weighted random among tied priorities
 seeded RNG     &mdash; uniform tie-break, reproducible per simulation seed</pre>
-<p>This turns "a robot wants to chase AND retreat" from a modelling bug into
-a modelling primitive.</p>
+    <p>This turns &ldquo;a robot wants to chase AND retreat&rdquo; from a modelling bug into
+    a modelling primitive.</p>
 
-<h3 class="extra">Probabilistic transitions</h3>
-<p>Section 6.3 of the paper speculates about adding probabilities; MPLv2 ships
-them as <code>@weight</code>. The <code>weighted_behavior</code> example exercises this.</p>
+    <h3 class="extra">Probabilistic transitions</h3>
+    <p>Section 6.3 of the paper speculates about adding probabilities; MPLv2 ships
+    them as <code>@weight</code>. The <code>weighted_behavior</code> example exercises this.</p>
 
-<h3 class="extra">Typed data and vector arithmetic</h3>
-<p>Harel's statecharts are pure control; data lives in an unmentioned "activity"
-layer. MPLv2 makes <code>vars</code> first-class with <code>bool</code>, <code>int</code>,
-<code>float</code>, <code>string</code>, <code>vector&lt;N&gt;</code>, a coercion ladder, and
-conflict-resistant operators (<code>+=</code>, <code>*=</code>, <code>/=</code> merge across
-rules without conflict).</p>
+    <h3 class="extra">Typed data and vector arithmetic</h3>
+    <p>Harel&rsquo;s statecharts are pure control; data lives in an unmentioned &ldquo;activity&rdquo;
+    layer. MPLv2 makes <code>vars</code> first-class with <code>bool</code>, <code>int</code>,
+    <code>float</code>, <code>string</code>, <code>vector&lt;N&gt;</code>, a coercion ladder, and
+    conflict-resistant operators (<code>+=</code>, <code>*=</code>, <code>/=</code> merge across
+    rules without conflict).</p>
 
-<h3 class="extra">Spatial regionmaps</h3>
-<p><code>regionmap GalaxyMap : vector&lt;3&gt; { ... }</code> binds regions to coordinate
-vectors, enabling <code>near</code>, <code>nearest</code>, and <code>choose(N) from &lt;map&gt;</code>
-queries. This is a clean extension orthogonal to the Harel formalism &mdash; the
-watch example never needed it, but a swarm or town simulation does.</p>
+    <h3 class="extra">Spatial regionmaps</h3>
+    <p><code>regionmap GalaxyMap : vector&lt;3&gt; { ... }</code> binds regions to coordinate
+    vectors, enabling <code>near</code>, <code>nearest</code>, and <code>choose(N) from &lt;map&gt;</code>
+    queries. This is a clean extension orthogonal to the Harel formalism &mdash; the
+    watch example never needed it, but a swarm or town simulation does.</p>
 
-<h3 class="extra">Runtime instantiation</h3>
-<p><code>new CannonProjectile into Volleys at [...] with { vars { ... } };</code> spawns
-new region trees during simulation. Statecharts in 1987 were static structural
-descriptions; MPLv2 treats the structure itself as dynamic.</p>
+    <h3 class="extra">Runtime instantiation</h3>
+    <p><code>new CannonProjectile into Volleys at [...] with { vars { ... } };</code> spawns
+    new region trees during simulation. Statecharts in 1987 were static structural
+    descriptions; MPLv2 treats the structure itself as dynamic.</p>
 
-<h3 class="extra">Strongly declared signal interfaces</h3>
-<p>Harel's broadcast is universal. MPLv2's broadcast is universal <em>over a
-declared interface</em>: a machine that doesn't <code>emit</code> a signal can't send
-it, and one that doesn't <code>receive</code> it can't hear it. This is a deliberate
-tradeoff &mdash; less expressive, more analyzable &mdash; matching a textual language's
-need for static checking that a picture doesn't have.</p>
+    <h3 class="extra">Strongly declared signal interfaces</h3>
+    <p>Harel&rsquo;s broadcast is universal. MPLv2&rsquo;s broadcast is universal <em>over a
+    declared interface</em>: a machine that doesn&rsquo;t <code>emit</code> a signal can&rsquo;t send
+    it, and one that doesn&rsquo;t <code>receive</code> it can&rsquo;t hear it. This is a deliberate
+    tradeoff &mdash; less expressive, more analyzable &mdash; matching a textual language&rsquo;s
+    need for static checking that a picture doesn&rsquo;t have.</p>
+  </section>
 
-<h2>How the Harel wristwatch would look in MPLv2</h2>
-<p>The watch's top-level <code>alive</code> state in Harel Fig. 27 decomposes
-orthogonally into <code>main</code>, four status components, <code>light</code>, and
-<code>power</code>. In MPLv2 that's:</p>
-<pre>machine Alive {
+  <section>
+    <h2>How the Harel wristwatch would look in MPLv2</h2>
+    <p>The watch&rsquo;s top-level <code>alive</code> state in Harel Fig. 27 decomposes
+    orthogonally into <code>main</code>, four status components, <code>light</code>, and
+    <code>power</code>. In MPLv2 that&rsquo;s:</p>
+    <pre>machine Alive {
     state Main {
         state Displays { ... }
         state AlarmsBeep { ... }
@@ -266,34 +646,42 @@ orthogonally into <code>main</code>, four status components, <code>light</code>,
         =&gt; Power/OK;
     }
 }</pre>
-<p>Press-button events <code>a</code>/<code>b</code>/<code>c</code>/<code>d</code> arrive on
-<code>SIGNALS/A</code>...<code>SIGNALS/D</code> and reach every component that declares
-<code>receives { A,B,C,D } from { * } as btn;</code>. Harel's <em>"depressing b in update
-simultaneously turns on the light"</em> is two independent rules in two
-orthogonal regions reacting to the same broadcast signal &mdash; precisely the
-behaviour the paper highlights as the payoff of orthogonality.</p>
+    <p>Press-button events <code>a</code>/<code>b</code>/<code>c</code>/<code>d</code> arrive on
+    <code>SIGNALS/A</code>...<code>SIGNALS/D</code> and reach every component that declares
+    <code>receives { A,B,C,D } from { * } as btn;</code>. Harel&rsquo;s <em>&ldquo;depressing b in update
+    simultaneously turns on the light&rdquo;</em> is two independent rules in two
+    orthogonal regions reacting to the same broadcast signal &mdash; precisely the
+    behaviour the paper highlights as the payoff of orthogonality.</p>
+  </section>
 
-<h2>What's worth taking away</h2>
-<ul>
-  <li>MPLv2 is best read as a <strong>textual, executable statechart</strong>, with Harel's
-      depth/orthogonality/broadcast intact and his Fig. 18-style ambiguities
-      resolved by an explicit conflict-resolution pipeline.</li>
-  <li>The big additions &mdash; ticks, typed data, weights, regionmaps, runtime
-      instantiation &mdash; are the kind of pragmatic extensions any reactive
-      <em>simulator</em> (as opposed to specification) eventually needs.</li>
-  <li>The main expressive gap relative to the 1987 paper is <strong>history
-      entrances</strong> (<code>H</code> / <code>H*</code>). They aren't built in and have to be
-      simulated with auxiliary <code>vars</code>.</li>
-  <li>The deliberate retreat from universal broadcast to <strong>declared
-      <code>emits</code>/<code>receives</code> interfaces</strong> is the most interesting trade:
-      it loses some of the "just react to anything anyone shouts" elegance
-      of the diagrammatic original in exchange for static checkability of a
-      textual program.</li>
-</ul>
+  <section>
+    <h2>What&rsquo;s worth taking away</h2>
+    <ul>
+      <li>MPLv2 is best read as a <strong>textual, executable statechart</strong>, with Harel&rsquo;s
+          depth/orthogonality/broadcast intact and his Fig. 18-style ambiguities
+          resolved by an explicit conflict-resolution pipeline.</li>
+      <li>The big additions &mdash; ticks, typed data, weights, regionmaps, runtime
+          instantiation &mdash; are the kind of pragmatic extensions any reactive
+          <em>simulator</em> (as opposed to specification) eventually needs.</li>
+      <li>The main expressive gap relative to the 1987 paper is <strong>history
+          entrances</strong> (<code>H</code> / <code>H*</code>). They aren&rsquo;t built in and have to be
+          simulated with auxiliary <code>vars</code>.</li>
+      <li>The deliberate retreat from universal broadcast to <strong>declared
+          <code>emits</code>/<code>receives</code> interfaces</strong> is the most interesting trade:
+          it loses some of the &ldquo;just react to anything anyone shouts&rdquo; elegance
+          of the diagrammatic original in exchange for static checkability of a
+          textual program.</li>
+    </ul>
+  </section>
 
-<p class="citation">Sources: <code>mplv2/README.md</code>, <code>mplv2/docs/0 - Overview.md</code>;
-Harel, D., "Statecharts: A Visual Formalism for Complex Systems," <em>Science of
-Computer Programming</em> 8 (1987), pp. 231&ndash;274.</p>
+  <p class="citation"><strong>Sources.</strong> <code>mplv2/README.md</code>; <code>mplv2/docs/0 - Overview.md</code>;
+  Harel, D., &ldquo;Statecharts: A Visual Formalism for Complex Systems,&rdquo; <em>Science of
+  Computer Programming</em> 8 (1987), pp. 231&ndash;274.</p>
 
+  <div class="colophon">
+    <span>&sect;</span><span class="dot">&bull;</span><span>fin</span><span class="dot">&bull;</span><span>&sect;</span>
+  </div>
+
+</article>
 </body>
 </html>

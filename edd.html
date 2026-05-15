@@ -1,34 +1,559 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Expectation-Driven Development: A Validation Framework for the Age of AI Agents</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Expectation-Driven Development — Andrea Laforgia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Newsreader:ital,opsz,wght@0,6..72,300..800;1,6..72,300..800&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  body { max-width: 720px; margin: 2rem auto; padding: 0 1rem; font-family: Georgia, serif; line-height: 1.6; color: #222; }
-  h1 { font-size: 2rem; line-height: 1.2; }
-  h2.subtitle { font-weight: 400; color: #555; font-size: 1.15rem; margin-top: 0; }
-  .byline { color: #666; font-size: 0.9rem; margin-bottom: 2rem; }
-  img { max-width: 100%; height: auto; }
-  blockquote { border-left: 3px solid #ccc; margin-left: 0; padding-left: 1rem; color: #444; }
-  pre, code { background: #f6f6f6; }
-  pre { padding: 0.8rem; overflow-x: auto; }
-  hr { border: none; border-top: 1px solid #ddd; margin: 2rem 0; }
-  a { color: #1a6dc0; }
+  :root {
+    color-scheme: light dark;
+    --paper:        #ece5d4;
+    --paper-2:      #e3dcc9;
+    --paper-edge:   #d8d0b9;
+    --ink:          #17160d;
+    --ink-soft:     #2a2820;
+    --muted:        #6a6450;
+    --rule:         #b4ab90;
+    --rule-soft:    #ccc2a4;
+    --mark:         #c8e024;
+    --mark-deep:    #6e7e0a;
+    --mark-soft:    rgba(200, 224, 36, 0.32);
+    --mark-wash:    rgba(200, 224, 36, 0.18);
+    --mark-ink:     #1a2004;     /* always-dark text on chartreuse fill */
+    --code-bg:      #e2dbc6;
+    --rose:         #a14b3a;
+    --evidence-tint:rgba(23, 22, 13, 0.04);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper:        #16140d;
+      --paper-2:      #1f1c14;
+      --paper-edge:   #2a2620;
+      --ink:          #ece4ce;
+      --ink-soft:     #d6cdb4;
+      --muted:        #968d75;
+      --rule:         #4a4332;
+      --rule-soft:    #383225;
+      --mark:         #c8e024;        /* chartreuse pops just as well on dark */
+      --mark-deep:    #d9ed52;        /* brightened for body text on dark */
+      --mark-soft:    rgba(200, 224, 36, 0.28);
+      --mark-wash:    rgba(200, 224, 36, 0.10);
+      --mark-ink:     #1a2004;        /* unchanged — text on chartreuse stays dark */
+      --code-bg:      #231f15;
+      --rose:         #d18374;
+      --evidence-tint:rgba(236, 228, 206, 0.05);
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  html { background: var(--paper); }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Newsreader', Georgia, "Iowan Old Style", serif;
+    font-size: 1.12rem;
+    line-height: 1.6;
+    font-variation-settings: 'opsz' 16;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    counter-reset: step;
+  }
+
+  /* ===== top strip ===== */
+  .topstrip {
+    border-bottom: 1px solid var(--rule);
+    background: var(--paper-2);
+  }
+  .topstrip-inner {
+    max-width: 96ch;
+    margin: 0 auto;
+    padding: 0.7rem 1.6rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .topstrip .filed { color: var(--mark-deep); }
+  .topstrip .filed::before { content: "◆ "; color: var(--mark-deep); }
+  .topstrip .essay { color: var(--ink); }
+
+  /* ===== page frame ===== */
+  .article {
+    max-width: 70ch;
+    margin: 0 auto;
+    padding: clamp(2rem, 6vw, 5rem) clamp(1.2rem, 4vw, 2.4rem) 6rem;
+    position: relative;
+  }
+
+  /* ===== headline block ===== */
+  .kicker {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.74rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .kicker .bar {
+    display: inline-block;
+    width: 2.2rem;
+    height: 2px;
+    background: var(--ink);
+  }
+
+  h1.headline {
+    font-family: 'Instrument Serif', 'Newsreader', Georgia, serif;
+    font-weight: 400;
+    font-size: clamp(3rem, 7vw, 5.6rem);
+    line-height: 0.94;
+    letter-spacing: -0.012em;
+    margin: 0 0 1.1rem;
+    color: var(--ink);
+  }
+  h1.headline .accent {
+    font-style: italic;
+    position: relative;
+    display: inline-block;
+  }
+  h1.headline .accent::after {
+    content: "";
+    position: absolute;
+    left: -0.04em;
+    right: -0.04em;
+    bottom: 0.08em;
+    height: 0.32em;
+    background: var(--mark);
+    z-index: -1;
+    transform: skewX(-6deg);
+  }
+  h1.headline em {
+    font-style: italic;
+  }
+
+  .deck {
+    font-family: 'Instrument Serif', 'Newsreader', serif;
+    font-weight: 400;
+    font-style: italic;
+    font-size: 1.35rem;
+    line-height: 1.35;
+    color: var(--ink-soft);
+    margin: 0 0 2.4rem;
+    max-width: 50ch;
+  }
+
+  .byline {
+    display: flex;
+    align-items: baseline;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    padding: 0.9rem 0 0;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.9rem;
+    margin: 0 0 3rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.74rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .byline .author { color: var(--ink); font-weight: 500; }
+  .byline .dot { color: var(--rule); }
+  .byline a {
+    color: var(--mark-deep);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  /* ===== prose ===== */
+  p {
+    margin: 0 0 1.15rem;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+  }
+  p > strong, li > p > strong, li > strong { font-weight: 700; color: var(--ink); }
+  em { font-style: italic; }
+  a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-decoration-color: var(--mark-deep);
+    text-underline-offset: 0.18em;
+  }
+  a:hover { background: var(--mark-wash); }
+
+  .intro > p:first-of-type::first-letter {
+    font-family: 'Instrument Serif', serif;
+    float: left;
+    font-size: 4.6em;
+    line-height: 0.82;
+    padding: 0.04em 0.12em 0 0;
+    color: var(--ink);
+    font-style: italic;
+  }
+
+  /* ===== headings ===== */
+  h2 {
+    font-family: 'Instrument Serif', 'Newsreader', serif;
+    font-weight: 400;
+    font-size: clamp(1.8rem, 3.6vw, 2.4rem);
+    line-height: 1.08;
+    letter-spacing: -0.008em;
+    margin: 3.6rem 0 1.2rem;
+    color: var(--ink);
+    position: relative;
+  }
+  h2 .num {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--mark-deep);
+    font-weight: 500;
+    margin-bottom: 0.55rem;
+  }
+  h2 em { font-style: italic; }
+  h2 .mark {
+    background: linear-gradient(transparent 62%, var(--mark-soft) 62%, var(--mark-soft) 92%, transparent 92%);
+    padding: 0 0.05em;
+  }
+
+  h3 {
+    font-family: 'Newsreader', Georgia, serif;
+    font-weight: 700;
+    font-variation-settings: 'opsz' 24, 'wght' 700;
+    font-size: 1.18rem;
+    line-height: 1.3;
+    margin: 2rem 0 0.6rem;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+  h3 em { font-style: italic; font-weight: 700; }
+
+  /* numbered protocol step header */
+  h3.step {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: 1.55rem;
+    line-height: 1.15;
+    margin-top: 2.4rem;
+    padding-left: 3.4rem;
+    position: relative;
+    color: var(--ink);
+    counter-increment: step;
+  }
+  h3.step::before {
+    content: counter(step, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    top: 0.05em;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    font-size: 1.6rem;
+    color: var(--mark-ink);
+    background: var(--mark);
+    padding: 0.05em 0.4em;
+    line-height: 1.05;
+    letter-spacing: 0;
+  }
+
+  /* in-numbered-list strong items (the 1. 2. 3. paragraphs) */
+  .ordered-call {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--mark-deep);
+    margin: 1.6rem 0 0.3rem;
+  }
+
+  /* ===== blockquote — highlighter callout ===== */
+  blockquote {
+    margin: 1.6rem 0;
+    padding: 1rem 1.3rem 1rem 1.5rem;
+    background: var(--mark-wash);
+    border-left: 4px solid var(--mark);
+    position: relative;
+    font-family: 'Newsreader', serif;
+    font-style: normal;
+    font-weight: 400;
+    color: var(--ink);
+  }
+  blockquote p { margin: 0 0 0.7rem; }
+  blockquote p:last-child { margin-bottom: 0; }
+  blockquote strong { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 0.74rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--mark-deep); margin-bottom: 0.45rem; }
+  blockquote em { font-style: italic; }
+  blockquote.evidence { border-left-color: var(--ink); background: var(--evidence-tint); }
+  blockquote.evidence strong:first-child { color: var(--ink-soft); }
+  blockquote.aside {
+    font-style: italic;
+    background: transparent;
+    border-left: none;
+    padding-left: 1.8rem;
+    color: var(--ink-soft);
+    font-size: 1.18rem;
+    font-family: 'Instrument Serif', serif;
+    position: relative;
+  }
+  blockquote.aside::before {
+    content: "“";
+    position: absolute;
+    left: 0;
+    top: -0.2rem;
+    font-family: 'Instrument Serif', serif;
+    font-size: 3rem;
+    color: var(--mark-deep);
+    line-height: 1;
+  }
+
+  /* ===== inline code ===== */
+  code {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.86em;
+    background: var(--code-bg);
+    padding: 0.08em 0.36em;
+    border-radius: 2px;
+    color: var(--ink);
+  }
+
+  /* ===== preformatted schematic ===== */
+  pre {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.55;
+    background: var(--paper-2);
+    color: var(--ink);
+    border: 1px solid var(--rule-soft);
+    padding: 1.4rem 1.3rem 1.1rem;
+    margin: 1.8rem 0 2.2rem;
+    overflow-x: auto;
+    position: relative;
+    white-space: pre;
+  }
+  pre::before {
+    content: "FIG. ⟶ workflow";
+    position: absolute;
+    top: -0.55rem;
+    left: 1rem;
+    background: var(--mark);
+    color: var(--mark-ink);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 0.18rem 0.6rem;
+    font-weight: 700;
+  }
+  pre code { background: transparent; padding: 0; font-size: inherit; }
+
+  /* ===== lists ===== */
+  ul, ol { margin: 0 0 1.3rem; padding-left: 1.4rem; }
+  li { margin-bottom: 0.55rem; }
+  ul li::marker { color: var(--mark-deep); content: "◆ "; }
+  ol li { padding-left: 0.4rem; }
+  ol li::marker { font-family: 'IBM Plex Mono', monospace; font-weight: 700; color: var(--mark-deep); }
+
+  /* ===== separator ===== */
+  .ornament {
+    margin: 3rem auto;
+    text-align: center;
+    color: var(--rule);
+  }
+  .ornament::before {
+    content: "◆  ◆  ◆";
+    letter-spacing: 0.8rem;
+    color: var(--mark-deep);
+    font-size: 0.8rem;
+  }
+
+  hr.coda {
+    border: none;
+    border-top: 1px solid var(--rule);
+    margin: 3rem 0 2rem;
+  }
+
+  /* ===== final coda — designer's mark ===== */
+  .coda-text {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 1.22rem;
+    line-height: 1.4;
+    color: var(--ink-soft);
+    padding: 1.4rem 0 0;
+    border-top: 4px double var(--ink);
+  }
+
+  .endmark {
+    display: inline-block;
+    width: 0.55rem;
+    height: 0.55rem;
+    background: var(--mark);
+    margin-left: 0.3rem;
+    vertical-align: middle;
+    transform: rotate(45deg);
+  }
+
+  /* ===== bottom signature ===== */
+  .signature {
+    margin: 4rem 0 0;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .signature .mark-tag { color: var(--mark-deep); }
+
+  /* ===== responsive ===== */
+  @media (max-width: 720px) {
+    body { font-size: 1.05rem; }
+    .intro > p:first-of-type::first-letter { font-size: 3.8em; }
+    h3.step { padding-left: 0; }
+    h3.step::before {
+      position: static;
+      display: inline-block;
+      margin: 0 0.45rem 0.3rem 0;
+      font-size: 1.1rem;
+      padding: 0.1em 0.4em;
+    }
+  }
+
+  /* ===== reveal ===== */
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .article > * { animation: rise 0.6s cubic-bezier(.2,.7,.2,1) both; }
+  .article > *:nth-child(1) { animation-delay: 0s; }
+  .article > *:nth-child(2) { animation-delay: 0.05s; }
+  .article > *:nth-child(3) { animation-delay: 0.1s; }
+  .article > *:nth-child(4) { animation-delay: 0.15s; }
+  .article > *:nth-child(5) { animation-delay: 0.2s; }
+  .article > *:nth-child(n+6) { animation-delay: 0.25s; }
+  @media (prefers-reduced-motion: reduce) {
+    .article > * { animation: none; }
+  }
+
+  ::selection { background: var(--mark); color: var(--mark-ink); }
 </style>
 </head>
 <body>
-<h1>Expectation-Driven Development: A Validation Framework for the Age of AI Agents</h1>
 
-<div class="byline">By Andrea Laforgia</div>
+<div class="topstrip">
+  <div class="topstrip-inner">
+    <span class="filed">Filed under &middot; AI Engineering</span>
+    <span class="essay">An essay in seven parts</span>
+    <span>Reading time &middot; ~15 min</span>
+  </div>
+</div>
 
-<div class="available-content"><div dir="auto" class="body markup"><h2 class="header-anchor-post"><strong>The Problem Nobody Wants to Talk About</strong><div class="pencraft pc-display-flex pc-alignItems-center pc-position-absolute pc-reset header-anchor-parent"><div class="pencraft pc-display-contents pc-reset pubTheme-yiXxQA"><div id="§the-problem-nobody-wants-to-talk-about" class="pencraft pc-reset header-anchor offset-top"></div><button tabindex="0" type="button" aria-label="Link" data-href="https://a4al6a.substack.com/i/191637698/the-problem-nobody-wants-to-talk-about" class="pencraft pc-reset pencraft iconButton-mq_Et5 iconButtonBase-dJGHgN buttonBase-GK1x3M buttonStyle-r7yGCK size_sm-G3LciD priority_secondary-S63h9o"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button></div></div></h2><p><span>Here’s an uncomfortable truth about working with AI coding agents: </span><strong>we can’t review their output.</strong></p><p><span>Not “we choose not to.” We </span><em>can’t</em><span>. Not meaningfully.</span></p><p>An AI agent can produce hundreds of lines of working code in seconds. A human reviewing that code line-by-line needs minutes, sometimes hours. The economics don’t work. And it’s getting worse — agents are getting faster, and the code they produce is getting more complex.</p><p>So what do teams actually do? They glance at the diff, run the existing tests, maybe squint at the architecture, and merge. We’ve replaced “trust but verify” with “trust and hope the CI is green.”</p><p>This isn’t sustainable. But I don’t think the answer is “just write more tests” either.</p><h2 class="header-anchor-post"><strong>Where TDD and BDD Leave a Gap</strong><div class="pencraft pc-display-flex pc-alignItems-center pc-position-absolute pc-reset header-anchor-parent"><div class="pencraft pc-display-contents pc-reset pubTheme-yiXxQA"><div id="§where-tdd-and-bdd-leave-a-gap" class="pencraft pc-reset header-anchor offset-top"></div><button tabindex="0" type="button" aria-label="Link" data-href="https://a4al6a.substack.com/i/191637698/where-tdd-and-bdd-leave-a-gap" class="pencraft pc-reset pencraft iconButton-mq_Et5 iconButtonBase-dJGHgN buttonBase-GK1x3M buttonStyle-r7yGCK size_sm-G3LciD priority_secondary-S63h9o"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button></div></div></h2><p>Let me be clear: I’m not here to bury Test-Driven Development. TDD is one of the most important ideas in software engineering, and it works well with AI agents as well.</p><p>But TDD has a scope problem. It excels at specifying precise, deterministic behaviors — this input produces that output. It’s less natural for expressing the kind of requirements that live in the gaps: the relationship between multiple behaviors, the qualitative expectations (”the error message should be helpful, not cryptic”), the systemic properties (”this must hold even under high load”). These requirements are real. They matter to users. And they tend to live in the developer’s head, unwritten, because there’s no natural place to put them in a test file.</p><p><span>There’s also a phase problem. Before you can write a test, you need to know </span><em>what</em><span> to test. The design-time exploration — “what should this feature actually do, in all its edge cases?” — happens before TDD begins. It usually happens informally: in Slack, in a meeting, in someone’s head. It’s rarely captured.</span></p><p>BDD (Behavior-Driven Development) gets closer. Its Given/When/Then syntax forces you to think about behavior from the outside in, and its natural-language layer bridges the gap between business intent and executable code. But BDD’s formalism — specific frameworks (Cucumber, SpecFlow, Behave), step definitions, glue code — is also its strength: it’s what makes BDD scenarios executable and rerunnable. That rigor has a cost, though. It constrains how you express requirements. Some expectations are hard to fit into a three-line template.</p><p><span>What if we could keep the </span><em>intent</em><span> of BDD — specify behavior, then verify it — while trading some of its formalism for the flexibility to capture the full picture?</span></p><h2 class="header-anchor-post"><strong>Enter Expectation-Driven Development</strong><div class="pencraft pc-display-flex pc-alignItems-center pc-position-absolute pc-reset header-anchor-parent"><div class="pencraft pc-display-contents pc-reset pubTheme-yiXxQA"><div id="§enter-expectation-driven-development" class="pencraft pc-reset header-anchor offset-top"></div><button tabindex="0" type="button" aria-label="Link" data-href="https://a4al6a.substack.com/i/191637698/enter-expectation-driven-development" class="pencraft pc-reset pencraft iconButton-mq_Et5 iconButtonBase-dJGHgN buttonBase-GK1x3M buttonStyle-r7yGCK size_sm-G3LciD priority_secondary-S63h9o"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button></div></div></h2><p>The idea is simple, maybe deceptively so:</p><p><strong>1. Formulate expectations in plain text.</strong></p><p>Not in a formal Given/When/Then template, though you can use that structure if it helps. Not in a programming language. In the same natural language you’d use to explain the feature to a colleague.</p><p>For example:</p><blockquote><p><strong>Expectation: Cart total calculation</strong></p><p>When a user adds multiple items to their cart, the total should reflect the sum of all item prices multiplied by their quantities. If a discount code is applied, the discount should be calculated on the pre-tax subtotal, not on individual items. Tax is applied after the discount. If the cart is empty, the total should be zero, not an error.</p></blockquote><p><span>Notice what this captures that a unit test wouldn’t: the </span><em>relationship</em><span> between discount and tax ordering, the empty cart edge case framed as an expectation about behavior (zero, not error), and the implicit requirement that this should work with “multiple items” — not just the two items in your test fixture.</span></p><p>You can go further:</p><blockquote><p><strong>Expectation: Race condition in concurrent booking</strong></p><p>If two users attempt to book the last available slot at the same time, exactly one should succeed and receive a confirmation. The other should receive a clear rejection — not a timeout, not a double booking, not a corrupted state. This must hold even under high load.</p></blockquote><p>Try writing that as a unit test. You’ll end up with a page of setup code that obscures the actual expectation. To be fair, nobody writes concurrency verification as a unit test — this would be an integration or stress test. But that’s the point. EDD’s job here isn’t to replace the concurrency test. It’s to make sure someone writes one, and that it tests the right thing. The expectation captures the requirement precisely; the test implements the verification.</p><p><strong>2. Hand the expectations to the AI agent.</strong></p><p>The agent implements the feature. It has the full context of your codebase, your expectations, and its own understanding of best practices.</p><p><strong>3. Ask the agent to prove it.</strong></p><p><span>This is the key step. Don’t just ask “did you implement it?” Ask: </span><strong>“Prove to me that each expectation is fulfilled. Show me specific scenarios with concrete inputs and the outputs the system produces.”</strong></p><p>The agent should respond with evidence like:</p><blockquote><p><strong>Evidence for: Cart total calculation</strong></p><p><em>Scenario 1</em><span>: Added “Widget” ($10.00, qty 2) and “Gadget” ($25.00, qty 1). Subtotal: $45.00. Applied discount code “SAVE10” (10% off). Discount: -$4.50. After discount: $40.50. Tax (8%): $3.24. </span><strong>Total: $43.74.</strong></p><p><em>Scenario 2</em><span>: Empty cart. GET /api/cart/total returns </span><code>{ &quot;total&quot;: 0.00, &quot;items&quot;: [] }</code><span> with HTTP 200. </span><strong>No error thrown.</strong></p><p><em>Scenario 3</em><span>: Added “Widget” ($10.00, qty 1). No discount. Tax (8%): $0.80. </span><strong>Total: $10.80.</strong><span> Tax applied to full subtotal, not discounted amount (no discount to apply).</span></p></blockquote><p><strong>4. Evaluate, challenge, iterate.</strong></p><p>Read the evidence critically. Does it actually cover the expectation? Did the agent dodge the hard part? Are the numbers right? Push back:</p><blockquote><p>“You showed the discount applied to the subtotal, but you didn’t show what happens if someone tries to apply two discount codes. What happens then?”</p></blockquote><p>The agent revises. New evidence is produced. You iterate until convergence.</p><p><strong>5. The evidence becomes the documentation.</strong></p><p>When you’re done, you have something valuable: a set of expectations paired with concrete proof that the system meets them. This isn’t a test suite that requires a framework to run. It’s not a wiki page that was outdated the day it was written. It’s a living record of what the system does and why, backed by specific examples.</p><h2 class="header-anchor-post"><strong>The Workflow, Visualized</strong><div class="pencraft pc-display-flex pc-alignItems-center pc-position-absolute pc-reset header-anchor-parent"><div class="pencraft pc-display-contents pc-reset pubTheme-yiXxQA"><div id="§the-workflow-visualized" class="pencraft pc-reset header-anchor offset-top"></div><button tabindex="0" type="button" aria-label="Link" data-href="https://a4al6a.substack.com/i/191637698/the-workflow-visualized" class="pencraft pc-reset pencraft iconButton-mq_Et5 iconButtonBase-dJGHgN buttonBase-GK1x3M buttonStyle-r7yGCK size_sm-G3LciD priority_secondary-S63h9o"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button></div></div></h2><pre><code><code>Human: Formulates expectations (plain text)
+<article class="article">
+
+  <p class="kicker"><span class="bar"></span> Manifesto / Method</p>
+
+  <h1 class="headline">Expectation-<br><span class="accent">Driven</span> Development</h1>
+
+  <p class="deck">A validation framework for the age of AI agents &mdash; the editor&rsquo;s tools, not the author&rsquo;s.</p>
+
+  <p class="byline">
+    <span>By <span class="author">Andrea Laforgia</span></span>
+    <span class="dot">/</span>
+    <span><a href="https://a4al6a.substack.com/p/expectation-driven-development-a">Original on Substack &rarr;</a></span>
+  </p>
+
+  <section class="intro">
+    <h2><span class="num">§ 01</span>The problem nobody wants to <span class="mark">talk about</span></h2>
+
+    <p>Here&rsquo;s an uncomfortable truth about working with AI coding agents: <strong>we can&rsquo;t review their output.</strong></p>
+    <p>Not &ldquo;we choose not to.&rdquo; We <em>can&rsquo;t</em>. Not meaningfully.</p>
+    <p>An AI agent can produce hundreds of lines of working code in seconds. A human reviewing that code line-by-line needs minutes, sometimes hours. The economics don&rsquo;t work. And it&rsquo;s getting worse &mdash; agents are getting faster, and the code they produce is getting more complex.</p>
+    <p>So what do teams actually do? They glance at the diff, run the existing tests, maybe squint at the architecture, and merge. We&rsquo;ve replaced &ldquo;trust but verify&rdquo; with &ldquo;trust and hope the CI is green.&rdquo;</p>
+    <p>This isn&rsquo;t sustainable. But I don&rsquo;t think the answer is &ldquo;just write more tests&rdquo; either.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">§ 02</span>Where TDD and BDD leave a gap</h2>
+    <p>Let me be clear: I&rsquo;m not here to bury Test-Driven Development. TDD is one of the most important ideas in software engineering, and it works well with AI agents as well.</p>
+    <p>But TDD has a scope problem. It excels at specifying precise, deterministic behaviors &mdash; this input produces that output. It&rsquo;s less natural for expressing the kind of requirements that live in the gaps: the relationship between multiple behaviors, the qualitative expectations (&ldquo;the error message should be helpful, not cryptic&rdquo;), the systemic properties (&ldquo;this must hold even under high load&rdquo;). These requirements are real. They matter to users. And they tend to live in the developer&rsquo;s head, unwritten, because there&rsquo;s no natural place to put them in a test file.</p>
+    <p>There&rsquo;s also a phase problem. Before you can write a test, you need to know <em>what</em> to test. The design-time exploration &mdash; &ldquo;what should this feature actually do, in all its edge cases?&rdquo; &mdash; happens before TDD begins. It usually happens informally: in Slack, in a meeting, in someone&rsquo;s head. It&rsquo;s rarely captured.</p>
+    <p>BDD (Behavior-Driven Development) gets closer. Its Given/When/Then syntax forces you to think about behavior from the outside in, and its natural-language layer bridges the gap between business intent and executable code. But BDD&rsquo;s formalism &mdash; specific frameworks (Cucumber, SpecFlow, Behave), step definitions, glue code &mdash; is also its strength: it&rsquo;s what makes BDD scenarios executable and rerunnable. That rigor has a cost, though. It constrains how you express requirements. Some expectations are hard to fit into a three-line template.</p>
+    <p>What if we could keep the <em>intent</em> of BDD &mdash; specify behavior, then verify it &mdash; while trading some of its formalism for the flexibility to capture the full picture?</p>
+  </section>
+
+  <section>
+    <h2><span class="num">§ 03</span>Enter <em>Expectation-Driven Development</em></h2>
+    <p>The idea is simple, maybe deceptively so:</p>
+
+    <p><span class="ordered-call">Step one</span><strong>Formulate expectations in plain text.</strong></p>
+    <p>Not in a formal Given/When/Then template, though you can use that structure if it helps. Not in a programming language. In the same natural language you&rsquo;d use to explain the feature to a colleague.</p>
+    <p>For example:</p>
+    <blockquote>
+      <strong>Expectation &mdash; Cart total calculation</strong>
+      <p>When a user adds multiple items to their cart, the total should reflect the sum of all item prices multiplied by their quantities. If a discount code is applied, the discount should be calculated on the pre-tax subtotal, not on individual items. Tax is applied after the discount. If the cart is empty, the total should be zero, not an error.</p>
+    </blockquote>
+    <p>Notice what this captures that a unit test wouldn&rsquo;t: the <em>relationship</em> between discount and tax ordering, the empty cart edge case framed as an expectation about behavior (zero, not error), and the implicit requirement that this should work with &ldquo;multiple items&rdquo; &mdash; not just the two items in your test fixture.</p>
+
+    <p>You can go further:</p>
+    <blockquote>
+      <strong>Expectation &mdash; Race condition in concurrent booking</strong>
+      <p>If two users attempt to book the last available slot at the same time, exactly one should succeed and receive a confirmation. The other should receive a clear rejection &mdash; not a timeout, not a double booking, not a corrupted state. This must hold even under high load.</p>
+    </blockquote>
+    <p>Try writing that as a unit test. You&rsquo;ll end up with a page of setup code that obscures the actual expectation. To be fair, nobody writes concurrency verification as a unit test &mdash; this would be an integration or stress test. But that&rsquo;s the point. EDD&rsquo;s job here isn&rsquo;t to replace the concurrency test. It&rsquo;s to make sure someone writes one, and that it tests the right thing. The expectation captures the requirement precisely; the test implements the verification.</p>
+
+    <p><span class="ordered-call">Step two</span><strong>Hand the expectations to the AI agent.</strong></p>
+    <p>The agent implements the feature. It has the full context of your codebase, your expectations, and its own understanding of best practices.</p>
+
+    <p><span class="ordered-call">Step three</span><strong>Ask the agent to prove it.</strong></p>
+    <p>This is the key step. Don&rsquo;t just ask &ldquo;did you implement it?&rdquo; Ask: <strong>&ldquo;Prove to me that each expectation is fulfilled. Show me specific scenarios with concrete inputs and the outputs the system produces.&rdquo;</strong></p>
+    <p>The agent should respond with evidence like:</p>
+    <blockquote class="evidence">
+      <strong>Evidence &mdash; Cart total calculation</strong>
+      <p><em>Scenario 1:</em> Added &ldquo;Widget&rdquo; ($10.00, qty 2) and &ldquo;Gadget&rdquo; ($25.00, qty 1). Subtotal: $45.00. Applied discount code &ldquo;SAVE10&rdquo; (10% off). Discount: &minus;$4.50. After discount: $40.50. Tax (8%): $3.24. <strong>Total: $43.74.</strong></p>
+      <p><em>Scenario 2:</em> Empty cart. <code>GET /api/cart/total</code> returns <code>{ "total": 0.00, "items": [] }</code> with HTTP 200. <strong>No error thrown.</strong></p>
+      <p><em>Scenario 3:</em> Added &ldquo;Widget&rdquo; ($10.00, qty 1). No discount. Tax (8%): $0.80. <strong>Total: $10.80.</strong> Tax applied to full subtotal, not discounted amount (no discount to apply).</p>
+    </blockquote>
+
+    <p><span class="ordered-call">Step four</span><strong>Evaluate, challenge, iterate.</strong></p>
+    <p>Read the evidence critically. Does it actually cover the expectation? Did the agent dodge the hard part? Are the numbers right? Push back:</p>
+    <blockquote class="aside">You showed the discount applied to the subtotal, but you didn&rsquo;t show what happens if someone tries to apply two discount codes. What happens then?</blockquote>
+    <p>The agent revises. New evidence is produced. You iterate until convergence.</p>
+
+    <p><span class="ordered-call">Step five</span><strong>The evidence becomes the documentation.</strong></p>
+    <p>When you&rsquo;re done, you have something valuable: a set of expectations paired with concrete proof that the system meets them. This isn&rsquo;t a test suite that requires a framework to run. It&rsquo;s not a wiki page that was outdated the day it was written. It&rsquo;s a living record of what the system does and why, backed by specific examples.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">§ 04</span>The workflow, visualized</h2>
+<pre>Human: Formulates expectations (plain text)
   │
   ▼
 AI Agent: Implements the feature
   │
   ▼
-Human: &quot;Prove it meets the expectations&quot;
+Human: "Prove it meets the expectations"
   │
   ▼
 AI Agent: Produces evidence (concrete scenarios, inputs, outputs)
@@ -41,7 +566,152 @@ Human: Reviews evidence ──── Satisfied? ──── YES ──→ Docum
   ▼
 Human: Challenges, adds expectations
   │
-  └──────── Loop back to AI Agent ────────────┘
-</code></code></pre><h2 class="header-anchor-post"><strong>This Isn’t a New Idea (And That’s a Good Thing)</strong><div class="pencraft pc-display-flex pc-alignItems-center pc-position-absolute pc-reset header-anchor-parent"><div class="pencraft pc-display-contents pc-reset pubTheme-yiXxQA"><div id="§this-isnt-a-new-idea-and-thats-a-good-thing" class="pencraft pc-reset header-anchor offset-top"></div><button tabindex="0" type="button" aria-label="Link" data-href="https://a4al6a.substack.com/i/191637698/this-isnt-a-new-idea-and-thats-a-good-thing" class="pencraft pc-reset pencraft iconButton-mq_Et5 iconButtonBase-dJGHgN buttonBase-GK1x3M buttonStyle-r7yGCK size_sm-G3LciD priority_secondary-S63h9o"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button></div></div></h2><p>If you’ve been in software long enough, you’re probably thinking: “This sounds like Specification by Example.” You’re right. It does.</p><p>EDD stands on the shoulders of a long lineage of ideas that share the same core insight — that concrete examples in human-readable form are the best way to specify and verify software behavior:</p><ul><li><p><strong>Specification by Example</strong><span> (Gojko Adzic, 2011) — uses concrete examples collaboratively authored by the team as both specifications and tests. The bible for this way of thinking.</span></p></li><li><p><strong>FIT / FitNesse</strong><span> (Ward Cunningham, ~2002) — executable acceptance tables written in near-plain-English, verified automatically against the system.</span></p></li><li><p><strong>Concordion</strong><span> — specifications written in natural language that become executable through instrumentation.</span></p></li><li><p><strong>Design by Contract</strong><span> (Bertrand Meyer, Eiffel) — preconditions, postconditions, and invariants as formal specifications embedded in code.</span></p></li><li><p><strong>Property-based testing</strong><span> (QuickCheck and descendants) — addresses the “not just the two items in your test fixture” problem by generating many inputs from declared properties.</span></p></li></ul><p><span>So what’s actually new here? Not the idea of specifying behavior in natural language. Not the idea of verifying with concrete examples. What’s new is the </span><em>execution context</em><span>.</span></p><p>In Specification by Example, a human team collaborates to write examples, then a developer writes glue code (step definitions) to make them executable. The bottleneck is the glue code — it’s tedious, it breaks when the code changes, and it requires a framework.</p><p><span>In EDD, the LLM </span><em>is</em><span> the glue code. It interprets natural-language expectations directly, without step definitions, without a framework, without the ceremony. And the verification loop is conversational — you challenge, the agent responds, you push back — rather than pass/fail binary.</span></p><p>That’s a meaningful difference. But I want to be honest that it’s an evolutionary one, not a revolutionary one. If you’ve read Adzic’s work, you’ll feel at home here. If you haven’t, go read it — it will make you better at EDD.</p><p><span>There’s one more thing EDD inherits from Specification by Example: the question of </span><em>who writes the expectations</em><span>. In the Specification by Example tradition, examples are collaboratively authored in “specification workshops” — conversations between developers, testers, and business stakeholders. EDD as I’ve described it is a solo workflow: one human, one agent. But most software is built by teams. If different team members write expectations for the same feature, they may express different — or contradictory — assumptions. If only one person writes them, you’ve concentrated a single point of failure in that person’s understanding. I don’t have a neat answer for this yet. My instinct is that expectations should be written collaboratively, then the conversation with the agent happens individually. But this is an open question.</span></p><h2 class="header-anchor-post"><strong>Why This Might Actually Work</strong><div class="pencraft pc-display-flex pc-alignItems-center pc-position-absolute pc-reset header-anchor-parent"><div class="pencraft pc-display-contents pc-reset pubTheme-yiXxQA"><div id="§why-this-might-actually-work" class="pencraft pc-reset header-anchor offset-top"></div><button tabindex="0" type="button" aria-label="Link" data-href="https://a4al6a.substack.com/i/191637698/why-this-might-actually-work" class="pencraft pc-reset pencraft iconButton-mq_Et5 iconButtonBase-dJGHgN buttonBase-GK1x3M buttonStyle-r7yGCK size_sm-G3LciD priority_secondary-S63h9o"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button></div></div></h2><p><strong>It plays to human strengths.</strong><span> Humans are better at judging than producing. We’re excellent critics and mediocre typists. EDD lets us do what we do best: specify intent, evaluate outcomes, spot what’s missing.</span></p><p><strong>It plays to AI strengths.</strong><span> AI agents are fast, tireless implementers that can generate both code and evidence at scale. The bottleneck was never “can the AI write the code?” It was “can we trust the code the AI wrote?” EDD creates a structured trust-building process.</span></p><p><strong>Natural language captures what formal tests can’t.</strong><span> “The error message should be helpful, not cryptic.” “The response time should feel instant for typical queries.” “The fallback behavior should be graceful, not surprising.” These are real requirements that matter to users. They’re nearly impossible to express in </span><code>assert</code><span> statements, but an LLM can interpret them. A caveat: for subjective qualities like “helpful” or “graceful,” the LLM will tend to judge its own output favorably — it’s the fox-guarding-the-henhouse problem again. For these expectations, the human’s judgment in Step 4 becomes especially critical. Don’t outsource taste.</span></p><p><strong>It forces you to think before coding — the best part of TDD, without the ceremony.</strong><span> The discipline of TDD was never really about the tests. It was about the act of specifying behavior before implementation. EDD preserves that discipline. You still think first. You just express your thinking in a more natural medium.</span></p><p><strong>The evidence trail creates accountability.</strong><span> Every expectation has a proof artifact. Six months from now, when someone asks “does the system handle concurrent bookings correctly?”, you don’t grep through test files. You read the expectation and its evidence.</span></p><h2 class="header-anchor-post"><strong>Why This Might Not Work (The Honest Part)</strong><div class="pencraft pc-display-flex pc-alignItems-center pc-position-absolute pc-reset header-anchor-parent"><div class="pencraft pc-display-contents pc-reset pubTheme-yiXxQA"><div id="§why-this-might-not-work-the-honest-part" class="pencraft pc-reset header-anchor offset-top"></div><button tabindex="0" type="button" aria-label="Link" data-href="https://a4al6a.substack.com/i/191637698/why-this-might-not-work-the-honest-part" class="pencraft pc-reset pencraft iconButton-mq_Et5 iconButtonBase-dJGHgN buttonBase-GK1x3M buttonStyle-r7yGCK size_sm-G3LciD priority_secondary-S63h9o"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button></div></div></h2><p>I believe in this idea, but I’d be dishonest if I didn’t confront its weaknesses head-on. There are real problems here.</p><h3 class="header-anchor-post"><strong>The Fox Guarding the Henhouse (And the Deeper Problem Beneath It)</strong><div class="pencraft pc-display-flex pc-alignItems-center pc-position-absolute pc-reset header-anchor-parent"><div class="pencraft pc-display-contents pc-reset pubTheme-yiXxQA"><div id="§the-fox-guarding-the-henhouse-and-the-deeper-problem-beneath-it" class="pencraft pc-reset header-anchor offset-top"></div><button tabindex="0" type="button" aria-label="Link" data-href="https://a4al6a.substack.com/i/191637698/the-fox-guarding-the-henhouse-and-the-deeper-problem-beneath-it" class="pencraft pc-reset pencraft iconButton-mq_Et5 iconButtonBase-dJGHgN buttonBase-GK1x3M buttonStyle-r7yGCK size_sm-G3LciD priority_secondary-S63h9o"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button></div></div></h3><p>This is the big one, and it has two layers.</p><p><strong>Layer 1: Bias.</strong><span> You’re asking the same AI that wrote the code to produce evidence that the code works. That’s like asking a student to both take the exam and grade it. The AI has every structural incentive to produce evidence that confirms its implementation. If it made a subtle error in the discount calculation, it might generate scenarios that avoid the precise inputs that would reveal the bug. Not maliciously. Just because the same reasoning flaw that caused the bug will also cause it to overlook the bug in its evidence.</span></p><p><strong>Layer 2: Execution vs. narration.</strong><span> This is the deeper problem, and it’s one we need to confront directly. When the agent produces “evidence,” what actually happened? There are two very different possibilities:</span></p><ul><li><p><strong>Executed evidence</strong><span>: The agent actually ran the code — made an API call, executed a function, queried the database — and is showing you real output from a real system.</span></p></li><li><p><strong>Generative evidence</strong><span>: The agent </span><em>described</em><span> what it believes would happen, based on its understanding of the code it wrote. It narrated a plausible verification without executing anything.</span></p></li></ul><p>These are not the same thing. Executed evidence is evidence. Generative evidence is a second assertion by the same entity that made the first assertion. It’s the difference between “I tested it and here are the results” and “I’m pretty sure it would work like this.”</p><p><strong>EDD requires executed evidence.</strong><span> If the agent can’t run the code and show you real outputs, you don’t have verification — you have a shared hallucination dressed up in scenario format. This means EDD depends on AI agents with tool use: the ability to execute code, call APIs, run scripts, and capture actual output. Fortunately, this is where agents are headed — modern coding agents already have shell access, can run test suites, and can interact with running systems. But you must insist on it. When reviewing evidence, ask: “Did you actually run this, or are you telling me what you think would happen?” If the agent can’t answer that clearly, the evidence is worthless.</span></p><p><strong>But let’s be honest: not all code is executable in an agent loop.</strong><span> In practice, evidence falls into three categories:</span></p><ul><li><p><strong>Directly executable</strong><span>: Functions, APIs, scripts, database queries. The agent can run these and show real output. This is the gold standard.</span></p></li><li><p><strong>Partially verifiable</strong><span>: Infrastructure code (Terraform plan output), build configurations (dry runs), schema migrations (against a test database). The agent can’t deploy to production, but it can show you what </span><em>would</em><span> happen. This is weaker but still useful — a Terraform plan is better than a guess.</span></p></li><li><p><strong>Not executable in the loop</strong><span>: UI rendering, production-only behavior, third-party API integrations with rate limits or authentication, code that requires manual user interaction. Here, you’re back to generative evidence whether you like it or not.</span></p></li></ul><p><span>For that third category, the mitigations below become critical, and you should be clear-eyed that your confidence is lower. If most of your expectations fall into category three, EDD’s value proposition degrades — and you should invest more in the “Stabilize” step (converting expectations to automated tests that </span><em>can</em><span> run in CI).</span></p><p><strong>Mitigations for both layers:</strong></p><ul><li><p><strong>Be an adversarial reviewer.</strong><span> Your job isn’t to passively receive evidence. It’s to actively challenge it. Run adversarial scenarios. Ask “what about...?” questions. Spot-check the numbers manually.</span></p></li><li><p><strong>Demand execution receipts.</strong><span> Ask the agent to show the actual command it ran and the raw output. Not a summary. The output.</span></p></li><li><p><strong>Use a different agent to audit.</strong><span> Have a second AI agent (or a different model) independently verify the evidence against the code. The fox can guard the henhouse if there’s a different fox checking the first fox’s work.</span></p></li><li><p><strong>Spot-check yourself.</strong><span> For critical expectations, pick one scenario and run it manually. If the agent’s evidence matches reality for the one you checked, you have higher confidence in the rest.</span></p></li></ul><h3 class="header-anchor-post"><strong>The Reproducibility Question</strong><div class="pencraft pc-display-flex pc-alignItems-center pc-position-absolute pc-reset header-anchor-parent"><div class="pencraft pc-display-contents pc-reset pubTheme-yiXxQA"><div id="§the-reproducibility-question" class="pencraft pc-reset header-anchor offset-top"></div><button tabindex="0" type="button" aria-label="Link" data-href="https://a4al6a.substack.com/i/191637698/the-reproducibility-question" class="pencraft pc-reset pencraft iconButton-mq_Et5 iconButtonBase-dJGHgN buttonBase-GK1x3M buttonStyle-r7yGCK size_sm-G3LciD priority_secondary-S63h9o"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button></div></div></h3><p>Here’s a hard question: are the expectations rerunnable?</p><p>If I come back next week, after the code has changed, can I re-verify the expectations? If yes — how? If you’re asking an AI to re-run the evidence each time, you’re relying on LLM interpretation, which is non-deterministic. The same expectation might produce different evidence on different runs. The same model might interpret an ambiguous expectation differently after an update.</p><p><span>If the expectations </span><em>aren’t</em><span> rerunnable, then what you have is a snapshot, not a safety net. Documentation, not regression protection.</span></p><p><strong>Mitigation:</strong><span> EDD should complement automated tests, not replace them. The expectations drive the initial implementation and verification. But the critical paths should </span><em>also</em><span> be captured in traditional automated tests for regression. Think of expectations as the </span><em>design-time</em><span> validation tool, and automated tests as the </span><em>runtime</em><span> safety net. The expectations are the “why.” The tests are the “what, forever.”</span></p><p>There’s a related versioning problem worth flagging. If you ship feature v1 with its evidence, then modify the feature in v2, the v1 evidence is now potentially misleading. Do you re-run evidence for every change? If so, you’re paying the EDD cost on every iteration. If not, the documentation rots like any other documentation. Automated tests don’t have this problem — they fail loudly when the code changes in ways they don’t expect. EDD evidence is silent when it becomes stale. This is another reason the “Stabilize” step matters: the automated tests are your regression alarm. The expectations are your design-time conversation.</p><h3 class="header-anchor-post"><strong>Natural Language Ambiguity</strong><div class="pencraft pc-display-flex pc-alignItems-center pc-position-absolute pc-reset header-anchor-parent"><div class="pencraft pc-display-contents pc-reset pubTheme-yiXxQA"><div id="§natural-language-ambiguity" class="pencraft pc-reset header-anchor offset-top"></div><button tabindex="0" type="button" aria-label="Link" data-href="https://a4al6a.substack.com/i/191637698/natural-language-ambiguity" class="pencraft pc-reset pencraft iconButton-mq_Et5 iconButtonBase-dJGHgN buttonBase-GK1x3M buttonStyle-r7yGCK size_sm-G3LciD priority_secondary-S63h9o"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button></div></div></h3><p>I praised the freedom of natural language earlier. But freedom has a cost. Consider:</p><blockquote><p>“The system should handle large uploads efficiently.”</p></blockquote><p>What’s large? 10MB? 10GB? What’s efficiently? Under 5 seconds? Without running out of memory? Without blocking other requests?</p><p><span>In BDD, the formalism forces you to be specific: </span><code>Given a file of 500MB / When the user uploads it / Then the upload completes within 30 seconds</code><span>. The rigidity is a feature. It prevents hand-waving.</span></p><p><strong>Mitigation:</strong><span> Write expectations as specifically as you can. The freedom of natural language doesn’t mean you should be vague — it means you can be specific in ways that formal syntax doesn’t allow. Instead of “handle large uploads efficiently,” write “a 500MB upload should complete without timeout and without consuming more than 2x the file size in memory. A 5GB upload should use streaming and never hold the full file in memory.” Still natural language. But precise.</span></p><h3 class="header-anchor-post"><strong>The Evidence Scalability Problem</strong><div class="pencraft pc-display-flex pc-alignItems-center pc-position-absolute pc-reset header-anchor-parent"><div class="pencraft pc-display-contents pc-reset pubTheme-yiXxQA"><div id="§the-evidence-scalability-problem" class="pencraft pc-reset header-anchor offset-top"></div><button tabindex="0" type="button" aria-label="Link" data-href="https://a4al6a.substack.com/i/191637698/the-evidence-scalability-problem" class="pencraft pc-reset pencraft iconButton-mq_Et5 iconButtonBase-dJGHgN buttonBase-GK1x3M buttonStyle-r7yGCK size_sm-G3LciD priority_secondary-S63h9o"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button></div></div></h3><p>If you have 5 expectations, you can carefully review 5 sets of evidence. If you have 50, you’ll start skimming. If you have 200, you’ll rubber-stamp.</p><p>And yet, more expectations means better coverage. There’s a tension between thoroughness and human attention span.</p><p><strong>Mitigation:</strong><span> Prioritize. Not all expectations are equal. Some protect critical business logic. Some cover edge cases that matter but don’t need forensic review. Categorize expectations by risk and allocate your review attention accordingly.</span></p><h2 class="header-anchor-post"><strong>EDD vs. TDD vs. BDD: Not a Replacement, a Complement</strong><div class="pencraft pc-display-flex pc-alignItems-center pc-position-absolute pc-reset header-anchor-parent"><div class="pencraft pc-display-contents pc-reset pubTheme-yiXxQA"><div id="§edd-vs-tdd-vs-bdd-not-a-replacement-a-complement" class="pencraft pc-reset header-anchor offset-top"></div><button tabindex="0" type="button" aria-label="Link" data-href="https://a4al6a.substack.com/i/191637698/edd-vs-tdd-vs-bdd-not-a-replacement-a-complement" class="pencraft pc-reset pencraft iconButton-mq_Et5 iconButtonBase-dJGHgN buttonBase-GK1x3M buttonStyle-r7yGCK size_sm-G3LciD priority_secondary-S63h9o"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button></div></div></h2><p>Let me be blunt: if you read this and think “great, I can stop writing tests,” you’ve missed the point.</p><p><strong>TDD</strong><span> speaks to developers, in code. It’s always executable, gives you strong regression protection, and works well as a design-time thinking tool. But it captures limited nuance — an </span><code>assert</code><span> can only say so much — and it wasn’t designed with AI agents in mind (though “make these tests pass” works surprisingly well).</span></p><p><strong>BDD</strong><span> speaks to the whole team, in structured natural language. It’s executable via step definitions, gives you strong regression protection, and captures more nuance than raw code. But it still constrains how you express requirements, and it wasn’t designed for AI agents either.</span></p><p><strong>EDD</strong><span> speaks to the human-AI pair, in free-form natural language. The expectations themselves aren’t executable — they’re text — but the protocol demands execution in Step 3. Regression protection is weak without automation (which is why the Stabilize step matters). Where EDD wins is nuance: natural language can express the qualitative, relational, and systemic requirements that formal test syntax struggles with. And it’s designed from the ground up for the AI-agent workflow.</span></p><p><span>The three aren’t competitors. They’re layers. EDD is the </span><em>conversation layer</em><span> between human intent and AI implementation — where you say what you mean, in all its messy, nuanced, edge-case-laden glory. Then TDD or BDD takes over for the parts that need to be deterministic and repeatable.</span></p><h2 class="header-anchor-post"><strong>A Practical Protocol</strong><div class="pencraft pc-display-flex pc-alignItems-center pc-position-absolute pc-reset header-anchor-parent"><div class="pencraft pc-display-contents pc-reset pubTheme-yiXxQA"><div id="§a-practical-protocol" class="pencraft pc-reset header-anchor offset-top"></div><button tabindex="0" type="button" aria-label="Link" data-href="https://a4al6a.substack.com/i/191637698/a-practical-protocol" class="pencraft pc-reset pencraft iconButton-mq_Et5 iconButtonBase-dJGHgN buttonBase-GK1x3M buttonStyle-r7yGCK size_sm-G3LciD priority_secondary-S63h9o"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button></div></div></h2><p>If you want to try EDD today, here’s a concrete protocol:</p><h3 class="header-anchor-post"><strong>Step 1: Write expectations before touching code</strong><div class="pencraft pc-display-flex pc-alignItems-center pc-position-absolute pc-reset header-anchor-parent"><div class="pencraft pc-display-contents pc-reset pubTheme-yiXxQA"><div id="§step-1-write-expectations-before-touching-code" class="pencraft pc-reset header-anchor offset-top"></div><button tabindex="0" type="button" aria-label="Link" data-href="https://a4al6a.substack.com/i/191637698/step-1-write-expectations-before-touching-code" class="pencraft pc-reset pencraft iconButton-mq_Et5 iconButtonBase-dJGHgN buttonBase-GK1x3M buttonStyle-r7yGCK size_sm-G3LciD priority_secondary-S63h9o"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button></div></div></h3><p>Spend 15 minutes writing expectations for the feature. Be specific. Cover:</p><ul><li><p>The happy path</p></li><li><p>Edge cases you’ve been burned by before</p></li><li><p>Non-functional requirements (performance, error handling, security)</p></li><li><p><span>Behaviors that should explicitly </span><em>not</em><span> happen</span></p></li></ul><p><strong>How big should an expectation be?</strong><span> Think “one behavior you’d explain in a single breath to a colleague.” The cart total calculation example is about right — it covers one coherent concern (pricing math) with its key edge cases. If you find yourself writing a page-long expectation, you’re probably bundling multiple concerns. Split them. If you find yourself writing a one-liner with no edge cases, you’re probably being too vague. Expand it.</span></p><h3 class="header-anchor-post"><strong>Step 2: Hand expectations to the AI agent with your codebase</strong><div class="pencraft pc-display-flex pc-alignItems-center pc-position-absolute pc-reset header-anchor-parent"><div class="pencraft pc-display-contents pc-reset pubTheme-yiXxQA"><div id="§step-2-hand-expectations-to-the-ai-agent-with-your-codebase" class="pencraft pc-reset header-anchor offset-top"></div><button tabindex="0" type="button" aria-label="Link" data-href="https://a4al6a.substack.com/i/191637698/step-2-hand-expectations-to-the-ai-agent-with-your-codebase" class="pencraft pc-reset pencraft iconButton-mq_Et5 iconButtonBase-dJGHgN buttonBase-GK1x3M buttonStyle-r7yGCK size_sm-G3LciD priority_secondary-S63h9o"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button></div></div></h3><p>Give the agent your expectations and let it implement. Don’t hover. Let it work.</p><h3 class="header-anchor-post"><strong>Step 3: Request executed evidence</strong><div class="pencraft pc-display-flex pc-alignItems-center pc-position-absolute pc-reset header-anchor-parent"><div class="pencraft pc-display-contents pc-reset pubTheme-yiXxQA"><div id="§step-3-request-executed-evidence" class="pencraft pc-reset header-anchor offset-top"></div><button tabindex="0" type="button" aria-label="Link" data-href="https://a4al6a.substack.com/i/191637698/step-3-request-executed-evidence" class="pencraft pc-reset pencraft iconButton-mq_Et5 iconButtonBase-dJGHgN buttonBase-GK1x3M buttonStyle-r7yGCK size_sm-G3LciD priority_secondary-S63h9o"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button></div></div></h3><p><span>Prompt: </span><em>“For each expectation, show me concrete evidence that the system fulfills it. Actually run the code — execute the function, call the API, run the script — and show me the real inputs and outputs. Don’t describe what you think would happen; show me what actually happened. If an expectation cannot be fulfilled, explain why.”</em></p><p>The word “actually” is doing heavy lifting here. You want execution receipts, not narration.</p><h3 class="header-anchor-post"><strong>Step 4: Review adversarially</strong><div class="pencraft pc-display-flex pc-alignItems-center pc-position-absolute pc-reset header-anchor-parent"><div class="pencraft pc-display-contents pc-reset pubTheme-yiXxQA"><div id="§step-4-review-adversarially" class="pencraft pc-reset header-anchor offset-top"></div><button tabindex="0" type="button" aria-label="Link" data-href="https://a4al6a.substack.com/i/191637698/step-4-review-adversarially" class="pencraft pc-reset pencraft iconButton-mq_Et5 iconButtonBase-dJGHgN buttonBase-GK1x3M buttonStyle-r7yGCK size_sm-G3LciD priority_secondary-S63h9o"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button></div></div></h3><p>For each piece of evidence:</p><ul><li><p>Do the numbers add up?</p></li><li><p>Did the agent test the edge case or dodge it?</p></li><li><p>What input would break this?</p></li><li><p>Is there a scenario the expectation didn’t cover that it should?</p></li></ul><h3 class="header-anchor-post"><strong>Step 5: Challenge and iterate</strong><div class="pencraft pc-display-flex pc-alignItems-center pc-position-absolute pc-reset header-anchor-parent"><div class="pencraft pc-display-contents pc-reset pubTheme-yiXxQA"><div id="§step-5-challenge-and-iterate" class="pencraft pc-reset header-anchor offset-top"></div><button tabindex="0" type="button" aria-label="Link" data-href="https://a4al6a.substack.com/i/191637698/step-5-challenge-and-iterate" class="pencraft pc-reset pencraft iconButton-mq_Et5 iconButtonBase-dJGHgN buttonBase-GK1x3M buttonStyle-r7yGCK size_sm-G3LciD priority_secondary-S63h9o"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button></div></div></h3><p>Add new expectations based on what you discover. Tighten vague ones. Ask “what if?” until you’re satisfied.</p><h3 class="header-anchor-post"><strong>Step 6: Stabilize</strong><div class="pencraft pc-display-flex pc-alignItems-center pc-position-absolute pc-reset header-anchor-parent"><div class="pencraft pc-display-contents pc-reset pubTheme-yiXxQA"><div id="§step-6-stabilize" class="pencraft pc-reset header-anchor offset-top"></div><button tabindex="0" type="button" aria-label="Link" data-href="https://a4al6a.substack.com/i/191637698/step-6-stabilize" class="pencraft pc-reset pencraft iconButton-mq_Et5 iconButtonBase-dJGHgN buttonBase-GK1x3M buttonStyle-r7yGCK size_sm-G3LciD priority_secondary-S63h9o"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button></div></div></h3><p>For critical paths, convert the expectations and evidence into automated tests (unit, integration, or e2e). The evidence gives you the test cases for free — you just need to make them executable and deterministic.</p><h3 class="header-anchor-post"><strong>Step 7: Archive</strong><div class="pencraft pc-display-flex pc-alignItems-center pc-position-absolute pc-reset header-anchor-parent"><div class="pencraft pc-display-contents pc-reset pubTheme-yiXxQA"><div id="§step-7-archive" class="pencraft pc-reset header-anchor offset-top"></div><button tabindex="0" type="button" aria-label="Link" data-href="https://a4al6a.substack.com/i/191637698/step-7-archive" class="pencraft pc-reset pencraft iconButton-mq_Et5 iconButtonBase-dJGHgN buttonBase-GK1x3M buttonStyle-r7yGCK size_sm-G3LciD priority_secondary-S63h9o"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button></div></div></h3><p>The final set of expectations + evidence becomes your feature documentation. It answers “what does this do?” and “how do we know?” in one artifact.</p><h2 class="header-anchor-post"><strong>A Disclaimer, and the Deeper Point</strong><div class="pencraft pc-display-flex pc-alignItems-center pc-position-absolute pc-reset header-anchor-parent"><div class="pencraft pc-display-contents pc-reset pubTheme-yiXxQA"><div id="§a-disclaimer-and-the-deeper-point" class="pencraft pc-reset header-anchor offset-top"></div><button tabindex="0" type="button" aria-label="Link" data-href="https://a4al6a.substack.com/i/191637698/a-disclaimer-and-the-deeper-point" class="pencraft pc-reset pencraft iconButton-mq_Et5 iconButtonBase-dJGHgN buttonBase-GK1x3M buttonStyle-r7yGCK size_sm-G3LciD priority_secondary-S63h9o"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button></div></div></h2><p>I should be upfront: I haven’t battle-tested EDD on a real project. This is a proposed framework, not a field report. I’m sharing it because I think the underlying problem — how do we validate AI-generated code at the speed AI generates it? — is urgent enough that we should be thinking out loud about solutions, even imperfect ones. If you try this and it works, I want to hear about it. If you try it and it falls apart, I want to hear about that even more.</p><p>That said, I think EDD points at something deeper than a specific technique. It reflects a shift in the role of the human developer.</p><p><span>In the pre-AI world, we were </span><em>authors</em><span>. We wrote the code. We wrote the tests. We wrote the documentation. Our value was in production.</span></p><p><span>In the AI-agent world, we’re becoming </span><em>editors</em><span>. We specify intent. We evaluate output. We challenge evidence. Our value is in judgment.</span></p><p><span>Authors need tools for writing — IDEs, compilers, debuggers. Editors need tools for </span><em>evaluating</em><span> — ways to express what they want, inspect what they got, and close the gap between the two. TDD is an author’s tool. EDD is an attempt at an editor’s tool.</span></p><p>We’re early. The tooling isn’t there yet. The methodology needs pressure-testing by real teams on real projects. But the direction feels right: humans specifying intent, machines producing implementations, and a structured conversation in between to build justified confidence that the two actually match.</p><div><hr/></div><p><em>The question isn’t whether AI agents will write most of our code. They already do. The question is whether we’ll find a way to stay confident that the code does what we intended. Expectation-Driven Development is one bet on how we get there. I’m looking for others.</em></p></div></div>
+  └──────── Loop back to AI Agent ────────────┘</pre>
+  </section>
+
+  <section>
+    <h2><span class="num">§ 05</span>This isn&rsquo;t a new idea (and that&rsquo;s a good thing)</h2>
+    <p>If you&rsquo;ve been in software long enough, you&rsquo;re probably thinking: &ldquo;This sounds like Specification by Example.&rdquo; You&rsquo;re right. It does.</p>
+    <p>EDD stands on the shoulders of a long lineage of ideas that share the same core insight &mdash; that concrete examples in human-readable form are the best way to specify and verify software behavior:</p>
+    <ul>
+      <li><strong>Specification by Example</strong> (Gojko Adzic, 2011) &mdash; uses concrete examples collaboratively authored by the team as both specifications and tests. The bible for this way of thinking.</li>
+      <li><strong>FIT / FitNesse</strong> (Ward Cunningham, ~2002) &mdash; executable acceptance tables written in near-plain-English, verified automatically against the system.</li>
+      <li><strong>Concordion</strong> &mdash; specifications written in natural language that become executable through instrumentation.</li>
+      <li><strong>Design by Contract</strong> (Bertrand Meyer, Eiffel) &mdash; preconditions, postconditions, and invariants as formal specifications embedded in code.</li>
+      <li><strong>Property-based testing</strong> (QuickCheck and descendants) &mdash; addresses the &ldquo;not just the two items in your test fixture&rdquo; problem by generating many inputs from declared properties.</li>
+    </ul>
+    <p>So what&rsquo;s actually new here? Not the idea of specifying behavior in natural language. Not the idea of verifying with concrete examples. What&rsquo;s new is the <em>execution context</em>.</p>
+    <p>In Specification by Example, a human team collaborates to write examples, then a developer writes glue code (step definitions) to make them executable. The bottleneck is the glue code &mdash; it&rsquo;s tedious, it breaks when the code changes, and it requires a framework.</p>
+    <p>In EDD, the LLM <em>is</em> the glue code. It interprets natural-language expectations directly, without step definitions, without a framework, without the ceremony. And the verification loop is conversational &mdash; you challenge, the agent responds, you push back &mdash; rather than pass/fail binary.</p>
+    <p>That&rsquo;s a meaningful difference. But I want to be honest that it&rsquo;s an evolutionary one, not a revolutionary one. If you&rsquo;ve read Adzic&rsquo;s work, you&rsquo;ll feel at home here. If you haven&rsquo;t, go read it &mdash; it will make you better at EDD.</p>
+    <p>There&rsquo;s one more thing EDD inherits from Specification by Example: the question of <em>who writes the expectations</em>. In the Specification by Example tradition, examples are collaboratively authored in &ldquo;specification workshops&rdquo; &mdash; conversations between developers, testers, and business stakeholders. EDD as I&rsquo;ve described it is a solo workflow: one human, one agent. But most software is built by teams. If different team members write expectations for the same feature, they may express different &mdash; or contradictory &mdash; assumptions. If only one person writes them, you&rsquo;ve concentrated a single point of failure in that person&rsquo;s understanding. I don&rsquo;t have a neat answer for this yet. My instinct is that expectations should be written collaboratively, then the conversation with the agent happens individually. But this is an open question.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">§ 06</span>Why this might <span class="mark">actually work</span></h2>
+    <p><strong>It plays to human strengths.</strong> Humans are better at judging than producing. We&rsquo;re excellent critics and mediocre typists. EDD lets us do what we do best: specify intent, evaluate outcomes, spot what&rsquo;s missing.</p>
+    <p><strong>It plays to AI strengths.</strong> AI agents are fast, tireless implementers that can generate both code and evidence at scale. The bottleneck was never &ldquo;can the AI write the code?&rdquo; It was &ldquo;can we trust the code the AI wrote?&rdquo; EDD creates a structured trust-building process.</p>
+    <p><strong>Natural language captures what formal tests can&rsquo;t.</strong> &ldquo;The error message should be helpful, not cryptic.&rdquo; &ldquo;The response time should feel instant for typical queries.&rdquo; &ldquo;The fallback behavior should be graceful, not surprising.&rdquo; These are real requirements that matter to users. They&rsquo;re nearly impossible to express in <code>assert</code> statements, but an LLM can interpret them. A caveat: for subjective qualities like &ldquo;helpful&rdquo; or &ldquo;graceful,&rdquo; the LLM will tend to judge its own output favorably &mdash; it&rsquo;s the fox-guarding-the-henhouse problem again. For these expectations, the human&rsquo;s judgment in Step 4 becomes especially critical. Don&rsquo;t outsource taste.</p>
+    <p><strong>It forces you to think before coding &mdash; the best part of TDD, without the ceremony.</strong> The discipline of TDD was never really about the tests. It was about the act of specifying behavior before implementation. EDD preserves that discipline. You still think first. You just express your thinking in a more natural medium.</p>
+    <p><strong>The evidence trail creates accountability.</strong> Every expectation has a proof artifact. Six months from now, when someone asks &ldquo;does the system handle concurrent bookings correctly?&rdquo;, you don&rsquo;t grep through test files. You read the expectation and its evidence.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">§ 07</span>Why this might <em>not</em> work (the honest part)</h2>
+    <p>I believe in this idea, but I&rsquo;d be dishonest if I didn&rsquo;t confront its weaknesses head-on. There are real problems here.</p>
+
+    <h3>The fox guarding the henhouse (and the deeper problem beneath it)</h3>
+    <p>This is the big one, and it has two layers.</p>
+    <p><strong>Layer 1: Bias.</strong> You&rsquo;re asking the same AI that wrote the code to produce evidence that the code works. That&rsquo;s like asking a student to both take the exam and grade it. The AI has every structural incentive to produce evidence that confirms its implementation. If it made a subtle error in the discount calculation, it might generate scenarios that avoid the precise inputs that would reveal the bug. Not maliciously. Just because the same reasoning flaw that caused the bug will also cause it to overlook the bug in its evidence.</p>
+    <p><strong>Layer 2: Execution vs. narration.</strong> This is the deeper problem, and it&rsquo;s one we need to confront directly. When the agent produces &ldquo;evidence,&rdquo; what actually happened? There are two very different possibilities:</p>
+    <ul>
+      <li><strong>Executed evidence:</strong> The agent actually ran the code &mdash; made an API call, executed a function, queried the database &mdash; and is showing you real output from a real system.</li>
+      <li><strong>Generative evidence:</strong> The agent <em>described</em> what it believes would happen, based on its understanding of the code it wrote. It narrated a plausible verification without executing anything.</li>
+    </ul>
+    <p>These are not the same thing. Executed evidence is evidence. Generative evidence is a second assertion by the same entity that made the first assertion. It&rsquo;s the difference between &ldquo;I tested it and here are the results&rdquo; and &ldquo;I&rsquo;m pretty sure it would work like this.&rdquo;</p>
+    <p><strong>EDD requires executed evidence.</strong> If the agent can&rsquo;t run the code and show you real outputs, you don&rsquo;t have verification &mdash; you have a shared hallucination dressed up in scenario format. This means EDD depends on AI agents with tool use: the ability to execute code, call APIs, run scripts, and capture actual output. Fortunately, this is where agents are headed &mdash; modern coding agents already have shell access, can run test suites, and can interact with running systems. But you must insist on it. When reviewing evidence, ask: &ldquo;Did you actually run this, or are you telling me what you think would happen?&rdquo; If the agent can&rsquo;t answer that clearly, the evidence is worthless.</p>
+    <p><strong>But let&rsquo;s be honest: not all code is executable in an agent loop.</strong> In practice, evidence falls into three categories:</p>
+    <ul>
+      <li><strong>Directly executable:</strong> Functions, APIs, scripts, database queries. The agent can run these and show real output. This is the gold standard.</li>
+      <li><strong>Partially verifiable:</strong> Infrastructure code (Terraform plan output), build configurations (dry runs), schema migrations (against a test database). The agent can&rsquo;t deploy to production, but it can show you what <em>would</em> happen. This is weaker but still useful &mdash; a Terraform plan is better than a guess.</li>
+      <li><strong>Not executable in the loop:</strong> UI rendering, production-only behavior, third-party API integrations with rate limits or authentication, code that requires manual user interaction. Here, you&rsquo;re back to generative evidence whether you like it or not.</li>
+    </ul>
+    <p>For that third category, the mitigations below become critical, and you should be clear-eyed that your confidence is lower. If most of your expectations fall into category three, EDD&rsquo;s value proposition degrades &mdash; and you should invest more in the &ldquo;Stabilize&rdquo; step (converting expectations to automated tests that <em>can</em> run in CI).</p>
+
+    <p><strong>Mitigations for both layers:</strong></p>
+    <ul>
+      <li><strong>Be an adversarial reviewer.</strong> Your job isn&rsquo;t to passively receive evidence. It&rsquo;s to actively challenge it. Run adversarial scenarios. Ask &ldquo;what about...?&rdquo; questions. Spot-check the numbers manually.</li>
+      <li><strong>Demand execution receipts.</strong> Ask the agent to show the actual command it ran and the raw output. Not a summary. The output.</li>
+      <li><strong>Use a different agent to audit.</strong> Have a second AI agent (or a different model) independently verify the evidence against the code. The fox can guard the henhouse if there&rsquo;s a different fox checking the first fox&rsquo;s work.</li>
+      <li><strong>Spot-check yourself.</strong> For critical expectations, pick one scenario and run it manually. If the agent&rsquo;s evidence matches reality for the one you checked, you have higher confidence in the rest.</li>
+    </ul>
+
+    <h3>The reproducibility question</h3>
+    <p>Here&rsquo;s a hard question: are the expectations rerunnable?</p>
+    <p>If I come back next week, after the code has changed, can I re-verify the expectations? If yes &mdash; how? If you&rsquo;re asking an AI to re-run the evidence each time, you&rsquo;re relying on LLM interpretation, which is non-deterministic. The same expectation might produce different evidence on different runs. The same model might interpret an ambiguous expectation differently after an update.</p>
+    <p>If the expectations <em>aren&rsquo;t</em> rerunnable, then what you have is a snapshot, not a safety net. Documentation, not regression protection.</p>
+    <p><strong>Mitigation:</strong> EDD should complement automated tests, not replace them. The expectations drive the initial implementation and verification. But the critical paths should <em>also</em> be captured in traditional automated tests for regression. Think of expectations as the <em>design-time</em> validation tool, and automated tests as the <em>runtime</em> safety net. The expectations are the &ldquo;why.&rdquo; The tests are the &ldquo;what, forever.&rdquo;</p>
+    <p>There&rsquo;s a related versioning problem worth flagging. If you ship feature v1 with its evidence, then modify the feature in v2, the v1 evidence is now potentially misleading. Do you re-run evidence for every change? If so, you&rsquo;re paying the EDD cost on every iteration. If not, the documentation rots like any other documentation. Automated tests don&rsquo;t have this problem &mdash; they fail loudly when the code changes in ways they don&rsquo;t expect. EDD evidence is silent when it becomes stale. This is another reason the &ldquo;Stabilize&rdquo; step matters: the automated tests are your regression alarm. The expectations are your design-time conversation.</p>
+
+    <h3>Natural language ambiguity</h3>
+    <p>I praised the freedom of natural language earlier. But freedom has a cost. Consider:</p>
+    <blockquote class="aside">The system should handle large uploads efficiently.</blockquote>
+    <p>What&rsquo;s large? 10MB? 10GB? What&rsquo;s efficiently? Under 5 seconds? Without running out of memory? Without blocking other requests?</p>
+    <p>In BDD, the formalism forces you to be specific: <code>Given a file of 500MB / When the user uploads it / Then the upload completes within 30 seconds</code>. The rigidity is a feature. It prevents hand-waving.</p>
+    <p><strong>Mitigation:</strong> Write expectations as specifically as you can. The freedom of natural language doesn&rsquo;t mean you should be vague &mdash; it means you can be specific in ways that formal syntax doesn&rsquo;t allow. Instead of &ldquo;handle large uploads efficiently,&rdquo; write &ldquo;a 500MB upload should complete without timeout and without consuming more than 2x the file size in memory. A 5GB upload should use streaming and never hold the full file in memory.&rdquo; Still natural language. But precise.</p>
+
+    <h3>The evidence scalability problem</h3>
+    <p>If you have 5 expectations, you can carefully review 5 sets of evidence. If you have 50, you&rsquo;ll start skimming. If you have 200, you&rsquo;ll rubber-stamp.</p>
+    <p>And yet, more expectations means better coverage. There&rsquo;s a tension between thoroughness and human attention span.</p>
+    <p><strong>Mitigation:</strong> Prioritize. Not all expectations are equal. Some protect critical business logic. Some cover edge cases that matter but don&rsquo;t need forensic review. Categorize expectations by risk and allocate your review attention accordingly.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">§ 08</span>EDD vs. TDD vs. BDD &mdash; not a replacement, a complement</h2>
+    <p>Let me be blunt: if you read this and think &ldquo;great, I can stop writing tests,&rdquo; you&rsquo;ve missed the point.</p>
+    <p><strong>TDD</strong> speaks to developers, in code. It&rsquo;s always executable, gives you strong regression protection, and works well as a design-time thinking tool. But it captures limited nuance &mdash; an <code>assert</code> can only say so much &mdash; and it wasn&rsquo;t designed with AI agents in mind (though &ldquo;make these tests pass&rdquo; works surprisingly well).</p>
+    <p><strong>BDD</strong> speaks to the whole team, in structured natural language. It&rsquo;s executable via step definitions, gives you strong regression protection, and captures more nuance than raw code. But it still constrains how you express requirements, and it wasn&rsquo;t designed for AI agents either.</p>
+    <p><strong>EDD</strong> speaks to the human-AI pair, in free-form natural language. The expectations themselves aren&rsquo;t executable &mdash; they&rsquo;re text &mdash; but the protocol demands execution in Step 3. Regression protection is weak without automation (which is why the Stabilize step matters). Where EDD wins is nuance: natural language can express the qualitative, relational, and systemic requirements that formal test syntax struggles with. And it&rsquo;s designed from the ground up for the AI-agent workflow.</p>
+    <p>The three aren&rsquo;t competitors. They&rsquo;re layers. EDD is the <em>conversation layer</em> between human intent and AI implementation &mdash; where you say what you mean, in all its messy, nuanced, edge-case-laden glory. Then TDD or BDD takes over for the parts that need to be deterministic and repeatable.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">§ 09</span>A practical protocol</h2>
+    <p>If you want to try EDD today, here&rsquo;s a concrete protocol:</p>
+
+    <h3 class="step">Write expectations before touching code</h3>
+    <p>Spend 15 minutes writing expectations for the feature. Be specific. Cover:</p>
+    <ul>
+      <li>The happy path</li>
+      <li>Edge cases you&rsquo;ve been burned by before</li>
+      <li>Non-functional requirements (performance, error handling, security)</li>
+      <li>Behaviors that should explicitly <em>not</em> happen</li>
+    </ul>
+    <p><strong>How big should an expectation be?</strong> Think &ldquo;one behavior you&rsquo;d explain in a single breath to a colleague.&rdquo; The cart total calculation example is about right &mdash; it covers one coherent concern (pricing math) with its key edge cases. If you find yourself writing a page-long expectation, you&rsquo;re probably bundling multiple concerns. Split them. If you find yourself writing a one-liner with no edge cases, you&rsquo;re probably being too vague. Expand it.</p>
+
+    <h3 class="step">Hand expectations to the AI agent with your codebase</h3>
+    <p>Give the agent your expectations and let it implement. Don&rsquo;t hover. Let it work.</p>
+
+    <h3 class="step">Request executed evidence</h3>
+    <p>Prompt: <em>&ldquo;For each expectation, show me concrete evidence that the system fulfills it. Actually run the code &mdash; execute the function, call the API, run the script &mdash; and show me the real inputs and outputs. Don&rsquo;t describe what you think would happen; show me what actually happened. If an expectation cannot be fulfilled, explain why.&rdquo;</em></p>
+    <p>The word &ldquo;actually&rdquo; is doing heavy lifting here. You want execution receipts, not narration.</p>
+
+    <h3 class="step">Review adversarially</h3>
+    <p>For each piece of evidence:</p>
+    <ul>
+      <li>Do the numbers add up?</li>
+      <li>Did the agent test the edge case or dodge it?</li>
+      <li>What input would break this?</li>
+      <li>Is there a scenario the expectation didn&rsquo;t cover that it should?</li>
+    </ul>
+
+    <h3 class="step">Challenge and iterate</h3>
+    <p>Add new expectations based on what you discover. Tighten vague ones. Ask &ldquo;what if?&rdquo; until you&rsquo;re satisfied.</p>
+
+    <h3 class="step">Stabilize</h3>
+    <p>For critical paths, convert the expectations and evidence into automated tests (unit, integration, or e2e). The evidence gives you the test cases for free &mdash; you just need to make them executable and deterministic.</p>
+
+    <h3 class="step">Archive</h3>
+    <p>The final set of expectations + evidence becomes your feature documentation. It answers &ldquo;what does this do?&rdquo; and &ldquo;how do we know?&rdquo; in one artifact.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">§ 10</span>A disclaimer, and the deeper point</h2>
+    <p>I should be upfront: I haven&rsquo;t battle-tested EDD on a real project. This is a proposed framework, not a field report. I&rsquo;m sharing it because I think the underlying problem &mdash; how do we validate AI-generated code at the speed AI generates it? &mdash; is urgent enough that we should be thinking out loud about solutions, even imperfect ones. If you try this and it works, I want to hear about it. If you try it and it falls apart, I want to hear about that even more.</p>
+    <p>That said, I think EDD points at something deeper than a specific technique. It reflects a shift in the role of the human developer.</p>
+    <p>In the pre-AI world, we were <em>authors</em>. We wrote the code. We wrote the tests. We wrote the documentation. Our value was in production.</p>
+    <p>In the AI-agent world, we&rsquo;re becoming <em>editors</em>. We specify intent. We evaluate output. We challenge evidence. Our value is in judgment.</p>
+    <p>Authors need tools for writing &mdash; IDEs, compilers, debuggers. Editors need tools for <em>evaluating</em> &mdash; ways to express what they want, inspect what they got, and close the gap between the two. TDD is an author&rsquo;s tool. EDD is an attempt at an editor&rsquo;s tool.</p>
+    <p>We&rsquo;re early. The tooling isn&rsquo;t there yet. The methodology needs pressure-testing by real teams on real projects. But the direction feels right: humans specifying intent, machines producing implementations, and a structured conversation in between to build justified confidence that the two actually match.</p>
+  </section>
+
+  <p class="coda-text">The question isn&rsquo;t whether AI agents will write most of our code. They already do. The question is whether we&rsquo;ll find a way to stay confident that the code does what we intended. Expectation-Driven Development is one bet on how we get there. I&rsquo;m looking for others.<span class="endmark" aria-hidden="true"></span></p>
+
+  <div class="signature">
+    <span class="mark-tag">&diams; End of essay</span>
+    <span>Andrea Laforgia &middot; <a href="https://a4al6a.substack.com">a4al6a.substack.com</a></span>
+  </div>
+
+</article>
 </body>
 </html>
