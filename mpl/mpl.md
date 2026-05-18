@@ -1,24 +1,4 @@
-<svg width="148" height="46" viewBox="0 0 148 46" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <g stroke="#1a1810" fill="#1a1810">
-    <rect x="1" y="1" width="56" height="44" rx="7" stroke-width="1.2" fill="none"/>
-    <rect x="8" y="10" width="20" height="14" rx="3" stroke-width="1" fill="none"/>
-    <rect x="33" y="10" width="17" height="14" rx="3" stroke-width="1" fill="none"/>
-    <circle cx="18" cy="34" r="2" stroke="none"/>
-    <line x1="18" y1="32" x2="18" y2="26" stroke-width="1"/>
-    <polygon points="18,24 16,28 20,28" stroke="none"/>
-  </g>
-  <g stroke="#8b1f2c" fill="#8b1f2c">
-    <line x1="60" y1="23" x2="83" y2="23" stroke-width="1.3"/>
-    <polygon points="86,23 80,20 80,26" stroke="none"/>
-    <text x="64" y="19" font-family="ui-monospace, monospace" font-size="7" letter-spacing="0.5" stroke="none">e[C]/a</text>
-  </g>
-  <g stroke="#1f4f7a" fill="#1f4f7a">
-    <rect x="89" y="1" width="58" height="44" rx="7" stroke-width="1.2" fill="none"/>
-    <line x1="89" y1="23" x2="147" y2="23" stroke-width="1" stroke-dasharray="3 3"/>
-    <text x="100" y="16" font-family="serif" font-size="8" font-style="italic" stroke="none">A</text>
-    <text x="100" y="36" font-family="serif" font-size="8" font-style="italic" stroke="none">B</text>
-  </g>
-</svg>
+![Statechart glyph: XOR-decomposition box, transition arrow, AND-decomposition box](images/glyph.svg)
 
 # MPLv2, read against Harel's *Statecharts*
 
