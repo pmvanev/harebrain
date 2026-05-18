@@ -1261,6 +1261,11 @@
       <li><strong>Orchestration &rarr; Agent &rarr; Model.</strong> The canonical agentic-workflow stack of 2024&ndash;25. Powerful but unbounded: the agent can drift, loop, hallucinate facts as fresh. This is precisely the stack the Policy layer is designed to wrap.</li>
     </ul>
 
+    <div class="callout warn">
+      <h4>Why not let LangGraph <em>be</em> the cage?</h4>
+      <p>A LangGraph graph looks like a state machine &mdash; nodes, edges, conditional routing &mdash; so the temptation is to skip Policy and let the graph itself be the bound. But a node is arbitrary Python and a conditional edge is another Python function returning the next node name. The topology is real; the nodes and routing decisions are unbounded code. You can <em>simulate</em> the discipline (nodes that only emit typed verdicts, dedicated act-nodes that read them), but at that point you&rsquo;ve hand-rolled a weaker MPL without the orthogonal regions, the Manifest, the deterministic conflict resolution, or the inspectable grammar at rest. The graph is structure over what <em>runs</em>; the chart is structure over what&rsquo;s <em>allowed</em>.</p>
+    </div>
+
     <div class="callout idea">
       <h4>Pick the lightest wrapper that earns its weight</h4>
       <p>Every layer added is latency, cost, and design surface. The four-layer stack is justified only where each layer is doing work the others cannot. Most workflows want three; some want two; a few want all four. Choose by the property the layer above is asking for, not by the stack the literature happens to draw.</p>
