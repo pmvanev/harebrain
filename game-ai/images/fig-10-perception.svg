@@ -1,0 +1,42 @@
+<svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="An AI agent with a forward sight cone and circular hearing radius, with stimuli inside and outside each.">
+  <style>
+    .ink       { color: #1a1810; }
+    .muted     { color: #5d553f; }
+    .blueprint { color: #1f4f7a; }
+    .oxblood   { color: #8b1f2c; }
+    .sage      { color: #4f6b3f; }
+    @media (prefers-color-scheme: dark) {
+      .ink       { color: #ede2c4; }
+      .muted     { color: #a89c7d; }
+      .blueprint { color: #88c0e8; }
+      .oxblood   { color: #e09098; }
+      .sage      { color: #b1c98c; }
+    }
+  </style>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <circle cx="170" cy="120" r="100" stroke-width="1" stroke-dasharray="4 4" fill-opacity="0.1"/>
+    <text x="170" y="32" font-family="ui-monospace, monospace" font-size="9" text-anchor="middle" letter-spacing="0.12em" stroke="none">HEARING RADIUS</text>
+  </g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <path d="M 170 120 L 360 50 A 200 200 0 0 1 360 190 Z" stroke-width="1.2" fill-opacity="0.08"/>
+    <text x="285" y="44" font-family="ui-monospace, monospace" font-size="9" text-anchor="middle" letter-spacing="0.12em" stroke="none">SIGHT CONE</text>
+  </g>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <polygon points="160,110 185,120 160,130" stroke-width="1.4"/>
+  </g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <text x="170" y="148" font-family="Spectral, serif" font-size="10" text-anchor="middle" font-style="italic" stroke="none">agent</text>
+    <circle cx="450" cy="170" r="5" stroke="none"/>
+    <text x="460" y="173" font-family="ui-monospace, monospace" font-size="9" stroke="none">undetected</text>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <circle cx="320" cy="105" r="6" stroke="none"/>
+    <text x="335" y="108" font-family="ui-monospace, monospace" font-size="9" stroke="none">stimulus &#8212; seen</text>
+    <g stroke-width="1.5" fill="none">
+      <circle cx="120" cy="180" r="6"/>
+      <circle cx="120" cy="180" r="12" stroke-dasharray="2 2"/>
+      <circle cx="120" cy="180" r="18" stroke-dasharray="2 2"/>
+    </g>
+    <text x="135" y="200" font-family="ui-monospace, monospace" font-size="9" stroke="none">stimulus &#8212; heard</text>
+  </g>
+</svg>

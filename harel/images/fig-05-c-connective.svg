@@ -1,0 +1,38 @@
+<svg width="220" height="180" viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .ink      { color: #1a1810; }
+    .oxblood  { color: #8b1f2c; }
+    .c-circle { fill: #f3eddc; stroke: #8b1f2c; }
+    @media (prefers-color-scheme: dark) {
+      .ink      { color: #ede2c4; }
+      .oxblood  { color: #e09098; }
+      .c-circle { fill: #14130c; stroke: #e09098; }
+    }
+  </style>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="10"  y="10" width="200" height="155" rx="10" stroke-width="1.4" fill="none"/>
+    <rect x="32"  y="38" width="50"  height="28"  rx="5"  stroke-width="1.4" fill="none"/>
+    <rect x="140" y="38" width="50"  height="28"  rx="5"  stroke-width="1.4" fill="none"/>
+    <rect x="86"  y="92" width="50"  height="28"  rx="5"  stroke-width="1.4" fill="none"/>
+    <text x="50"  y="57"  font-family="Fraunces, Georgia, serif" font-size="13" font-style="italic" stroke="none">Q</text>
+    <text x="158" y="57"  font-family="Fraunces, Georgia, serif" font-size="13" font-style="italic" stroke="none">P</text>
+    <text x="104" y="111" font-family="Fraunces, Georgia, serif" font-size="13" font-style="italic" stroke="none">R</text>
+    <!-- branches from C to Q, P, R -->
+    <path d="M 111 137 Q 80 100 57 66" stroke-width="1.2" fill="none"/>
+    <polygon points="57,66 60,72 54,72" stroke="none"/>
+    <path d="M 111 137 Q 145 100 165 66" stroke-width="1.2" fill="none"/>
+    <polygon points="165,66 162,72 168,72" stroke="none"/>
+    <path d="M 111 137 V 120" stroke-width="1.2" fill="none"/>
+    <polygon points="111,120 108,126 114,126" stroke="none"/>
+  </g>
+  <!-- C circle (paper fill, oxblood stroke; both theme-adaptive) -->
+  <circle cx="111" cy="148" r="11" class="c-circle" stroke-width="1.4"/>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <text x="106" y="152" font-family="Fraunces, Georgia, serif" font-size="13" font-style="italic" stroke="none">C</text>
+    <line x1="111" y1="170" x2="111" y2="159" stroke-width="1.2" stroke-dasharray="3 3"/>
+    <text x="118" y="170" font-family="ui-monospace, monospace" font-size="10" stroke="none">&#x3B1;</text>
+    <text x="68"  y="100" font-family="ui-monospace, monospace" font-size="10" stroke="none">(Q)</text>
+    <text x="150" y="100" font-family="ui-monospace, monospace" font-size="10" stroke="none">(P)</text>
+    <text x="118" y="130" font-family="ui-monospace, monospace" font-size="10" stroke="none">(R)</text>
+  </g>
+</svg>

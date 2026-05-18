@@ -1,0 +1,124 @@
+<svg viewBox="0 0 620 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The Manifest tick cycle: snapshot at t, rules read it, proposals are collected, conflicts resolved, snapshot at t+1 lands atomically.">
+  <style>
+    .paper-edge-2    { color: #e4dbc1; }
+    .ink             { color: #1a1810; }
+    .muted           { color: #5d553f; }
+    .rule-soft       { color: #d4c8a4; }
+    .blueprint       { color: #1f4f7a; }
+    .blueprint-deep  { color: #143553; }
+    .blueprint-tint  { color: rgba(31, 79, 122, 0.07); }
+    .oxblood         { color: #8b1f2c; }
+    .oxblood-tint    { color: rgba(139, 31, 44, 0.06); }
+    @media (prefers-color-scheme: dark) {
+      .paper-edge-2    { color: #221f15; }
+      .ink             { color: #ede2c4; }
+      .muted           { color: #a89c7d; }
+      .rule-soft       { color: #3a3327; }
+      .blueprint       { color: #88c0e8; }
+      .blueprint-deep  { color: #bcdcf2; }
+      .blueprint-tint  { color: rgba(136, 192, 232, 0.10); }
+      .oxblood         { color: #e09098; }
+      .oxblood-tint    { color: rgba(224, 144, 152, 0.10); }
+    }
+  </style>
+
+  <!-- Manifest_t -->
+  <g class="paper-edge-2" stroke="none" fill="currentColor">
+    <rect x="20" y="40" width="120" height="120" rx="6"/>
+  </g>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="20" y="40" width="120" height="120" rx="6" stroke-width="1.5" fill="none"/>
+    <text x="80" y="60" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">Manifest&#x209C;</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="30" y1="70" x2="130" y2="70"/>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="9">
+    <text x="35" y="86">active regions</text>
+    <text x="35" y="102">signals</text>
+    <text x="35" y="118">vars</text>
+    <text x="35" y="134">maps</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="80" y="180" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">immutable snapshot</text>
+  </g>
+
+  <!-- arrow read -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <line x1="142" y1="100" x2="180" y2="100" stroke-width="1.4" fill="none"/>
+    <polygon points="180,100 174,97 174,103" stroke="none"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="161" y="92" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">read</text>
+  </g>
+
+  <!-- Proposals -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor">
+    <rect x="184" y="40" width="130" height="120" rx="6"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="184" y="40" width="130" height="120" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="249" y="60" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">proposals</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="194" y1="70" x2="304" y2="70"/>
+  </g>
+  <g class="blueprint-deep" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="9">
+    <text x="199" y="86">R1: =&gt; Synth.</text>
+    <text x="199" y="102">R2: =&gt; Plan</text>
+    <text x="199" y="118">R3: hp -= 5</text>
+    <text x="199" y="134">R4: emit Found</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="249" y="180" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">may conflict</text>
+  </g>
+
+  <!-- arrow to resolution -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <line x1="316" y1="100" x2="354" y2="100" stroke-width="1.4" fill="none"/>
+    <polygon points="354,100 348,97 348,103" stroke="none"/>
+  </g>
+
+  <!-- Resolution -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor">
+    <rect x="358" y="60" width="120" height="80" rx="6"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="358" y="60" width="120" height="80" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="418" y="80" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">resolve</text>
+    <text x="418" y="100" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" stroke="none">@priority</text>
+    <text x="418" y="114" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" stroke="none">@weight</text>
+    <text x="418" y="128" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" stroke="none">seeded RNG</text>
+  </g>
+
+  <!-- arrow apply -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <line x1="480" y1="100" x2="500" y2="100" stroke-width="1.4" fill="none"/>
+    <polygon points="500,100 494,97 494,103" stroke="none"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="490" y="92" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">apply</text>
+  </g>
+
+  <!-- Manifest_{t+1} -->
+  <g class="paper-edge-2" stroke="none" fill="currentColor">
+    <rect x="504" y="40" width="116" height="120" rx="6"/>
+  </g>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="504" y="40" width="116" height="120" rx="6" stroke-width="1.5" fill="none"/>
+    <text x="562" y="60" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">Manifest&#x209C;&#x208A;&#x2081;</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="514" y1="70" x2="614" y2="70"/>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="9">
+    <text x="519" y="86">active regions&#x2032;</text>
+    <text x="519" y="102">signals&#x2032;</text>
+    <text x="519" y="118">vars&#x2032;</text>
+    <text x="519" y="134">maps&#x2032;</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="562" y="180" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">atomic swap</text>
+    <text x="310" y="208" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" letter-spacing="0.1em">no mid-tick mutation &#183; same seed + same M&#x2080; replays the entire run</text>
+  </g>
+</svg>

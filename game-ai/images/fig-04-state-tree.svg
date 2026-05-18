@@ -1,0 +1,56 @@
+<svg viewBox="0 0 500 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="State Tree: hierarchical states with enter-conditions on each branch.">
+  <style>
+    .ink       { color: #1a1810; }
+    .muted     { color: #5d553f; }
+    .blueprint { color: #1f4f7a; }
+    @media (prefers-color-scheme: dark) {
+      .ink       { color: #ede2c4; }
+      .muted     { color: #a89c7d; }
+      .blueprint { color: #88c0e8; }
+    }
+  </style>
+  <defs>
+    <marker id="arr-ink" class="ink" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="currentColor" stroke="none"/>
+    </marker>
+  </defs>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="210" y="15" width="80" height="34" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="250" y="38" font-family="Spectral, serif" font-size="13" text-anchor="middle" stroke="none">Combat</text>
+    <g stroke-width="1.2" fill="none">
+      <path d="M 230 49 Q 230 75 100 80" marker-end="url(#arr-ink)"/>
+      <path d="M 250 49 L 250 80" marker-end="url(#arr-ink)"/>
+      <path d="M 270 49 Q 270 75 400 80" marker-end="url(#arr-ink)"/>
+    </g>
+    <g stroke-width="1.4" fill="none">
+      <rect x="60" y="85" width="90" height="34" rx="6"/>
+      <rect x="205" y="85" width="90" height="34" rx="6"/>
+      <rect x="365" y="85" width="90" height="34" rx="6"/>
+    </g>
+    <g font-family="Spectral, serif" font-size="13" text-anchor="middle" stroke="none">
+      <text x="105" y="108">Flee</text>
+      <text x="250" y="108">Engage</text>
+      <text x="410" y="108">Hold</text>
+    </g>
+    <path d="M 250 119 L 250 138" stroke-width="1.2" fill="none" marker-end="url(#arr-ink)"/>
+    <rect x="205" y="165" width="90" height="28" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="250" y="184" font-family="Spectral, serif" font-size="13" text-anchor="middle" stroke="none">Fire</text>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <g stroke-width="1" fill-opacity="0.1">
+      <rect x="65" y="55" width="80" height="20" rx="10"/>
+      <rect x="215" y="55" width="70" height="20" rx="10"/>
+      <rect x="370" y="55" width="80" height="20" rx="10"/>
+      <rect x="190" y="138" width="120" height="20" rx="10"/>
+    </g>
+    <g font-family="ui-monospace, monospace" font-size="9" text-anchor="middle" stroke="none">
+      <text x="105" y="69">hp &lt; 30</text>
+      <text x="250" y="69">has LOS</text>
+      <text x="410" y="69">default</text>
+      <text x="250" y="152">in_range &amp;&amp; ammo&gt;0</text>
+    </g>
+  </g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <text x="250" y="9" font-family="ui-monospace, monospace" font-size="9" text-anchor="middle" stroke="none">ROOT</text>
+  </g>
+</svg>

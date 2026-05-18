@@ -1,0 +1,52 @@
+<svg viewBox="0 0 460 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A four-state finite state machine: Idle, Patrol, Engage, Flee, with labeled transitions.">
+  <style>
+    .ink       { color: #1a1810; }
+    .blueprint { color: #1f4f7a; }
+    .oxblood   { color: #8b1f2c; }
+    @media (prefers-color-scheme: dark) {
+      .ink       { color: #ede2c4; }
+      .blueprint { color: #88c0e8; }
+      .oxblood   { color: #e09098; }
+    }
+  </style>
+  <defs>
+    <marker id="arr-ink" class="ink" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="currentColor" stroke="none"/>
+    </marker>
+    <marker id="arr-blue" class="blueprint" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="currentColor" stroke="none"/>
+    </marker>
+  </defs>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <g stroke-width="1.5" fill="none">
+      <rect x="35" y="30" width="100" height="40" rx="20"/>
+      <rect x="325" y="30" width="100" height="40" rx="20"/>
+      <rect x="325" y="130" width="100" height="40" rx="20"/>
+      <rect x="35" y="130" width="100" height="40" rx="20"/>
+    </g>
+    <g font-family="Spectral, serif" font-size="14" text-anchor="middle" stroke="none">
+      <text x="85" y="55">Idle</text>
+      <text x="375" y="55">Engage</text>
+      <text x="375" y="155">Flee</text>
+      <text x="85" y="155">Patrol</text>
+    </g>
+    <g stroke-width="1.2" fill="none">
+      <line x1="135" y1="50" x2="320" y2="50" marker-end="url(#arr-ink)"/>
+      <line x1="375" y1="70" x2="375" y2="125" marker-end="url(#arr-ink)"/>
+      <line x1="325" y1="150" x2="140" y2="150" marker-end="url(#arr-ink)"/>
+      <line x1="85" y1="130" x2="85" y2="75" marker-end="url(#arr-ink)"/>
+    </g>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <g font-family="ui-monospace, monospace" font-size="10" stroke="none">
+      <text x="227" y="42" text-anchor="middle">sees enemy</text>
+      <text x="383" y="100">hp &lt; 30%</text>
+      <text x="227" y="165" text-anchor="middle">10s safe</text>
+      <text x="0" y="105">timer</text>
+    </g>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <circle cx="22" cy="50" r="3"/>
+    <line x1="25" y1="50" x2="35" y2="50" stroke-width="1.4" fill="none" marker-end="url(#arr-blue)"/>
+  </g>
+</svg>

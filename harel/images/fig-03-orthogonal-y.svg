@@ -1,0 +1,60 @@
+<svg width="270" height="170" viewBox="0 0 270 170" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .ink       { color: #1a1810; }
+    .oxblood   { color: #8b1f2c; }
+    .blueprint { color: #1f4f7a; }
+    .muted     { color: #5d553f; }
+    @media (prefers-color-scheme: dark) {
+      .ink       { color: #ede2c4; }
+      .oxblood   { color: #e09098; }
+      .blueprint { color: #88c0e8; }
+      .muted     { color: #a89c7d; }
+    }
+  </style>
+  <!-- outer Y box -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="10" y="14" width="250" height="150" rx="10" stroke-width="1.4" fill="none"/>
+    <!-- A side: B (default) and C -->
+    <rect x="32" y="56"  width="40" height="24" rx="5" stroke-width="1.4" fill="none"/>
+    <rect x="86" y="124" width="40" height="24" rx="5" stroke-width="1.4" fill="none"/>
+    <text x="46"  y="73"  font-family="Fraunces, Georgia, serif" font-size="13" font-style="italic" stroke="none">B</text>
+    <text x="100" y="141" font-family="Fraunces, Georgia, serif" font-size="13" font-style="italic" stroke="none">C</text>
+    <circle cx="40" cy="48" r="2" stroke="none"/>
+    <line x1="40" y1="50" x2="40" y2="56" stroke-width="1.2"/>
+    <polygon points="40,58 37,53 43,53" stroke="none"/>
+    <path d="M 60 80 Q 65 100 95 124" stroke-width="1.2" fill="none"/>
+    <polygon points="95,124 89,121 92,117" stroke="none"/>
+    <!-- D side: E, F (default), G -->
+    <rect x="160" y="56"  width="40" height="22" rx="5" stroke-width="1.4" fill="none"/>
+    <rect x="216" y="92"  width="36" height="22" rx="5" stroke-width="1.4" fill="none"/>
+    <rect x="160" y="124" width="40" height="22" rx="5" stroke-width="1.4" fill="none"/>
+    <text x="172" y="71"  font-family="Fraunces, Georgia, serif" font-size="13" font-style="italic" stroke="none">E</text>
+    <text x="225" y="107" font-family="Fraunces, Georgia, serif" font-size="13" font-style="italic" stroke="none">F</text>
+    <text x="172" y="139" font-family="Fraunces, Georgia, serif" font-size="13" font-style="italic" stroke="none">G</text>
+    <circle cx="225" cy="86" r="2" stroke="none"/>
+    <line x1="225" y1="88" x2="225" y2="92" stroke-width="1.2"/>
+    <path d="M 216 100 Q 195 80 200 72" stroke-width="1.2" fill="none"/>
+    <polygon points="200,72 197,77 203,77" stroke="none"/>
+    <path d="M 200 70 Q 175 100 175 124" stroke-width="1.2" fill="none"/>
+    <polygon points="175,124 172,118 178,118" stroke="none"/>
+    <path d="M 195 135 Q 230 130 225 114" stroke-width="1.2" fill="none"/>
+    <polygon points="225,114 222,120 228,120" stroke="none"/>
+  </g>
+  <!-- dashed AND split (blueprint) -->
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <line x1="135" y1="14" x2="135" y2="164" stroke-width="1.2" stroke-dasharray="5 4"/>
+    <text x="22"  y="44" font-family="ui-monospace, monospace" font-size="9.5" letter-spacing="0.1em" stroke="none">A</text>
+    <text x="146" y="44" font-family="ui-monospace, monospace" font-size="9.5" letter-spacing="0.1em" stroke="none">D</text>
+  </g>
+  <!-- Y label (muted) -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <text x="18" y="28" font-family="ui-monospace, monospace" font-size="9.5" letter-spacing="0.1em" stroke="none">Y</text>
+  </g>
+  <!-- arrow labels (oxblood) -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <text x="78"  y="105" font-family="ui-monospace, monospace" font-size="10" stroke="none">&#x3B2;(inG)</text>
+    <text x="200" y="92"  font-family="ui-monospace, monospace" font-size="10" stroke="none">&#x3BC;</text>
+    <text x="156" y="100" font-family="ui-monospace, monospace" font-size="10" stroke="none">&#x3B3;</text>
+    <text x="218" y="135" font-family="ui-monospace, monospace" font-size="10" stroke="none">&#x3B4;</text>
+  </g>
+</svg>

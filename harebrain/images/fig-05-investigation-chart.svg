@@ -1,0 +1,114 @@
+<svg viewBox="0 0 580 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A hierarchical statechart whose leaves each host a small LLM task, with guarded transitions.">
+  <style>
+    .paper           { color: #f3eddc; }
+    .ink             { color: #1a1810; }
+    .muted           { color: #5d553f; }
+    .blueprint       { color: #1f4f7a; }
+    .blueprint-deep  { color: #143553; }
+    .blueprint-tint  { color: rgba(31, 79, 122, 0.07); }
+    .oxblood         { color: #8b1f2c; }
+    @media (prefers-color-scheme: dark) {
+      .paper           { color: #14130c; }
+      .ink             { color: #ede2c4; }
+      .muted           { color: #a89c7d; }
+      .blueprint       { color: #88c0e8; }
+      .blueprint-deep  { color: #bcdcf2; }
+      .blueprint-tint  { color: rgba(136, 192, 232, 0.10); }
+      .oxblood         { color: #e09098; }
+    }
+  </style>
+
+  <!-- outer Investigation state -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="20" y="20" width="540" height="240" rx="12" stroke-width="1.6" fill="none"/>
+    <text x="34" y="40" font-family="Fraunces, serif" font-size="13" font-style="italic" stroke="none">Investigation</text>
+  </g>
+
+  <!-- default into Gather -->
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <circle cx="34" cy="100" r="3" stroke="none"/>
+    <line x1="36" y1="100" x2="56" y2="100" stroke-width="1.4" fill="none"/>
+    <polygon points="56,100 51,97 51,103" stroke="none"/>
+  </g>
+
+  <!-- Gather state -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor">
+    <rect x="60" y="76" width="140" height="58" rx="8"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="60" y="76" width="140" height="58" rx="8" stroke-width="1.5" fill="none"/>
+    <text x="74" y="92" font-family="JetBrains Mono, monospace" font-size="9" letter-spacing="0.12em" stroke="none">GATHER</text>
+  </g>
+  <g class="paper" stroke="none" fill="currentColor">
+    <ellipse cx="130" cy="113" rx="48" ry="13"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="none">
+    <ellipse cx="130" cy="113" rx="48" ry="13" stroke-width="1.2"/>
+  </g>
+  <g class="blueprint-deep" stroke="none" fill="currentColor">
+    <text x="130" y="116" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle">LLM &#183; ask</text>
+  </g>
+
+  <!-- Synthesize state -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor">
+    <rect x="220" y="76" width="140" height="58" rx="8"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="220" y="76" width="140" height="58" rx="8" stroke-width="1.5" fill="none"/>
+    <text x="234" y="92" font-family="JetBrains Mono, monospace" font-size="9" letter-spacing="0.12em" stroke="none">SYNTHESIZE</text>
+  </g>
+  <g class="paper" stroke="none" fill="currentColor">
+    <ellipse cx="290" cy="113" rx="48" ry="13"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="none">
+    <ellipse cx="290" cy="113" rx="48" ry="13" stroke-width="1.2"/>
+  </g>
+  <g class="blueprint-deep" stroke="none" fill="currentColor">
+    <text x="290" y="116" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle">LLM &#183; reason</text>
+  </g>
+
+  <!-- Report state -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor">
+    <rect x="380" y="76" width="140" height="58" rx="8"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="380" y="76" width="140" height="58" rx="8" stroke-width="1.5" fill="none"/>
+    <text x="394" y="92" font-family="JetBrains Mono, monospace" font-size="9" letter-spacing="0.12em" stroke="none">REPORT</text>
+  </g>
+  <g class="paper" stroke="none" fill="currentColor">
+    <ellipse cx="450" cy="113" rx="48" ry="13"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="none">
+    <ellipse cx="450" cy="113" rx="48" ry="13" stroke-width="1.2"/>
+  </g>
+  <g class="blueprint-deep" stroke="none" fill="currentColor">
+    <text x="450" y="116" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle">LLM &#183; write</text>
+  </g>
+
+  <!-- transitions across leaves -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <line x1="200" y1="105" x2="220" y2="105" stroke-width="1.2" fill="none"/>
+    <polygon points="220,105 214,102 214,108" stroke="none"/>
+    <line x1="360" y1="105" x2="380" y2="105" stroke-width="1.2" fill="none"/>
+    <polygon points="380,105 374,102 374,108" stroke="none"/>
+    <line x1="520" y1="105" x2="556" y2="105" stroke-width="1.2" fill="none"/>
+    <polygon points="556,105 550,102 550,108" stroke="none"/>
+    <text x="540" y="98" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" stroke="none">done</text>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="210" y="98" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">[open_qs=0]</text>
+    <text x="370" y="98" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">[verified]</text>
+  </g>
+
+  <!-- back-edge (re-enter Gather if conf drops) -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <path d="M 290 134 Q 290 200 130 200 Q 60 200 60 134" stroke-width="1.2" fill="none" stroke-dasharray="4 3"/>
+    <polygon points="60,134 57,140 63,140" stroke="none"/>
+    <text x="200" y="218" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" stroke="none">[conf &lt; 0.5] &#8212; director re-entry</text>
+  </g>
+
+  <!-- footer note -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="34" y="248" font-family="JetBrains Mono, monospace" font-size="9" letter-spacing="0.1em">guards inspect blackboard &#183; transitions enforce ordering &#183; LLM cannot skip a state</text>
+  </g>
+</svg>

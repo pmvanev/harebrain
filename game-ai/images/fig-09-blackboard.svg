@@ -1,0 +1,79 @@
+<svg viewBox="0 0 520 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A central blackboard with producers writing keys on the left and consumers reading on the right.">
+  <style>
+    .ink       { color: #1a1810; }
+    .rule-soft { color: #d4c8a4; }
+    .blueprint { color: #1f4f7a; }
+    .sage      { color: #4f6b3f; }
+    .tint-paper { fill: #e4dbc1; }
+    @media (prefers-color-scheme: dark) {
+      .ink       { color: #ede2c4; }
+      .rule-soft { color: #3a3327; }
+      .blueprint { color: #88c0e8; }
+      .sage      { color: #b1c98c; }
+      .tint-paper { fill: #221f15; }
+    }
+  </style>
+  <defs>
+    <marker id="arr-blue" class="blueprint" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="currentColor" stroke="none"/>
+    </marker>
+    <marker id="arr-sage" class="sage" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="currentColor" stroke="none"/>
+    </marker>
+  </defs>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="180" y="20" width="160" height="180" rx="6" stroke-width="1.6" class="tint-paper"/>
+    <text x="260" y="42" font-family="Fraunces, serif" font-size="14" font-style="italic" text-anchor="middle" stroke="none">Blackboard</text>
+    <g stroke-width="1.3" fill="none">
+      <rect x="15" y="40" width="120" height="30" rx="4"/>
+      <rect x="15" y="90" width="120" height="30" rx="4"/>
+      <rect x="15" y="140" width="120" height="30" rx="4"/>
+      <rect x="385" y="40" width="120" height="30" rx="4"/>
+      <rect x="385" y="90" width="120" height="30" rx="4"/>
+      <rect x="385" y="140" width="120" height="30" rx="4"/>
+    </g>
+    <g font-family="Spectral, serif" font-size="11" text-anchor="middle" stroke="none">
+      <text x="75" y="59">Perception</text>
+      <text x="75" y="109">Sight Sense</text>
+      <text x="75" y="159">DamageTaken</text>
+      <text x="445" y="59">BT decorator</text>
+      <text x="445" y="109">BT task</text>
+      <text x="445" y="159">EQS query</text>
+    </g>
+    <g font-family="ui-monospace, monospace" font-size="10" text-anchor="end" stroke="none">
+      <text x="325" y="70">Pawn_3</text>
+      <text x="325" y="92">[12,0,4]</text>
+      <text x="325" y="114">true</text>
+      <text x="325" y="136">68</text>
+      <text x="325" y="158">12</text>
+      <text x="325" y="180">PP_7</text>
+    </g>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="195" y1="52" x2="325" y2="52" stroke-width="1"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <g font-family="ui-monospace, monospace" font-size="10" stroke="none">
+      <text x="195" y="70">EnemyActor</text>
+      <text x="195" y="92">LastKnown</text>
+      <text x="195" y="114">TargetVisible</text>
+      <text x="195" y="136">Health</text>
+      <text x="195" y="158">AmmoCount</text>
+      <text x="195" y="180">PatrolPoint</text>
+    </g>
+    <g stroke-width="1.4" fill="none">
+      <line x1="340" y1="80" x2="385" y2="55" marker-end="url(#arr-blue)"/>
+      <line x1="340" y1="105" x2="385" y2="105" marker-end="url(#arr-blue)"/>
+      <line x1="340" y1="145" x2="385" y2="155" marker-end="url(#arr-blue)"/>
+    </g>
+    <text x="365" y="35" font-family="ui-monospace, monospace" font-size="8" stroke="none">read</text>
+  </g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <g stroke-width="1.4" fill="none">
+      <line x1="135" y1="55" x2="180" y2="80" marker-end="url(#arr-sage)"/>
+      <line x1="135" y1="105" x2="180" y2="105" marker-end="url(#arr-sage)"/>
+      <line x1="135" y1="155" x2="180" y2="145" marker-end="url(#arr-sage)"/>
+    </g>
+    <text x="155" y="35" font-family="ui-monospace, monospace" font-size="8" stroke="none">write</text>
+  </g>
+</svg>

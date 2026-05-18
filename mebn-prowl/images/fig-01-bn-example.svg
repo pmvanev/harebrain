@@ -1,0 +1,53 @@
+<svg viewBox="0 0 480 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A simple Bayesian network: Cloudy points to Sprinkler and Rain, both of which point to WetGrass.">
+  <style>
+    .ink     { color: #1a1810; }
+    .paper   { color: #f3eddc; }
+    .muted   { color: #5d553f; }
+    @media (prefers-color-scheme: dark) {
+      .ink   { color: #ede2c4; }
+      .paper { color: #14130c; }
+      .muted { color: #a89c7d; }
+    }
+  </style>
+  <defs>
+    <marker id="m-arr-ink-01" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" class="ink" fill="currentColor" stroke="none"/>
+    </marker>
+  </defs>
+  <!-- node fills (paper) -->
+  <g class="paper" stroke="none" fill="currentColor">
+    <ellipse cx="240" cy="40" rx="50" ry="22"/>
+    <ellipse cx="130" cy="115" rx="56" ry="22"/>
+    <ellipse cx="350" cy="115" rx="50" ry="22"/>
+    <ellipse cx="240" cy="190" rx="60" ry="22"/>
+  </g>
+  <!-- node strokes (ink) -->
+  <g class="ink" stroke="currentColor" fill="none" stroke-width="1.5">
+    <ellipse cx="240" cy="40" rx="50" ry="22"/>
+    <ellipse cx="130" cy="115" rx="56" ry="22"/>
+    <ellipse cx="350" cy="115" rx="50" ry="22"/>
+    <ellipse cx="240" cy="190" rx="60" ry="22"/>
+  </g>
+  <!-- node labels -->
+  <g class="ink" fill="currentColor" stroke="none" font-family="Spectral, serif" font-size="13" text-anchor="middle" font-style="italic">
+    <text x="240" y="44">Cloudy</text>
+    <text x="130" y="119">Sprinkler</text>
+    <text x="350" y="119">Rain</text>
+    <text x="240" y="194">WetGrass</text>
+  </g>
+  <!-- edges -->
+  <g class="ink" stroke="currentColor" fill="none" stroke-width="1.3">
+    <line x1="210" y1="56" x2="160" y2="98" marker-end="url(#m-arr-ink-01)"/>
+    <line x1="270" y1="56" x2="320" y2="98" marker-end="url(#m-arr-ink-01)"/>
+    <line x1="160" y1="132" x2="208" y2="174" marker-end="url(#m-arr-ink-01)"/>
+    <line x1="320" y1="132" x2="272" y2="174" marker-end="url(#m-arr-ink-01)"/>
+  </g>
+  <!-- mini CPT -->
+  <g class="muted" fill="currentColor" stroke="none" font-family="ui-monospace, monospace" font-size="9">
+    <text x="380" y="170">P(WetGrass | S, R)</text>
+    <text x="380" y="184">T,T &#8594; 0.99</text>
+    <text x="380" y="196">T,F &#8594; 0.90</text>
+    <text x="380" y="208">F,T &#8594; 0.90</text>
+    <text x="380" y="220">F,F &#8594; 0.01</text>
+  </g>
+</svg>

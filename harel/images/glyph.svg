@@ -1,0 +1,31 @@
+<svg width="172" height="50" viewBox="0 0 172 50" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .ink       { color: #1a1810; }
+    .oxblood   { color: #8b1f2c; }
+    .blueprint { color: #1f4f7a; }
+    @media (prefers-color-scheme: dark) {
+      .ink       { color: #ede2c4; }
+      .oxblood   { color: #e09098; }
+      .blueprint { color: #88c0e8; }
+    }
+  </style>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="1" y="3" width="68" height="44" rx="7" stroke-width="1.4" fill="none"/>
+    <rect x="9" y="12" width="22" height="14" rx="3" stroke-width="1" fill="none"/>
+    <rect x="38" y="12" width="22" height="14" rx="3" stroke-width="1" fill="none"/>
+    <circle cx="20" cy="38" r="2" stroke="none"/>
+    <line x1="20" y1="36" x2="20" y2="28" stroke-width="1.2"/>
+    <polygon points="20,26 18,30 22,30" stroke="none"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <line x1="73" y1="25" x2="96" y2="25" stroke-width="1.3"/>
+    <polygon points="99,25 93,22 93,28" stroke="none"/>
+    <text x="76" y="20" font-family="ui-monospace, monospace" font-size="7.5" letter-spacing="0.6" stroke="none">e[C]/a</text>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="102" y="3" width="68" height="44" rx="7" stroke-width="1.4" fill="none"/>
+    <line x1="102" y1="25" x2="170" y2="25" stroke-width="1" stroke-dasharray="3 3"/>
+    <text x="113" y="17" font-family="serif" font-size="13" font-style="italic" stroke="none">A</text>
+    <text x="113" y="40" font-family="serif" font-size="13" font-style="italic" stroke="none">B</text>
+  </g>
+</svg>

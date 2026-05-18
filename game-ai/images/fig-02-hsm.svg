@@ -1,0 +1,53 @@
+<svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A statechart with a superstate Combat that contains two orthogonal regions Mode and Awareness.">
+  <style>
+    .ink       { color: #1a1810; }
+    .muted     { color: #5d553f; }
+    .blueprint { color: #1f4f7a; }
+    .oxblood   { color: #8b1f2c; }
+    @media (prefers-color-scheme: dark) {
+      .ink       { color: #ede2c4; }
+      .muted     { color: #a89c7d; }
+      .blueprint { color: #88c0e8; }
+      .oxblood   { color: #e09098; }
+    }
+  </style>
+  <defs>
+    <marker id="arr-ink" class="ink" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="currentColor" stroke="none"/>
+    </marker>
+    <marker id="arr-blue" class="blueprint" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="currentColor" stroke="none"/>
+    </marker>
+  </defs>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="15" y="30" width="470" height="180" rx="12" stroke-width="2" fill="none"/>
+    <text x="32" y="50" font-family="Fraunces, serif" font-size="13" font-style="italic" stroke="none">Combat</text>
+    <rect x="55" y="85" width="140" height="34" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="125" y="106" font-family="Spectral, serif" font-size="13" text-anchor="middle" stroke="none">Ranged</text>
+    <rect x="55" y="155" width="140" height="34" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="125" y="176" font-family="Spectral, serif" font-size="13" text-anchor="middle" stroke="none">Melee</text>
+    <line x1="115" y1="119" x2="115" y2="153" stroke-width="1.2" marker-end="url(#arr-ink)"/>
+    <line x1="135" y1="155" x2="135" y2="121" stroke-width="1.2" marker-end="url(#arr-ink)"/>
+    <rect x="305" y="85" width="140" height="34" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="375" y="106" font-family="Spectral, serif" font-size="13" text-anchor="middle" stroke="none">Alert</text>
+    <rect x="305" y="155" width="140" height="34" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="375" y="176" font-family="Spectral, serif" font-size="13" text-anchor="middle" stroke="none">Calm</text>
+    <line x1="365" y1="119" x2="365" y2="153" stroke-width="1.2" marker-end="url(#arr-ink)"/>
+    <line x1="385" y1="155" x2="385" y2="121" stroke-width="1.2" marker-end="url(#arr-ink)"/>
+  </g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <text x="125" y="72" font-family="ui-monospace, monospace" font-size="9" text-anchor="middle" letter-spacing="0.16em" stroke="none">MODE</text>
+    <text x="375" y="72" font-family="ui-monospace, monospace" font-size="9" text-anchor="middle" letter-spacing="0.16em" stroke="none">AWARENESS</text>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <line x1="250" y1="55" x2="250" y2="200" stroke-width="1.2" stroke-dasharray="5 4"/>
+    <circle cx="40" cy="102" r="3"/>
+    <line x1="43" y1="102" x2="55" y2="102" stroke-width="1.4" fill="none" marker-end="url(#arr-blue)"/>
+    <circle cx="290" cy="172" r="3"/>
+    <line x1="293" y1="172" x2="305" y2="172" stroke-width="1.4" fill="none" marker-end="url(#arr-blue)"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <text x="200" y="142" font-family="ui-monospace, monospace" font-size="9" stroke="none">dist&lt;3m</text>
+    <text x="450" y="142" font-family="ui-monospace, monospace" font-size="9" stroke="none">10s</text>
+  </g>
+</svg>

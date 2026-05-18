@@ -1,0 +1,167 @@
+<svg viewBox="0 0 620 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Architecture overview: director above, statechart in the middle with an LLM-driven leaf, blackboard on the right, utility selector below.">
+  <style>
+    .paper          { color: #f3eddc; }
+    .paper-edge-2   { color: #e4dbc1; }
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .blueprint      { color: #1f4f7a; }
+    .blueprint-deep { color: #143553; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
+    .oxblood        { color: #8b1f2c; }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage           { color: #4f6b3f; }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    @media (prefers-color-scheme: dark) {
+      .paper          { color: #14130c; }
+      .paper-edge-2   { color: #221f15; }
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .blueprint      { color: #88c0e8; }
+      .blueprint-deep { color: #bcdcf2; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood        { color: #e09098; }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage           { color: #b1c98c; }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+    }
+  </style>
+
+  <!-- Director box (oxblood stroke, oxblood-tint fill) -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor">
+    <rect x="220" y="14" width="180" height="44" rx="8"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="220" y="14" width="180" height="44" rx="8" stroke-width="1.6" fill="none"/>
+    <text x="310" y="34" font-family="Fraunces, serif" font-size="14" font-style="italic" text-anchor="middle" stroke="none">AI Director</text>
+    <line x1="310" y1="58" x2="310" y2="78" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <polygon points="310,80 307,74 313,74" stroke="none"/>
+    <text x="320" y="73" font-family="JetBrains Mono, monospace" font-size="9" stroke="none">events</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="310" y="50" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">watches &#183; modulates &#183; interrupts</text>
+  </g>
+
+  <!-- Statechart container -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="30" y="84" width="430" height="220" rx="12" stroke-width="1.6" fill="none"/>
+    <text x="42" y="103" font-family="Fraunces, serif" font-size="13" font-style="italic" stroke="none">Workflow chart</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="42" y="118" font-family="JetBrains Mono, monospace" font-size="9">topology &#183; transitions &#183; entry/exit</text>
+  </g>
+
+  <!-- Plan state -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="50" y="135" width="86" height="42" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="93" y="160" font-family="Spectral, serif" font-size="12" text-anchor="middle" stroke="none">Plan</text>
+    <circle cx="40" cy="155" r="2.5" stroke="none"/>
+    <line x1="42" y1="155" x2="50" y2="155" stroke-width="1.2" fill="none"/>
+    <polygon points="50,155 47,152 47,158" stroke="none"/>
+  </g>
+
+  <!-- Investigate (highlighted, contains LLM nucleus) -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor">
+    <rect x="160" y="125" width="138" height="62" rx="6"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="160" y="125" width="138" height="62" rx="6" stroke-width="1.8" fill="none"/>
+    <text x="170" y="139" font-family="JetBrains Mono, monospace" font-size="9" letter-spacing="0.12em" stroke="none">INVESTIGATE</text>
+  </g>
+  <g class="paper" stroke="none" fill="currentColor">
+    <ellipse cx="229" cy="163" rx="50" ry="16"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="none">
+    <ellipse cx="229" cy="163" rx="50" ry="16" stroke-width="1.4"/>
+  </g>
+  <g class="blueprint-deep" stroke="none" fill="currentColor">
+    <text x="229" y="167" font-family="JetBrains Mono, monospace" font-size="11" text-anchor="middle" letter-spacing="0.1em">LLM</text>
+  </g>
+
+  <!-- Synth state -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="320" y="135" width="86" height="42" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="363" y="160" font-family="Spectral, serif" font-size="12" text-anchor="middle" stroke="none">Synth.</text>
+  </g>
+
+  <!-- Report state -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="320" y="220" width="86" height="42" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="363" y="245" font-family="Spectral, serif" font-size="12" text-anchor="middle" stroke="none">Report</text>
+  </g>
+
+  <!-- transitions (ink) -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <line x1="136" y1="156" x2="160" y2="156" stroke-width="1.2" fill="none"/>
+    <polygon points="160,156 154,153 154,159" stroke="none"/>
+    <line x1="298" y1="156" x2="320" y2="156" stroke-width="1.2" fill="none"/>
+    <polygon points="320,156 314,153 314,159" stroke="none"/>
+    <line x1="363" y1="177" x2="363" y2="218" stroke-width="1.2" fill="none"/>
+    <polygon points="363,220 360,214 366,214" stroke="none"/>
+  </g>
+
+  <!-- transition labels (oxblood) -->
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="138" y="148" font-family="JetBrains Mono, monospace" font-size="9">ready</text>
+    <text x="300" y="148" font-family="JetBrains Mono, monospace" font-size="9">enough</text>
+    <text x="370" y="200" font-family="JetBrains Mono, monospace" font-size="9">verified</text>
+  </g>
+
+  <!-- Blackboard panel -->
+  <g class="paper-edge-2" stroke="none" fill="currentColor">
+    <rect x="478" y="84" width="120" height="220" rx="6"/>
+  </g>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="478" y="84" width="120" height="220" rx="6" stroke-width="1.6" fill="none"/>
+    <text x="538" y="103" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">Blackboard</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="488" y1="112" x2="588" y2="112" stroke-width="1"/>
+  </g>
+  <g class="blueprint" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="9">
+    <text x="488" y="128">goal</text>
+    <text x="488" y="146">findings</text>
+    <text x="488" y="164">conf</text>
+    <text x="488" y="182">last_obs</text>
+    <text x="488" y="200">budget</text>
+    <text x="488" y="218">open_qs</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="9">
+    <text x="588" y="128" text-anchor="end">audit</text>
+    <text x="588" y="146" text-anchor="end">[7]</text>
+    <text x="588" y="164" text-anchor="end">0.74</text>
+    <text x="588" y="182" text-anchor="end">12s</text>
+    <text x="588" y="200" text-anchor="end">0.42</text>
+    <text x="588" y="218" text-anchor="end">3</text>
+  </g>
+
+  <!-- read/write arrows -->
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <line x1="298" y1="170" x2="478" y2="170" stroke-width="1.2" stroke-dasharray="3 3"/>
+    <polygon points="478,170 472,167 472,173" stroke="none"/>
+    <text x="388" y="164" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" stroke="none">write</text>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <line x1="478" y1="190" x2="298" y2="190" stroke-width="1.2" stroke-dasharray="3 3"/>
+    <polygon points="298,190 304,187 304,193" stroke="none"/>
+    <text x="388" y="204" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" stroke="none">read</text>
+  </g>
+
+  <!-- Utility selector -->
+  <g class="sage-tint" stroke="none" fill="currentColor">
+    <rect x="160" y="335" width="280" height="48" rx="6"/>
+  </g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="160" y="335" width="280" height="48" rx="6" stroke-width="1.6" fill="none"/>
+    <text x="300" y="354" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">Utility scorer</text>
+    <line x1="229" y1="187" x2="229" y2="333" stroke-width="1.2" stroke-dasharray="3 3" fill="none"/>
+    <polygon points="229,335 226,329 232,329" stroke="none"/>
+    <text x="240" y="240" font-family="JetBrains Mono, monospace" font-size="9" stroke="none">candidate tools</text>
+    <line x1="370" y1="383" x2="370" y2="395" stroke-width="1.2" fill="none"/>
+    <text x="378" y="394" font-family="JetBrains Mono, monospace" font-size="9" stroke="none">&#8594; world</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="300" y="372" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">cost &#183; success-rate &#183; confidence &#183; blast-radius</text>
+  </g>
+</svg>

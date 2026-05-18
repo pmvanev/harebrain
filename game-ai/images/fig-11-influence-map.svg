@@ -1,0 +1,55 @@
+<svg viewBox="0 0 520 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="An influence map: a grid where each cell is shaded by accumulated threat from two enemy positions.">
+  <style>
+    .ink       { color: #1a1810; }
+    .paper     { color: #f3eddc; }
+    .rule-soft { color: #d4c8a4; }
+    .blueprint { color: #1f4f7a; }
+    .stop-high { stop-color: #8b1f2c; }
+    .stop-mid  { stop-color: #c9a14a; }
+    .stop-low  { stop-color: #2a4a78; }
+    @media (prefers-color-scheme: dark) {
+      .ink       { color: #ede2c4; }
+      .paper     { color: #14130c; }
+      .rule-soft { color: #3a3327; }
+      .blueprint { color: #88c0e8; }
+      .stop-high { stop-color: #e09098; }
+      .stop-mid  { stop-color: #d4b884; }
+      .stop-low  { stop-color: #4a78a8; }
+    }
+  </style>
+  <defs>
+    <radialGradient id="influence-a" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" class="stop-high" stop-opacity="0.85"/>
+      <stop offset="40%" class="stop-mid" stop-opacity="0.55"/>
+      <stop offset="100%" class="stop-low" stop-opacity="0.05"/>
+    </radialGradient>
+    <radialGradient id="influence-b" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" class="stop-high" stop-opacity="0.7"/>
+      <stop offset="40%" class="stop-mid" stop-opacity="0.45"/>
+      <stop offset="100%" class="stop-low" stop-opacity="0.05"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="155" cy="75" rx="120" ry="85" fill="url(#influence-a)"/>
+  <ellipse cx="385" cy="125" rx="105" ry="75" fill="url(#influence-b)"/>
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <g stroke-width="0.5">
+      <path d="M 78 20 L 78 180 M 106 20 L 106 180 M 134 20 L 134 180 M 162 20 L 162 180 M 190 20 L 190 180 M 218 20 L 218 180 M 246 20 L 246 180 M 274 20 L 274 180 M 302 20 L 302 180 M 330 20 L 330 180 M 358 20 L 358 180 M 386 20 L 386 180 M 414 20 L 414 180 M 442 20 L 442 180 M 470 20 L 470 180"/>
+      <path d="M 50 40 L 498 40 M 50 60 L 498 60 M 50 80 L 498 80 M 50 100 L 498 100 M 50 120 L 498 120 M 50 140 L 498 140 M 50 160 L 498 160"/>
+    </g>
+  </g>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="50" y="20" width="448" height="160" stroke-width="1.2" fill="none"/>
+    <g stroke="none">
+      <polygon points="148,69 168,75 148,81"/>
+      <polygon points="378,119 398,125 378,131"/>
+    </g>
+    <g font-family="ui-monospace, monospace" font-size="9" text-anchor="middle" stroke="none">
+      <text x="155" y="60">enemy A</text>
+      <text x="385" y="148">enemy B</text>
+    </g>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="246" y="100" width="28" height="20" stroke-width="1.4" fill="none"/>
+    <text x="260" y="195" font-family="ui-monospace, monospace" font-size="9" text-anchor="middle" stroke="none">cheapest flank cell &#8212; lowest threat between sources</text>
+  </g>
+</svg>

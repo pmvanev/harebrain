@@ -1,0 +1,123 @@
+<svg viewBox="0 0 540 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The PR-OWL class hierarchy: MTheory contains MFrags; MFrags contain Nodes (Context, Input, Resident); Resident nodes carry probability distributions.">
+  <style>
+    .ink           { color: #1a1810; }
+    .paper-edge-2  { color: #e4dbc1; }
+    .blueprint     { color: #1f4f7a; }
+    .blueprint-tint{ color: rgba(31, 79, 122, 0.07); }
+    .sage          { color: #4f6b3f; }
+    .sage-tint     { color: rgba(79, 107, 63, 0.08); }
+    .oxblood       { color: #8b1f2c; }
+    .oxblood-tint  { color: rgba(139, 31, 44, 0.06); }
+    @media (prefers-color-scheme: dark) {
+      .ink           { color: #ede2c4; }
+      .paper-edge-2  { color: #221f15; }
+      .blueprint     { color: #88c0e8; }
+      .blueprint-tint{ color: rgba(136, 192, 232, 0.10); }
+      .sage          { color: #b1c98c; }
+      .sage-tint     { color: rgba(177, 201, 140, 0.10); }
+      .oxblood       { color: #e09098; }
+      .oxblood-tint  { color: rgba(224, 144, 152, 0.10); }
+    }
+  </style>
+  <defs>
+    <marker id="m-arr-blue-04" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" class="blueprint" fill="currentColor" stroke="none"/>
+    </marker>
+    <marker id="m-arr-ox-04" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" class="oxblood" fill="currentColor" stroke="none"/>
+    </marker>
+  </defs>
+  <!-- top: MTheory fill -->
+  <g class="paper-edge-2" fill="currentColor" stroke="none">
+    <rect x="200" y="20" width="140" height="36" rx="6"/>
+  </g>
+  <g class="ink" stroke="currentColor" fill="none" stroke-width="1.5">
+    <rect x="200" y="20" width="140" height="36" rx="6"/>
+  </g>
+  <g class="ink" fill="currentColor" stroke="none" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle">
+    <text x="270" y="42">MTheory</text>
+  </g>
+
+  <!-- arrow hasMFrag -->
+  <g class="blueprint" stroke="currentColor" fill="none" stroke-width="1.3">
+    <line x1="270" y1="56" x2="270" y2="80" marker-end="url(#m-arr-blue-04)"/>
+  </g>
+  <g class="blueprint" fill="currentColor" stroke="none" font-family="ui-monospace, monospace" font-size="8.5">
+    <text x="280" y="74">hasMFrag</text>
+  </g>
+
+  <!-- MFrag fill -->
+  <g class="paper-edge-2" fill="currentColor" stroke="none">
+    <rect x="200" y="84" width="140" height="36" rx="6"/>
+  </g>
+  <g class="ink" stroke="currentColor" fill="none" stroke-width="1.5">
+    <rect x="200" y="84" width="140" height="36" rx="6"/>
+  </g>
+  <g class="ink" fill="currentColor" stroke="none" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle">
+    <text x="270" y="106">MFrag</text>
+  </g>
+
+  <!-- three has* arrows fan out -->
+  <g class="blueprint" stroke="currentColor" fill="none" stroke-width="1.3">
+    <line x1="240" y1="120" x2="120" y2="160" marker-end="url(#m-arr-blue-04)"/>
+    <line x1="270" y1="120" x2="270" y2="160" marker-end="url(#m-arr-blue-04)"/>
+    <line x1="300" y1="120" x2="420" y2="160" marker-end="url(#m-arr-blue-04)"/>
+  </g>
+  <g class="blueprint" fill="currentColor" stroke="none" font-family="ui-monospace, monospace" font-size="8">
+    <text x="170" y="140">hasContextNode</text>
+    <text x="280" y="140">hasInputNode</text>
+    <text x="370" y="140">hasResidentNode</text>
+  </g>
+
+  <!-- ContextNode fill -->
+  <g class="sage-tint" fill="currentColor" stroke="none">
+    <rect x="60" y="164" width="120" height="36" rx="6"/>
+  </g>
+  <g class="sage" stroke="currentColor" fill="none" stroke-width="1.3">
+    <rect x="60" y="164" width="120" height="36" rx="6"/>
+  </g>
+  <g class="sage" fill="currentColor" stroke="none" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle">
+    <text x="120" y="186">ContextNode</text>
+  </g>
+
+  <!-- InputNode fill -->
+  <g class="blueprint-tint" fill="currentColor" stroke="none">
+    <rect x="210" y="164" width="120" height="36" rx="6"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="none" stroke-width="1.3">
+    <rect x="210" y="164" width="120" height="36" rx="6"/>
+  </g>
+  <g class="blueprint" fill="currentColor" stroke="none" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle">
+    <text x="270" y="186">InputNode</text>
+  </g>
+
+  <!-- ResidentNode fill -->
+  <g class="oxblood-tint" fill="currentColor" stroke="none">
+    <rect x="360" y="164" width="120" height="36" rx="6"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="none" stroke-width="1.3">
+    <rect x="360" y="164" width="120" height="36" rx="6"/>
+  </g>
+  <g class="oxblood" fill="currentColor" stroke="none" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle">
+    <text x="420" y="186">ResidentNode</text>
+  </g>
+
+  <!-- arrow from Resident down to ProbDist -->
+  <g class="oxblood" stroke="currentColor" fill="none" stroke-width="1.3">
+    <line x1="420" y1="200" x2="420" y2="232" marker-end="url(#m-arr-ox-04)"/>
+  </g>
+  <g class="oxblood" fill="currentColor" stroke="none" font-family="ui-monospace, monospace" font-size="8">
+    <text x="430" y="222">hasProbDist</text>
+  </g>
+
+  <!-- ProbDist fill -->
+  <g class="paper-edge-2" fill="currentColor" stroke="none">
+    <rect x="340" y="234" width="160" height="32" rx="6"/>
+  </g>
+  <g class="ink" stroke="currentColor" fill="none" stroke-width="1.3">
+    <rect x="340" y="234" width="160" height="32" rx="6"/>
+  </g>
+  <g class="ink" fill="currentColor" stroke="none" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle">
+    <text x="420" y="254">ProbabilityDistribution</text>
+  </g>
+</svg>

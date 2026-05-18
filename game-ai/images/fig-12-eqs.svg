@@ -1,0 +1,82 @@
+<svg viewBox="0 0 520 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EQS query: candidate points generated around an agent, each scored, with the highest-score point highlighted.">
+  <style>
+    .ink       { color: #1a1810; }
+    .muted     { color: #5d553f; }
+    .rule      { color: #a99a76; }
+    .blueprint { color: #1f4f7a; }
+    .oxblood   { color: #8b1f2c; }
+    .sage      { color: #4f6b3f; }
+    .heat-mid  { color: #c9a14a; }
+    @media (prefers-color-scheme: dark) {
+      .ink       { color: #ede2c4; }
+      .muted     { color: #a89c7d; }
+      .rule      { color: #5a5037; }
+      .blueprint { color: #88c0e8; }
+      .oxblood   { color: #e09098; }
+      .sage      { color: #b1c98c; }
+      .heat-mid  { color: #d4b884; }
+    }
+    .pt-ox  { fill: currentColor; }
+    .pt-sg  { fill: currentColor; }
+    .pt-mid { fill: currentColor; }
+  </style>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <polygon points="240,120 270,135 240,150" stroke="none"/>
+  </g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <text x="255" y="170" font-family="Spectral, serif" font-size="10" font-style="italic" stroke="none">agent</text>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <circle cx="430" cy="120" r="7" stroke="none"/>
+    <text x="445" y="124" font-family="Spectral, serif" font-size="10" stroke="none">player</text>
+  </g>
+  <g class="rule" stroke="currentColor" fill="none">
+    <g stroke-width="1" stroke-dasharray="3 3">
+      <circle cx="255" cy="135" r="50"/>
+      <circle cx="255" cy="135" r="90"/>
+    </g>
+  </g>
+  <g class="oxblood" fill="currentColor" stroke="none">
+    <circle cx="305" cy="135" r="5" opacity="0.7"/>
+    <circle cx="200" cy="80" r="5" opacity="0.6"/>
+    <circle cx="235" cy="70" r="5" opacity="0.55"/>
+    <circle cx="275" cy="75" r="5" opacity="0.55"/>
+    <circle cx="305" cy="95" r="5" opacity="0.65"/>
+    <circle cx="145" cy="75" r="5" opacity="0.6"/>
+    <circle cx="200" cy="45" r="5" opacity="0.5"/>
+    <circle cx="280" cy="45" r="5" opacity="0.55"/>
+    <circle cx="335" cy="70" r="5" opacity="0.6"/>
+  </g>
+  <g class="heat-mid" fill="currentColor" stroke="none">
+    <circle cx="295" cy="170" r="5" opacity="0.85"/>
+    <circle cx="165" cy="125" r="5" opacity="0.85"/>
+    <circle cx="175" cy="100" r="5" opacity="0.8"/>
+    <circle cx="185" cy="220" r="5" opacity="0.85"/>
+    <circle cx="135" cy="180" r="5" opacity="0.7"/>
+    <circle cx="120" cy="125" r="5" opacity="0.7"/>
+  </g>
+  <g class="sage" fill="currentColor" stroke="none">
+    <circle cx="270" cy="190" r="5" opacity="0.9"/>
+    <circle cx="235" cy="195" r="5" opacity="0.9"/>
+    <circle cx="200" cy="180" r="5" opacity="0.95"/>
+    <circle cx="175" cy="155" r="5" opacity="0.95"/>
+    <circle cx="345" cy="135" r="5" opacity="0.9"/>
+    <circle cx="320" cy="200" r="5" opacity="0.95"/>
+    <circle cx="255" cy="225" r="5" opacity="0.95"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <g stroke-width="2" fill="none">
+      <circle cx="200" cy="180" r="10"/>
+      <line x1="200" y1="170" x2="200" y2="195"/>
+      <line x1="187" y1="180" x2="213" y2="180"/>
+    </g>
+    <text x="200" y="210" font-family="ui-monospace, monospace" font-size="9" text-anchor="middle" stroke="none">best</text>
+  </g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <g font-family="ui-monospace, monospace" font-size="9" stroke="none">
+      <text x="380" y="190" letter-spacing="0.12em">GENERATOR &#8594; donut around agent</text>
+      <text x="380" y="206" letter-spacing="0.12em">TEST 1 &#8594; distance from player</text>
+      <text x="380" y="222" letter-spacing="0.12em">TEST 2 &#8594; LOS, dot-product to player</text>
+    </g>
+  </g>
+</svg>

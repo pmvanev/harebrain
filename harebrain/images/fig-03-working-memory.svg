@@ -1,0 +1,125 @@
+<svg viewBox="0 0 580 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A blackboard table where each fact has a value, an age in seconds, and a decaying confidence bar.">
+  <style>
+    .paper-edge-2 { color: #e4dbc1; }
+    .ink          { color: #1a1810; }
+    .muted        { color: #5d553f; }
+    .rule-soft    { color: #d4c8a4; }
+    .blueprint    { color: #1f4f7a; }
+    .oxblood      { color: #8b1f2c; }
+    .sage         { color: #4f6b3f; }
+    .sepia        { color: #8a6b2d; }
+    @media (prefers-color-scheme: dark) {
+      .paper-edge-2 { color: #221f15; }
+      .ink          { color: #ede2c4; }
+      .muted        { color: #a89c7d; }
+      .rule-soft    { color: #3a3327; }
+      .blueprint    { color: #88c0e8; }
+      .oxblood      { color: #e09098; }
+      .sage         { color: #b1c98c; }
+      .sepia        { color: #d4b884; }
+    }
+  </style>
+
+  <!-- container -->
+  <g class="paper-edge-2" stroke="none" fill="currentColor">
+    <rect x="20" y="14" width="540" height="200" rx="6"/>
+  </g>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="20" y="14" width="540" height="200" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="34" y="34" font-family="Fraunces, serif" font-size="13" font-style="italic" stroke="none">Working-memory facts</text>
+  </g>
+
+  <!-- header row -->
+  <g class="muted" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="9" letter-spacing="0.12em">
+    <text x="38" y="56">KEY</text>
+    <text x="180" y="56">VALUE</text>
+    <text x="320" y="56">AGE</text>
+    <text x="400" y="56">CONFIDENCE</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="30" y1="62" x2="550" y2="62"/>
+  </g>
+
+  <!-- row 1: target_user / sage 0.93 -->
+  <g class="blueprint" stroke="none" fill="currentColor">
+    <text x="38" y="83" font-family="JetBrains Mono, monospace" font-size="11">target_user</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="11">
+    <text x="180" y="83">u_4f29</text>
+    <text x="320" y="83">2 s</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <rect x="400" y="74" width="120" height="10"/>
+  </g>
+  <g class="sage" stroke="none" fill="currentColor">
+    <rect x="400" y="74" width="112" height="10" opacity="0.85"/>
+    <text x="528" y="83" font-family="JetBrains Mono, monospace" font-size="9">0.93</text>
+  </g>
+
+  <!-- row 2: last_error / sage 0.71 -->
+  <g class="blueprint" stroke="none" fill="currentColor">
+    <text x="38" y="108" font-family="JetBrains Mono, monospace" font-size="11">last_error</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="11">
+    <text x="180" y="108">timeout/db</text>
+    <text x="320" y="108">14 s</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <rect x="400" y="99" width="120" height="10"/>
+  </g>
+  <g class="sage" stroke="none" fill="currentColor">
+    <rect x="400" y="99" width="86" height="10" opacity="0.7"/>
+    <text x="528" y="108" font-family="JetBrains Mono, monospace" font-size="9">0.71</text>
+  </g>
+
+  <!-- row 3: repro_steps / sepia 0.46 -->
+  <g class="blueprint" stroke="none" fill="currentColor">
+    <text x="38" y="133" font-family="JetBrains Mono, monospace" font-size="11">repro_steps</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="11">
+    <text x="180" y="133">[3 lines]</text>
+    <text x="320" y="133">42 s</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <rect x="400" y="124" width="120" height="10"/>
+  </g>
+  <g class="sepia" stroke="none" fill="currentColor">
+    <rect x="400" y="124" width="56" height="10" opacity="0.75"/>
+    <text x="528" y="133" font-family="JetBrains Mono, monospace" font-size="9">0.46</text>
+  </g>
+
+  <!-- row 4: hypothesis / oxblood 0.27 -->
+  <g class="blueprint" stroke="none" fill="currentColor">
+    <text x="38" y="158" font-family="JetBrains Mono, monospace" font-size="11">hypothesis</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="11">
+    <text x="180" y="158">conn-pool</text>
+    <text x="320" y="158">94 s</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <rect x="400" y="149" width="120" height="10"/>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <rect x="400" y="149" width="32" height="10" opacity="0.7"/>
+    <text x="528" y="158" font-family="JetBrains Mono, monospace" font-size="9">0.27</text>
+  </g>
+
+  <!-- row 5: user_said / pinned blueprint -->
+  <g class="blueprint" stroke="none" fill="currentColor">
+    <text x="38" y="183" font-family="JetBrains Mono, monospace" font-size="11">user_said</text>
+  </g>
+  <g class="ink" stroke="currentColor" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="11">
+    <text x="180" y="183" stroke="none">&#8220;don&#8217;t touch X&#8221;</text>
+    <text x="320" y="183" stroke="none">&#8734;</text>
+    <rect x="400" y="174" width="120" height="10" stroke-width="1" fill="none"/>
+  </g>
+  <g class="blueprint" stroke="none" fill="currentColor">
+    <rect x="400" y="174" width="120" height="10" opacity="0.85"/>
+    <text x="528" y="183" font-family="JetBrains Mono, monospace" font-size="9">pinned</text>
+  </g>
+
+  <!-- footer -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="34" y="207" font-family="JetBrains Mono, monospace" font-size="9" letter-spacing="0.1em">decay rate per key &#183; pinned facts ignore age &#183; LLM reads slots, not transcript</text>
+  </g>
+</svg>

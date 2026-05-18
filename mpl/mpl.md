@@ -116,4 +116,4 @@ Press-button events `a`/`b`/`c`/`d` arrive on `SIGNALS/A`…`SIGNALS/D` and reac
 
 ---
 
-*Sources.* `mplv2/README.md`; `mplv2/docs/0 - Overview.md`; Harel, D., "Statecharts: A Visual Formalism for Complex Systems," *Science of Computer Programming* 8 (1987), pp. 231–274.
+**Sources.** `mplv2/README.md`; `mplv2/docs/0 - Overview.md`; Harel, D., "Statecharts: A Visual Formalism for Complex Systems," *Science of Computer Programming* 8 (1987), pp. 231–274.

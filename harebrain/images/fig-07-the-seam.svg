@@ -1,0 +1,135 @@
+<svg viewBox="0 0 600 290" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The seam between chart and LLM. The LLM returns a verdict that crosses the boundary into a Decide state; a rule in Act state writes to the world. A separate dashed-out arrow shows a side effect in the host function bypassing the chart entirely, marked as a trap.">
+  <style>
+    .paper           { color: #f3eddc; }
+    .ink             { color: #1a1810; }
+    .muted           { color: #5d553f; }
+    .blueprint       { color: #1f4f7a; }
+    .blueprint-deep  { color: #143553; }
+    .blueprint-tint  { color: rgba(31, 79, 122, 0.07); }
+    .oxblood         { color: #8b1f2c; }
+    .sage            { color: #4f6b3f; }
+    .sage-tint       { color: rgba(79, 107, 63, 0.08); }
+    @media (prefers-color-scheme: dark) {
+      .paper           { color: #14130c; }
+      .ink             { color: #ede2c4; }
+      .muted           { color: #a89c7d; }
+      .blueprint       { color: #88c0e8; }
+      .blueprint-deep  { color: #bcdcf2; }
+      .blueprint-tint  { color: rgba(136, 192, 232, 0.10); }
+      .oxblood         { color: #e09098; }
+      .sage            { color: #b1c98c; }
+      .sage-tint       { color: rgba(177, 201, 140, 0.10); }
+    }
+  </style>
+
+  <!-- chart container -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="20" y="30" width="260" height="160" rx="10" stroke-width="1.6" fill="none"/>
+    <text x="34" y="50" font-family="Fraunces, serif" font-size="13" font-style="italic" stroke="none">Chart</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="34" y="64" font-family="JetBrains Mono, monospace" font-size="9">states &#183; transitions &#183; guards</text>
+  </g>
+
+  <!-- inner states: Idle, Decide (highlighted), Act -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="40" y="105" width="62" height="36" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="71" y="128" font-family="Spectral, serif" font-size="11" text-anchor="middle" stroke="none">Idle</text>
+  </g>
+
+  <g class="blueprint-tint" stroke="none" fill="currentColor">
+    <rect x="120" y="105" width="68" height="36" rx="6"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="120" y="105" width="68" height="36" rx="6" stroke-width="1.5" fill="none"/>
+  </g>
+  <g class="blueprint-deep" stroke="none" fill="currentColor">
+    <text x="154" y="128" font-family="Spectral, serif" font-size="11" text-anchor="middle">Decide</text>
+  </g>
+
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="206" y="105" width="62" height="36" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="237" y="128" font-family="Spectral, serif" font-size="11" text-anchor="middle" stroke="none">Act</text>
+
+    <line x1="102" y1="123" x2="120" y2="123" stroke-width="1.2" fill="none"/>
+    <polygon points="120,123 114,120 114,126" stroke="none"/>
+
+    <line x1="188" y1="123" x2="206" y2="123" stroke-width="1.2" fill="none"/>
+    <polygon points="206,123 200,120 200,126" stroke="none"/>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="197" y="115" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">[v="go"]</text>
+  </g>
+
+  <!-- host port on chart edge -->
+  <g class="blueprint" stroke="none" fill="currentColor">
+    <circle cx="280" cy="123" r="3.5"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="280" y="160" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle" letter-spacing="0.1em">host</text>
+  </g>
+
+  <!-- the seam (dashed vertical) -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <line x1="320" y1="22" x2="320" y2="200" stroke-width="1.2" stroke-dasharray="5 4" fill="none"/>
+    <text x="320" y="14" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" letter-spacing="0.2em" stroke="none">SEAM</text>
+  </g>
+
+  <!-- LLM container -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor">
+    <ellipse cx="465" cy="118" rx="105" ry="58"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="none">
+    <ellipse cx="465" cy="118" rx="105" ry="58" stroke-width="1.5"/>
+  </g>
+  <g class="blueprint-deep" stroke="none" fill="currentColor">
+    <text x="465" y="108" font-family="Fraunces, serif" font-size="14" font-style="italic" text-anchor="middle">LLM &#183; LangGraph</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="465" y="128" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">judge &#183; classify &#183; score</text>
+  </g>
+
+  <!-- verdict arrow LLM -> chart -->
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <line x1="360" y1="123" x2="288" y2="123" stroke-width="1.7" fill="none"/>
+    <polygon points="284,123 290,120 290,126" stroke="none"/>
+    <text x="324" y="115" font-family="JetBrains Mono, monospace" font-size="9.5" text-anchor="middle" stroke="none">verdict</text>
+  </g>
+
+  <!-- world -->
+  <g class="sage-tint" stroke="none" fill="currentColor">
+    <rect x="90" y="230" width="180" height="40" rx="6"/>
+  </g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="90" y="230" width="180" height="40" rx="6" stroke-width="1.5" fill="none"/>
+    <text x="180" y="255" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">world</text>
+
+    <!-- legitimate path: chart -> world -->
+    <line x1="236" y1="141" x2="218" y2="228" stroke-width="1.5" fill="none"/>
+    <polygon points="218,230 222,222 215,222" stroke="none"/>
+    <text x="254" y="190" font-family="JetBrains Mono, monospace" font-size="9.5" stroke="none">rule action</text>
+  </g>
+
+  <!-- trap path: LLM -> world bypassing chart -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <path d="M 405 168 Q 295 235 270 250" stroke-width="1.3" fill="none" stroke-dasharray="4 3"/>
+    <polygon points="270,253 277,250 273,256" stroke="none"/>
+    <text x="403" y="220" font-family="JetBrains Mono, monospace" font-size="9.5" stroke="none">side effect</text>
+  </g>
+  <!-- trap X marker -->
+  <g transform="translate(348, 218)">
+    <g class="paper" stroke="none" fill="currentColor">
+      <circle cx="0" cy="0" r="11"/>
+    </g>
+    <g class="oxblood" stroke="currentColor" fill="none">
+      <circle cx="0" cy="0" r="11" stroke-width="1.5"/>
+      <line x1="-5" y1="-5" x2="5" y2="5" stroke-width="1.8"/>
+      <line x1="5" y1="-5" x2="-5" y2="5" stroke-width="1.8"/>
+    </g>
+  </g>
+
+  <!-- footer note -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="300" y="285" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" letter-spacing="0.1em">one boundary &#183; one value &#183; the trap is anything else crossing it</text>
+  </g>
+</svg>

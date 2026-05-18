@@ -1,0 +1,68 @@
+<svg viewBox="0 0 520 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A NavMesh: a triangulated walkable region with obstacle cutouts and a highlighted path from start to goal.">
+  <style>
+    .ink       { color: #1a1810; }
+    .muted     { color: #5d553f; }
+    .paper     { color: #f3eddc; }
+    .blueprint { color: #1f4f7a; }
+    .sage      { color: #4f6b3f; }
+    @media (prefers-color-scheme: dark) {
+      .ink       { color: #ede2c4; }
+      .muted     { color: #a89c7d; }
+      .paper     { color: #14130c; }
+      .blueprint { color: #88c0e8; }
+      .sage      { color: #b1c98c; }
+    }
+  </style>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <polygon points="30,30 200,20 380,50 490,30 500,180 380,200 220,190 60,200 20,140" stroke-width="1" fill-opacity="0.08"/>
+    <g stroke-width="0.6" opacity="0.7" fill="none">
+      <line x1="30" y1="30" x2="100" y2="100"/>
+      <line x1="100" y1="100" x2="160" y2="80"/>
+      <line x1="100" y1="100" x2="60" y2="200"/>
+      <line x1="200" y1="20" x2="160" y2="80"/>
+      <line x1="200" y1="20" x2="240" y2="75"/>
+      <line x1="240" y1="75" x2="330" y2="110"/>
+      <line x1="380" y1="50" x2="330" y2="110"/>
+      <line x1="380" y1="50" x2="490" y2="30"/>
+      <line x1="490" y1="30" x2="500" y2="180"/>
+      <line x1="500" y1="180" x2="420" y2="170"/>
+      <line x1="420" y1="170" x2="380" y2="200"/>
+      <line x1="380" y1="200" x2="350" y2="170"/>
+      <line x1="350" y1="170" x2="250" y2="130"/>
+      <line x1="250" y1="130" x2="220" y2="190"/>
+      <line x1="220" y1="190" x2="180" y2="140"/>
+      <line x1="220" y1="190" x2="60" y2="200"/>
+      <line x1="180" y1="140" x2="60" y2="200"/>
+      <line x1="180" y1="140" x2="100" y2="100"/>
+      <line x1="20" y1="140" x2="100" y2="100"/>
+      <line x1="20" y1="140" x2="60" y2="200"/>
+    </g>
+  </g>
+  <g class="paper" fill="currentColor">
+    <g>
+      <polygon points="160,80 240,75 250,130 180,140"/>
+      <polygon points="330,110 410,100 420,170 350,170"/>
+    </g>
+  </g>
+  <g class="ink" stroke="currentColor" fill="none">
+    <g stroke-width="1.3">
+      <polygon points="160,80 240,75 250,130 180,140"/>
+      <polygon points="330,110 410,100 420,170 350,170"/>
+    </g>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <polyline points="65,170 130,150 175,145 250,140 290,150 340,180 410,185 460,140" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <circle cx="65" cy="170" r="6"/>
+    <circle cx="460" cy="140" r="6"/>
+    <g font-family="ui-monospace, monospace" font-size="9" text-anchor="middle" stroke="none">
+      <text x="60" y="195">start</text>
+      <text x="460" y="125">goal</text>
+    </g>
+  </g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <g font-family="Spectral, serif" font-size="10" font-style="italic" stroke="none">
+      <text x="190" y="100">obstacle</text>
+      <text x="360" y="140">obstacle</text>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,41 @@
+<svg width="420" height="200" viewBox="0 0 420 200" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .ink       { color: #1a1810; }
+    .blueprint { color: #1f4f7a; }
+    .muted     { color: #5d553f; }
+    @media (prefers-color-scheme: dark) {
+      .ink       { color: #ede2c4; }
+      .blueprint { color: #88c0e8; }
+      .muted     { color: #a89c7d; }
+    }
+  </style>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="10" y="10" width="400" height="180" rx="10" stroke-width="1.4" fill="none"/>
+  </g>
+  <!-- vertical dashed splits (blueprint) -->
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <line x1="170" y1="32" x2="170" y2="188" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="230" y1="32" x2="230" y2="188" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="290" y1="32" x2="290" y2="188" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="350" y1="32" x2="350" y2="188" stroke-width="1" stroke-dasharray="4 4"/>
+    <!-- horizontal split (alarm2 below alarm1) -->
+    <line x1="170" y1="110" x2="290" y2="110" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="350" y1="110" x2="410" y2="110" stroke-width="1" stroke-dasharray="4 4"/>
+  </g>
+  <!-- region labels: top-level "alive" uses muted; column titles use blueprint -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <text x="22" y="26" font-family="ui-monospace, monospace" font-size="9.5" letter-spacing="0.1em" stroke="none">alive</text>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <text x="22"  y="44"  font-family="ui-monospace, monospace" font-size="9.5" letter-spacing="0.1em" stroke="none">main</text>
+    <text x="178" y="44"  font-family="ui-monospace, monospace" font-size="9.5" letter-spacing="0.1em" stroke="none">alarm1-status</text>
+    <text x="178" y="124" font-family="ui-monospace, monospace" font-size="9.5" letter-spacing="0.1em" stroke="none">alarm2-status</text>
+    <text x="238" y="44"  font-family="ui-monospace, monospace" font-size="9.5" letter-spacing="0.1em" stroke="none">chime-status</text>
+    <text x="298" y="44"  font-family="ui-monospace, monospace" font-size="9.5" letter-spacing="0.1em" stroke="none">light</text>
+    <text x="358" y="44"  font-family="ui-monospace, monospace" font-size="9.5" letter-spacing="0.1em" stroke="none">power</text>
+  </g>
+  <!-- center italic label -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <text x="90" y="125" font-family="Fraunces, Georgia, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">displays + alarms-beep</text>
+  </g>
+</svg>
