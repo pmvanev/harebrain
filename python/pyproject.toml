@@ -1,0 +1,22 @@
+[project]
+name = "harebrain-python"
+version = "0.0.0"
+description = "Workspace root for harebrain Python experiments."
+requires-python = ">=3.11"
+dependencies = [
+    "hello_world",
+]
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.uv.sources]
+hello_world = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["packages"]
