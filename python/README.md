@@ -51,6 +51,7 @@ uv add --package hello_world <dep>     # add a dep to a specific package
 | Package | Status | About |
 |---|---|---|
 | [hello_world](packages/hello_world/) | ✅ | Smoke test for the workspace setup. |
+| [embedding_db](packages/embedding_db/) | ✅ | PDF → chunks → embeddings → vector store → search. Hand-rolled NumPy store alongside a Chroma-backed one. |
 | rag | planned | Retrieval-augmented generation: chunking, embeddings, vector stores, retrieval strategies. |
 | langchain | planned | Direct LangChain primitives — chains, prompts, output parsers, tools. |
 | langgraph | planned | LangGraph state graphs for agentic flows. |
