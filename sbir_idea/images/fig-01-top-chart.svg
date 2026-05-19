@@ -1,0 +1,214 @@
+<svg viewBox="0 0 940 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="SBIR proposal lifecycle as a top-level statechart: a linear pipeline of eleven wave states from Discover through Debrief, with a FinalReview-to-Draft feedback arc on blockers, a no_go terminal off Discover, and Draft expanded below into a SectionDraft to SectionReview review loop.">
+  <style>
+    .ink             { color: #1a1810; }
+    .muted           { color: #5d553f; }
+    .rule-soft       { color: #d4c8a4; }
+    .blueprint       { color: #1f4f7a; }
+    .blueprint-deep  { color: #143553; }
+    .blueprint-tint  { color: rgba(31, 79, 122, 0.07); }
+    .oxblood         { color: #8b1f2c; }
+    .oxblood-tint    { color: rgba(139, 31, 44, 0.06); }
+    @media (prefers-color-scheme: dark) {
+      .ink             { color: #ede2c4; }
+      .muted           { color: #a89c7d; }
+      .rule-soft       { color: #3a3327; }
+      .blueprint       { color: #88c0e8; }
+      .blueprint-deep  { color: #bcdcf2; }
+      .blueprint-tint  { color: rgba(136, 192, 232, 0.10); }
+      .oxblood         { color: #e09098; }
+      .oxblood-tint    { color: rgba(224, 144, 152, 0.10); }
+    }
+  </style>
+
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="18" y="22" font-family="JetBrains Mono, ui-monospace, monospace" font-size="9.5" letter-spacing="0.1em">PROPOSAL_LIFECYCLE</text>
+  </g>
+
+  <!-- default arrow into Discover -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <circle cx="20" cy="92" r="2.6" stroke="none"/>
+    <line x1="22" y1="92" x2="42" y2="92" stroke-width="1.3" fill="none"/>
+    <polygon points="42,92 36,89 36,95" stroke="none"/>
+  </g>
+
+  <!-- top pipeline row -->
+  <g class="ink" stroke="currentColor" fill="currentColor" font-family="Fraunces, Georgia, serif" font-size="13" font-style="italic" text-anchor="middle">
+    <rect x="44"  y="74" width="64" height="36" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="76"  y="97" stroke="none">Discover</text>
+    <rect x="124" y="74" width="56" height="36" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="152" y="97" stroke="none">Shape</text>
+    <rect x="196" y="74" width="74" height="36" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="233" y="97" stroke="none">Strategize</text>
+    <rect x="286" y="74" width="66" height="36" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="319" y="97" stroke="none">Research</text>
+    <rect x="368" y="74" width="60" height="36" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="398" y="97" stroke="none">Outline</text>
+    <rect x="538" y="74" width="56" height="36" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="566" y="97" stroke="none">Visuals</text>
+    <rect x="610" y="74" width="56" height="36" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="638" y="97" stroke="none">Format</text>
+    <rect x="762" y="74" width="62" height="36" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="793" y="97" stroke="none">Submit</text>
+    <rect x="840" y="74" width="62" height="36" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="871" y="97" stroke="none">Debrief</text>
+  </g>
+
+  <!-- Draft state: blueprint tint signals "expanded below" -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor">
+    <rect x="444" y="74" width="78" height="36" rx="6"/>
+  </g>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="444" y="74" width="78" height="36" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="483" y="97" font-family="Fraunces, Georgia, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">Draft</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="483" y="124" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" text-anchor="middle">↓ expanded</text>
+  </g>
+
+  <!-- FinalReview: oxblood tint because it carries the feedback decision -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor">
+    <rect x="682" y="74" width="76" height="36" rx="6"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="682" y="74" width="76" height="36" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="720" y="97" font-family="Fraunces, Georgia, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">FinalReview</text>
+  </g>
+
+  <!-- pipeline arrows -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <line x1="108" y1="92" x2="122" y2="92" stroke-width="1.3" fill="none"/>
+    <polygon points="124,92 118,89 118,95" stroke="none"/>
+    <line x1="180" y1="92" x2="194" y2="92" stroke-width="1.3" fill="none"/>
+    <polygon points="196,92 190,89 190,95" stroke="none"/>
+    <line x1="270" y1="92" x2="284" y2="92" stroke-width="1.3" fill="none"/>
+    <polygon points="286,92 280,89 280,95" stroke="none"/>
+    <line x1="352" y1="92" x2="366" y2="92" stroke-width="1.3" fill="none"/>
+    <polygon points="368,92 362,89 362,95" stroke="none"/>
+    <line x1="428" y1="92" x2="442" y2="92" stroke-width="1.3" fill="none"/>
+    <polygon points="444,92 438,89 438,95" stroke="none"/>
+    <line x1="522" y1="92" x2="536" y2="92" stroke-width="1.3" fill="none"/>
+    <polygon points="538,92 532,89 532,95" stroke="none"/>
+    <line x1="594" y1="92" x2="608" y2="92" stroke-width="1.3" fill="none"/>
+    <polygon points="610,92 604,89 604,95" stroke="none"/>
+    <line x1="666" y1="92" x2="680" y2="92" stroke-width="1.3" fill="none"/>
+    <polygon points="682,92 676,89 676,95" stroke="none"/>
+    <line x1="758" y1="92" x2="760" y2="92" stroke-width="1.3" fill="none"/>
+    <polygon points="762,92 756,89 756,95" stroke="none"/>
+    <line x1="824" y1="92" x2="838" y2="92" stroke-width="1.3" fill="none"/>
+    <polygon points="840,92 834,89 834,95" stroke="none"/>
+  </g>
+
+  <!-- success terminal -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <line x1="902" y1="92" x2="914" y2="92" stroke-width="1.3" fill="none"/>
+    <polygon points="916,92 910,89 910,95" stroke="none"/>
+    <circle cx="922" cy="92" r="5" stroke-width="1.2" fill="none"/>
+    <circle cx="922" cy="92" r="2" stroke="none"/>
+  </g>
+
+  <!-- no_go branch dropping from Discover -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="76" y1="110" x2="76" y2="138" stroke-width="1.2" fill="none"/>
+    <polygon points="76,140 73,134 79,134" stroke="none"/>
+    <circle cx="76" cy="148" r="5" stroke-width="1.2" fill="none"/>
+    <circle cx="76" cy="148" r="2" stroke="none"/>
+    <text x="82" y="128" font-family="JetBrains Mono, ui-monospace, monospace" font-size="9" stroke="none">no_go</text>
+  </g>
+
+  <!-- feedback arc: FinalReview -> Draft (blockers found) -->
+  <g class="oxblood" stroke="currentColor" fill="none">
+    <path d="M 720 74 C 720 30, 483 30, 483 74" stroke-width="1.3"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <polygon points="483,74 480,68 486,68" stroke="none"/>
+    <text x="601" y="34" font-family="JetBrains Mono, ui-monospace, monospace" font-size="9" text-anchor="middle" stroke="none">blockers found</text>
+  </g>
+
+  <!-- terse transition labels (oxblood) -->
+  <g class="oxblood" stroke="none" fill="currentColor" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" text-anchor="middle">
+    <text x="116" y="86">fit ≥ θ</text>
+    <text x="188" y="86">approach</text>
+    <text x="278" y="86">matrix</text>
+    <text x="360" y="86">coverage</text>
+    <text x="436" y="86">outline ok</text>
+    <text x="530" y="86">sections</text>
+    <text x="602" y="86">figures</text>
+    <text x="674" y="86">volumes</text>
+    <text x="751" y="86">pass</text>
+    <text x="832" y="86">submitted</text>
+  </g>
+
+  <!-- ===== Draft expansion panel below ===== -->
+  <g class="muted" stroke="currentColor" fill="none">
+    <rect x="180" y="186" width="580" height="138" rx="10" stroke-width="1.2" stroke-dasharray="5 4"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="194" y="206" font-family="JetBrains Mono, ui-monospace, monospace" font-size="9.5" letter-spacing="0.1em">DRAFT (per section)</text>
+  </g>
+
+  <!-- default into SectionDraft -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <circle cx="216" cy="262" r="2.4" stroke="none"/>
+    <line x1="218" y1="262" x2="234" y2="262" stroke-width="1.2" fill="none"/>
+    <polygon points="236,262 230,259 230,265" stroke="none"/>
+  </g>
+
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="238" y="244" width="92" height="36" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="284" y="267" font-family="Fraunces, Georgia, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">SectionDraft</text>
+  </g>
+
+  <g class="blueprint-tint" stroke="none" fill="currentColor">
+    <rect x="364" y="244" width="100" height="36" rx="6"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="364" y="244" width="100" height="36" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="414" y="267" font-family="Fraunces, Georgia, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">SectionReview</text>
+  </g>
+
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="364" y="200" width="100" height="30" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="414" y="221" font-family="Fraunces, Georgia, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">SectionRevise</text>
+  </g>
+
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="498" y="244" width="90" height="36" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="543" y="267" font-family="Fraunces, Georgia, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">SectionDone</text>
+  </g>
+
+  <!-- terminal -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <line x1="588" y1="262" x2="604" y2="262" stroke-width="1.2" fill="none"/>
+    <polygon points="606,262 600,259 600,265" stroke="none"/>
+    <circle cx="612" cy="262" r="5" stroke-width="1.2" fill="none"/>
+    <circle cx="612" cy="262" r="2" stroke="none"/>
+  </g>
+
+  <!-- arrows in the Draft panel -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <line x1="330" y1="262" x2="362" y2="262" stroke-width="1.3" fill="none"/>
+    <polygon points="364,262 358,259 358,265" stroke="none"/>
+    <line x1="464" y1="262" x2="496" y2="262" stroke-width="1.3" fill="none"/>
+    <polygon points="498,262 492,259 492,265" stroke="none"/>
+  </g>
+
+  <!-- SectionReview <-> SectionRevise (oxblood) -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <line x1="404" y1="244" x2="404" y2="232" stroke-width="1.3" fill="none"/>
+    <polygon points="404,230 401,236 407,236" stroke="none"/>
+    <line x1="424" y1="230" x2="424" y2="242" stroke-width="1.3" fill="none"/>
+    <polygon points="424,244 421,238 427,238" stroke="none"/>
+  </g>
+
+  <!-- labels in the Draft panel -->
+  <g class="oxblood" stroke="none" fill="currentColor" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" text-anchor="middle">
+    <text x="378" y="240">blockers</text>
+    <text x="450" y="240">ok</text>
+    <text x="481" y="258">score ok</text>
+  </g>
+
+  <!-- footer caption -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="470" y="346" font-family="JetBrains Mono, ui-monospace, monospace" font-size="9" text-anchor="middle" letter-spacing="0.1em">eleven waves · one feedback arc · per-section review loop inside Draft</text>
+  </g>
+</svg>

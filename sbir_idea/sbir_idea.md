@@ -6,7 +6,7 @@
 
 ## The bet
 
-The SBIR proposal lifecycle is the harebrain sweet spot: small named state space (~10 waves), high per-state judgment (writing, scoring, reviewing), long-running, human-in-the-loop, compliance-driven. It's the top three rows of the harebrain tradeoff table (`harebrain/harebrain.md:213-222`).
+The SBIR proposal lifecycle is the harebrain sweet spot: small named state space (~10 waves), high per-state judgment (writing, scoring, reviewing), long-running, human-in-the-loop, compliance-driven. It's the top three rows of the harebrain tradeoff table (`../harebrain/harebrain.md:213-222`).
 
 Today the `sbir:*` plugin is a hand-rolled chart — skills as states, agents as leaves, `proposal-status` as a poor blackboard. The proposal here: make the chart *real* (MPL source), give it a real blackboard with decay, use LangGraph only inside waves that need a subworkflow, and put one model call at every leaf simple enough not to.
 
@@ -14,50 +14,19 @@ Today the `sbir:*` plugin is a hand-rolled chart — skills as states, agents as
 
 ## The top-level chart
 
-```mermaid
-stateDiagram-v2
-    [*] --> Discover
-    Discover --> Shape: fit above threshold
-    Discover --> [*]: no_go
-    Shape --> Strategize: approach selected
-    Strategize --> Research: matrix built
-    Research --> Outline: coverage complete
-    Outline --> Draft: outline approved
-    Draft --> Visuals: sections done
-    Visuals --> Format: figures complete
-    Format --> FinalReview: volumes assembled
-    FinalReview --> Submit: scores pass
-    FinalReview --> Draft: blockers found
-    Submit --> Debrief: submitted
-    Debrief --> [*]
-
-    state Draft {
-        [*] --> SectionDraft
-        SectionDraft --> SectionReview
-        SectionReview --> SectionRevise: blockers
-        SectionRevise --> SectionReview
-        SectionReview --> SectionDone: score ok
-        SectionDone --> [*]
-    }
-```
+![SBIR proposal lifecycle as a top-level statechart: Discover → Shape → Strategize → Research → Outline → Draft → Visuals → Format → FinalReview → Submit → Debrief, with FinalReview looping back to Draft on blockers, and Draft expanded into a SectionDraft → SectionReview ↔ SectionRevise → SectionDone subchart](images/fig-01-top-chart.svg)
 
 Guards are shown as terse labels here; the real chart spells them out (`reviewer_score >= 0.8 and blockers = 0`, etc.) as MPL rule expressions.
 
-**Orthogonal region: TPOC Q&A.** Running alongside `Strategize` through `Outline`, a second region handles TPOC questions independently. Answers can arrive at any time and the chart needs to update `compliance_matrix` and `selected_approach` when they do, without rewriting the main flow. That's exactly the Harel-orthogonality use case (`harebrain/harebrain.md:73`).
+**Orthogonal region: TPOC Q&A.** Running alongside `Strategize` through `Outline`, a second region handles TPOC questions independently. Answers can arrive at any time and the chart needs to update `compliance_matrix` and `selected_approach` when they do, without rewriting the main flow. That's exactly the Harel-orthogonality use case (`../harebrain/harebrain.md:73`).
 
-```mermaid
-stateDiagram-v2
-    [*] --> Generating
-    Generating --> Awaiting: questions sent
-    Awaiting --> Ingested: answers received
-    Ingested --> [*]
-```
+![TPOC Q&A sibling region: Generating → Awaiting → Ingested → done](images/fig-02-tpoc-region.svg)
 
 Mermaid can't cleanly draw a region orthogonal *across* multiple parent states — in MPL this is a sibling region of the top chart, live from Wave 1 through Wave 3.
 
 ## What lives at each leaf
 
-Pick the lightest middle layer that earns its weight (`harebrain/harebrain.md:195-201`).
+Pick the lightest middle layer that earns its weight (`../harebrain/harebrain.md:195-201`).
 
 | Wave state | Work per state | Layer | Notes |
 |---|---|---|---|
@@ -81,7 +50,7 @@ No wave needs the full Policy → Orchestration → Agent → Model stack at eve
 
 ## The blackboard
 
-Typed, keyed, with decay. The chart reads slots; agents write slots. Prompts are built *from* the blackboard, not from a rolling transcript (`harebrain/harebrain.md:54`).
+Typed, keyed, with decay. The chart reads slots; agents write slots. Prompts are built *from* the blackboard, not from a rolling transcript (`../harebrain/harebrain.md:54`).
 
 | Key | Type | Lifetime | Notes |
 |---|---|---|---|
@@ -103,7 +72,7 @@ Pinned constraints survive the run; research decays so the agent doesn't pitch s
 
 ## The director
 
-A non-embodied agent sampling the blackboard and the chart's active state on its own clock. Modulations, not actions (`harebrain/harebrain.md:107`).
+A non-embodied agent sampling the blackboard and the chart's active state on its own clock. Modulations, not actions (`../harebrain/harebrain.md:107`).
 
 Watches:
 - **Page budget vs. drafts** — fires if any section is `> 1.2x` budget.
@@ -116,7 +85,7 @@ Outputs are interrupts the chart routes on: `Director.escalate(s)`, `Director.de
 
 ## The seam
 
-The chart calls into the brain through one boundary, one value, one direction (`harebrain/harebrain.md:122`).
+The chart calls into the brain through one boundary, one value, one direction (`../harebrain/harebrain.md:122`).
 
 ```mpl
 host import {
@@ -146,13 +115,13 @@ The harebrain "what to build first" prescription, applied:
 
 Then measure: **does the section finish without getting stuck?** Every drift is locatable to a state; every wrong revision is locatable to a reviewer threshold; every stale claim is locatable to a blackboard slot.
 
-If it works, lift the same pattern up to the wave level (`Research`, `FinalReview`) and let the top-level chart manage handoffs. If it doesn't, you'll have learned *which* piece refused — and that diagnostic surface is already better than "the agent went sideways and we don't know where" (`harebrain/harebrain.md:236`).
+If it works, lift the same pattern up to the wave level (`Research`, `FinalReview`) and let the top-level chart manage handoffs. If it doesn't, you'll have learned *which* piece refused — and that diagnostic surface is already better than "the agent went sideways and we don't know where" (`../harebrain/harebrain.md:236`).
 
 ## Where this sits
 
 | Source | What it contributes |
 |---|---|
-| [Harebrain, *sketched*](harebrain/harebrain.md) | The four-layer stack (Policy / Orchestration / Agent / Model), the seam, the cage's bound. |
+| [Harebrain, *sketched*](../harebrain/harebrain.md) | The four-layer stack (Policy / Orchestration / Agent / Model), the seam, the cage's bound. |
 | [MPLv2 vs. Harel](mpl/mpl.md) | The chart artifact, the Manifest, deterministic conflict resolution. |
 | [Traditional Game AI Primitives](game-ai/game-ai.md) | Blackboard with decay, utility scoring, AI director. |
 | Existing `sbir:*` plugin | The lifecycle, the agent roster, the compliance discipline — the hand-rolled cage to formalize. |
