@@ -1,0 +1,70 @@
+<svg viewBox="0 0 760 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Hunt the Wumpus prompt loop: a terminal-style panel on the left renders Yob's 1973 output including 'YOU ARE IN ROOM 12 / TUNNELS LEAD TO 3, 4, 15 / YOU SMELL A WUMPUS! / SHOOT OR MOVE (S-M)? M / WHERE TO? 4'; arrows labeled prompt and action connect the terminal to an LLM player glyph on the right, illustrating the LLM-as-player loop where the game owns rules and the LLM owns judgment.">
+  <style>
+    .ink             { color: #1a1810; }
+    .muted           { color: #5d553f; }
+    .blueprint       { color: #1f4f7a; }
+    .blueprint-tint  { color: rgba(31, 79, 122, 0.07); }
+    .oxblood         { color: #8b1f2c; }
+    .oxblood-tint    { color: rgba(139, 31, 44, 0.08); }
+    @media (prefers-color-scheme: dark) {
+      .ink             { color: #ede2c4; }
+      .muted           { color: #a89c7d; }
+      .blueprint       { color: #88c0e8; }
+      .blueprint-tint  { color: rgba(136, 192, 232, 0.10); }
+      .oxblood         { color: #e09098; }
+      .oxblood-tint    { color: rgba(224, 144, 152, 0.10); }
+    }
+  </style>
+
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="20" y="24" font-family="JetBrains Mono, ui-monospace, monospace" font-size="9.5" letter-spacing="0.1em">YOB_1973_LOOP</text>
+  </g>
+
+  <!-- terminal panel -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor">
+    <rect x="40" y="50" width="360" height="200" rx="6"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="40" y="50" width="360" height="200" rx="6" stroke-width="1.4" fill="none"/>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor" font-family="JetBrains Mono, ui-monospace, monospace" font-size="11">
+    <text x="56" y="76">YOU ARE IN ROOM 12.</text>
+    <text x="56" y="92">TUNNELS LEAD TO 3, 4, 15.</text>
+    <text x="56" y="132">SHOOT OR MOVE (S-M)?  M</text>
+    <text x="56" y="152">WHERE TO?  4</text>
+    <text x="56" y="180">YOU ARE IN ROOM 4.</text>
+    <text x="56" y="196">TUNNELS LEAD TO 2, 12, 19.</text>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor" font-family="JetBrains Mono, ui-monospace, monospace" font-size="11">
+    <text x="56" y="112">YOU SMELL A WUMPUS!</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor" font-family="JetBrains Mono, ui-monospace, monospace" font-size="11">
+    <text x="56" y="216">YOU FEEL A DRAFT.</text>
+  </g>
+
+  <!-- arrows -->
+  <g class="ink" stroke="currentColor" fill="currentColor" stroke-width="1.3">
+    <line x1="404" y1="124" x2="498" y2="124" fill="none"/>
+    <polygon points="501,124 495,121 495,127" stroke="none"/>
+    <line x1="498" y1="174" x2="406" y2="174" fill="none"/>
+    <polygon points="404,174 410,171 410,177" stroke="none"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor" font-family="JetBrains Mono, ui-monospace, monospace" font-size="9" text-anchor="middle">
+    <text x="450" y="118">prompt</text>
+    <text x="450" y="190">action</text>
+  </g>
+
+  <!-- LLM glyph -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor">
+    <rect x="504" y="106" width="220" height="86" rx="43"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="504" y="106" width="220" height="86" rx="43" stroke-width="1.5" fill="none"/>
+    <text x="614" y="144" font-family="Fraunces, Georgia, serif" font-size="18" font-style="italic" text-anchor="middle" stroke="none">LLM player</text>
+    <text x="614" y="166" font-family="JetBrains Mono, ui-monospace, monospace" font-size="9" text-anchor="middle" stroke="none">reads prompts · emits actions</text>
+  </g>
+
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="380" y="270" font-family="JetBrains Mono, ui-monospace, monospace" font-size="9" letter-spacing="0.05em" text-anchor="middle">the game rejects illegal inputs · the LLM sees only what a 1973 player would have seen</text>
+  </g>
+</svg>

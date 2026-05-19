@@ -1,0 +1,111 @@
+<svg viewBox="0 0 920 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Experiment matrix: six runs arranged as two rows of three cells. Top row labeled Controls (no LLM) holds A scripted, B random-legal, and C heuristic—all playing the same MPL game. Bottom row labeled LLM players holds D harebrain (MPL inside player), E LangGraph, and F LangChain. Two highlighted comparisons: a vertical arrow between C and D labeled 'brain earns its keep?' and a horizontal arrow from D through E to F labeled 'cage helps?'">
+  <style>
+    .ink             { color: #1a1810; }
+    .muted           { color: #5d553f; }
+    .rule-soft       { color: #d4c8a4; }
+    .blueprint       { color: #1f4f7a; }
+    .blueprint-tint  { color: rgba(31, 79, 122, 0.07); }
+    .oxblood         { color: #8b1f2c; }
+    .oxblood-tint    { color: rgba(139, 31, 44, 0.08); }
+    @media (prefers-color-scheme: dark) {
+      .ink             { color: #ede2c4; }
+      .muted           { color: #a89c7d; }
+      .rule-soft       { color: #3a3327; }
+      .blueprint       { color: #88c0e8; }
+      .blueprint-tint  { color: rgba(136, 192, 232, 0.10); }
+      .oxblood         { color: #e09098; }
+      .oxblood-tint    { color: rgba(224, 144, 152, 0.10); }
+    }
+  </style>
+
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="20" y="24" font-family="JetBrains Mono, ui-monospace, monospace" font-size="9.5" letter-spacing="0.1em">EXPERIMENT_MATRIX</text>
+  </g>
+
+  <!-- Row labels -->
+  <g class="muted" stroke="none" fill="currentColor" font-family="JetBrains Mono, ui-monospace, monospace" font-size="10" letter-spacing="0.05em">
+    <text x="40" y="74">controls (no LLM)</text>
+    <text x="40" y="218">LLM players</text>
+  </g>
+
+  <!-- Top row: A, B, C -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor">
+    <rect x="40"  y="86" width="260" height="104" rx="8"/>
+    <rect x="320" y="86" width="260" height="104" rx="8"/>
+    <rect x="600" y="86" width="260" height="104" rx="8"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="40"  y="86" width="260" height="104" rx="8" stroke-width="1.3" fill="none"/>
+    <rect x="320" y="86" width="260" height="104" rx="8" stroke-width="1.3" fill="none"/>
+    <rect x="600" y="86" width="260" height="104" rx="8" stroke-width="1.3" fill="none"/>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor" font-family="Fraunces, Georgia, serif" font-size="15" font-style="italic">
+    <text x="58" y="112">A &#183; scripted</text>
+    <text x="338" y="112">B &#183; random-legal</text>
+    <text x="618" y="112">C &#183; heuristic</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor" font-family="JetBrains Mono, ui-monospace, monospace" font-size="9">
+    <text x="58" y="132">hardcoded action sequence</text>
+    <text x="58" y="148">tests: chart correct, rules encode</text>
+    <text x="58" y="164">Yob faithfully</text>
+    <text x="338" y="132">uniform over valid actions</text>
+    <text x="338" y="148">tests: validity logic sound,</text>
+    <text x="338" y="164">games terminate</text>
+    <text x="618" y="132">avoid smelled rooms · count</text>
+    <text x="618" y="148">arrows · triangulate</text>
+    <text x="618" y="164">tests: non-LLM brain in cage</text>
+  </g>
+
+  <!-- Bottom row: D, E, F -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor">
+    <rect x="40"  y="230" width="260" height="104" rx="8"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="40"  y="230" width="260" height="104" rx="8" stroke-width="1.6" fill="none"/>
+  </g>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="320" y="230" width="260" height="104" rx="8" stroke-width="1.3" fill="none"/>
+    <rect x="600" y="230" width="260" height="104" rx="8" stroke-width="1.3" fill="none"/>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor" font-family="Fraunces, Georgia, serif" font-size="15" font-style="italic">
+    <text x="58" y="256">D &#183; harebrain</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor" font-family="Fraunces, Georgia, serif" font-size="15" font-style="italic">
+    <text x="338" y="256">E &#183; LangGraph</text>
+    <text x="618" y="256">F &#183; LangChain</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor" font-family="JetBrains Mono, ui-monospace, monospace" font-size="9">
+    <text x="58" y="276">LLM at MPL leaf · blackboard</text>
+    <text x="58" y="292">prompts · host import seam</text>
+    <text x="58" y="308">tests: the actual hypothesis</text>
+    <text x="338" y="276">idiomatic agent · graph state</text>
+    <text x="338" y="292">tools · transcript memory</text>
+    <text x="338" y="308">tests: mid-rung comparator</text>
+    <text x="618" y="276">bare ReAct / message agent</text>
+    <text x="618" y="292">rolling transcript only</text>
+    <text x="618" y="308">tests: low-rung comparator</text>
+  </g>
+
+  <!-- C <-> D comparison arrow -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor" stroke-width="1.3">
+    <line x1="170" y1="190" x2="170" y2="226" fill="none"/>
+    <polygon points="170,228 167,222 173,222" stroke="none"/>
+    <line x1="730" y1="190" x2="730" y2="226" fill="none"/>
+    <polygon points="730,228 727,222 733,222" stroke="none"/>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor" font-family="JetBrains Mono, ui-monospace, monospace" font-size="9" text-anchor="middle">
+    <text x="170" y="212">brain earns keep?</text>
+  </g>
+
+  <!-- D <-> E,F comparison arrow -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor" stroke-width="1.3">
+    <line x1="302" y1="282" x2="318" y2="282" fill="none"/>
+    <polygon points="320,282 314,279 314,285" stroke="none"/>
+    <line x1="582" y1="282" x2="598" y2="282" fill="none"/>
+    <polygon points="600,282 594,279 594,285" stroke="none"/>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor" font-family="JetBrains Mono, ui-monospace, monospace" font-size="9" text-anchor="middle">
+    <text x="450" y="346">cage helps?</text>
+  </g>
+
+</svg>
