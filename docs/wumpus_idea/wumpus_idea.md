@@ -37,6 +37,10 @@ So MPL appears in exactly one role per run, but the role is different:
 
 The agent in E and F *can* lie about world state. The agent in D *cannot* — not because we forbid it but because it doesn't own state to lie about. The chart owns the Manifest; the LLM returns verdicts and the chart routes on them. An LLM verdict like `"move_to_99"` simply doesn't match any rule from the current room and the transition doesn't fire.
 
+That is the difference between *structure* and *suggestion*. A LangGraph topology that names a "planner" node, an "executor" node, and a "scratchpad" node still depends on the model voluntarily playing each role at the right turn — the same model can skip its planner, mutate state from the wrong node, or call the game tool out of phase, and the graph has no way to refuse. Structure you can't enforce isn't structure, it's suggestion. The cage isn't a guideline, it's a wall.
+
+One consequence: E isn't really a single LangGraph configuration but a small ladder — bare ReAct, scratchpad node, plan-then-act, belief tracker. The interesting question is whether *any* topology in this family crosses zero divergence. Our prediction is no, because none of them is enforceable.
+
 ## What gets compared
 
 The oracle gives us a sharp per-turn metric the prose-only architectures couldn't otherwise produce. For each turn of an E or F run:
@@ -51,8 +55,29 @@ A divergence is the agent screwing up. Examples expected from the note's failure
 - *Inventory drift* — "I'll shoot another arrow" when the oracle says arrows are 0
 - *Position confusion* — bat-teleport on turn 12 narrated as still-in-room-8
 - *Stale belief acted on* — agent moves toward a wumpus smell that predates a shot that startled the wumpus
+- *Phantom warning* — reasoning references a draft or smell the game never gave
+- *Phantom geography* — narration treats room X and Y as connected when the dodecahedron disagrees
 
 For D (harebrain), the same metric is degenerate by construction: claimed and actual are the same thing because there's no separate "claim." That asymmetry *is* the structural payoff. Where the cage exists the divergence count is structurally zero; where it doesn't, the divergence count is whatever it is and that's the data we wanted.
+
+## The other lie: scaffolding leaks
+
+Divergence events catch the agent lying about the *world*. The graph topology gives us a second metric, just as clean, that catches a different kind of lie: the agent failing to respect *its own scaffold*.
+
+LangGraph names nodes and edges. The intended graph says "planner runs before executor; executor is the only node that calls the game tool; the scratchpad node updates working memory and nothing else." But the topology isn't enforced at runtime — at every step the model can:
+
+- *Skip nodes* — emit a tool call directly from a planning phase
+- *Wrong-phase tool calls* — call the game tool from a node that wasn't supposed to
+- *Format violations* — return prose where the node's schema demanded structured output
+- *Role confusion* — planner tries to execute, executor tries to re-plan
+- *Implicit state mutation* — touch state fields the node doesn't own
+- *Reasoning unfaithfulness* — narrate "I will avoid room 7 because of the draft" then move to room 7
+
+Each is a *scaffolding leak*, measurable per node per turn against the graph spec. D's score is structurally zero — the chart has no way to express a "skipped node" because routing is decided by rule matching, not by the LLM. E accumulates leaks at rates that depend on the graph variant; F (bare ReAct) is mostly leak-free because there's no scaffold left to leak from.
+
+The two metrics cover the surface area the harebrain note worries about. *Divergence events* test whether the agent keeps an honest world model. *Scaffolding leaks* test whether structure imposed via graph topology is real structure or just suggestion. Both should drop to zero where the cage exists. Both should be nonzero where it doesn't — and the *kinds* of leak and divergence should map onto the failure-mode catalogue.
+
+A subordinate metric falls out of this for scratchpad-style graphs: **scratchpad accuracy** — does the agent's maintained working memory match the oracle's state? A scratchpad that silently drifts is worse than no scratchpad, and it's the exact failure mode the harebrain blackboard claim says typed slots with explicit decay are meant to prevent.
 
 ## The experiment matrix
 
@@ -67,6 +92,16 @@ The comparisons are the two questions the matrix exists to answer:
 - **C ↔ D — does the brain earn its keep?** A small Python heuristic ("avoid smelled rooms, count arrows, triangulate before shooting") versus an LLM in the same cage. If D ≫ C, the brain is doing real work. If D ≈ C, classic Wumpus is too small to surface the brain's contribution.
 - **D ↔ E, F — does the cage help?** The harebrain agent versus the same LLM in two progressively-less-caged configurations. We expect D to have zero divergence events by construction and E/F to accumulate them at meaningfully different rates.
 
+*A note on the controls as drawn.* A is the **ceiling** — a hand-coded solver with full observation history, showing the gap between "what's achievable from observations alone" and what the LLM gets. B is the **floor** — uniform-legal moves. C is the **heuristic ablation**. Reporting random and optimal explicitly turns raw win rates into a *range*: "the model wins 40%" means very different things if random gets 5% and optimal gets 95%.
+
+### G — Wild baseline
+
+A separate cell worth running, beyond what the six-cell figure shows: a general-purpose **coding agent** (Claude Code, Codex) handed `wumpus.py` and told to play it, no-modify, no-source-read. You don't control its graph, system prompt, or tool surface — it brings its own.
+
+The measurement only available here is **self-scaffolding behavior**. Does the agent spontaneously write a scratchpad file, sketch a map, build itself a solver? Whatever it does *is* its cage, assembled on the fly.
+
+D and G are the bookends of the cage axis. D is the cage built by hand up front; G is the cage built by the agent as it goes. If G spontaneously closes most of the gap by writing itself a scratchpad file, that's a meaningful finding — it says self-scaffolding largely substitutes for hand-designed cages on this game class. If it doesn't, also a finding. Report G alongside random and optimal as an "agents in the wild" baseline, not head-to-head with D.
+
 ## What "smarter" actually means
 
 Aggregate win-rate is the noisiest possible measure. Sharper:
@@ -76,13 +111,18 @@ Aggregate win-rate is the noisiest possible measure. Sharper:
 | Win rate over N seeds | Aggregate — easy to read, slow to convince | Bar chart across A–F |
 | Turns to victory (winning runs only) | Efficiency — does the brain find the wumpus faster? | Boxplot per implementation |
 | Variance across seeds | Robustness — does the brain handle awkward boards a heuristic stumbles on? | Spread of the boxplot |
-| **Divergence events per run** | The headline metric — how often does the trusted narrator lie? | Line: cumulative divergences vs turn |
+| **Divergence events per run** | The headline metric — how often does the trusted narrator lie about the world? | Line: cumulative divergences vs turn |
+| **Scaffolding leaks per run** | The companion metric — how often does the agent lie about its own role inside the graph? | Stacked bar of leak events by node, segmented by graph variant |
+| **Scratchpad accuracy** | For graphs with explicit memory: does the maintained state match the oracle? | Line: scratchpad-vs-oracle agreement vs turn |
+| **Post-bat recovery turns** | Turns to re-orient after a teleport — a built-in stress test of context-based state tracking | Boxplot per implementation |
 | **Arrow-shoot accuracy** | Per-decision: given smell history, was the path optimal? | Per-decision bar, segmented by implementation |
 | Tokens per turn | What the cage costs vs. what it saves | Line: tokens vs turn |
 
 The **divergence-events** metric is the one the audit architecture buys us that nothing else does. It's also the one that maps directly onto the harebrain.md failure-mode catalogue: each divergence has a *kind* (resurrected, inventory, position, stale-belief), and the per-kind counts tell you which payoff of the cage is doing the most work.
 
 The **arrow-shoot decision** is the most likely seam where the LLM beats the heuristic in classic Wumpus. Move decisions are mostly "don't enter rooms with bad senses" — a heuristic eats that. But shooting is multi-room backward inference from sensed history, and a crooked-arrow path is a sequence under uncertainty. That's where the brain plausibly earns its keep.
+
+**Post-bat recovery** deserves a separate mention. Bats grab the player and drop them in a random room, invalidating every "I am in room 5, adjacent rooms are 1/6/7" the agent has built up in context. Turns-to-reorient after a teleport is one of the cleanest signals in classic Yob — it doesn't require escalating to L2 or beyond. We expect D to handle teleports trivially because the chart's `current_room` slot is one assignment from the new value; E and F to flounder, because re-deriving spatial state from prose history is hard and the prose history still contains all the old "I am in room 5" assertions to confuse the model.
 
 ## Honest framing: cage demo first, brain demo second
 
@@ -94,7 +134,7 @@ Each step on the ladder isolates a *specific* payoff from `../harebrain/harebrai
 
 The framing for the series, if all of this pays off:
 
-- **Note 1: "The cage works."** Classic Wumpus. A–F runs. Headline metric: divergence events per run. Expected result: D = 0 by construction, E and F nonzero, with characteristic per-kind distributions; A, B, C as control sanity. Validates the structural claim.
+- **Note 1: "The cage works."** Classic Wumpus. A–F runs (G as a wild baseline alongside). Headline metrics: **divergence events** *and* **scaffolding leaks** per run — two halves of the same claim. Expected result: D = 0 by construction on both, E and F nonzero with characteristic per-kind distributions; A, B, C as control sanity. Validates the structural claim.
 - **Note 2: "The brain earns its keep."** Whichever escalation (L2 most likely) first surfaces a measurable gap between D and C on a specific decision class. Validates the cooperative claim.
 
 That progression matches the article: the four payoffs are *separable*, not a single monolithic bet (`../harebrain/harebrain.md:48-110`). Demonstrating them one at a time, with an experimental design that isolates each, is more convincing than one run trying to show everything.
@@ -107,7 +147,8 @@ The pragmatic first cut, in five steps:
 2. **MPL Hunt the Wumpus.** Twenty rooms, fixed dodecahedron, hazards, senses, arrow physics. Drive it from `runs/wumpus.py` like the `host_calls/host_calls_demo.py` example. Run A (scripted) until the chart is right.
 3. **Controls.** Add B (random-legal) and C (heuristic). Now we have a baseline.
 4. **The three LLM players.** D wires the LLM into the chart's decide-leaf as a host import. E and F take the rules-and-board prompt and narrate; the oracle harness replays their moves through the chart and emits divergence events. Same seeds across all three.
-5. **The plots.** One Jupyter notebook reads ledgers + divergence logs and produces the six measurements above. Identical templates for the two notes.
+5. **The plots.** One Jupyter notebook reads ledgers + divergence logs + leak logs and produces the measurements above. Identical templates for the two notes.
+6. **Optional: G, the wild baseline.** Put `wumpus.py` in a directory, hand Claude Code or Codex the task with a no-modify, no-source-read constraint, and let it run. Use `pexpect` for the game wrapper if you write one — it emulates a TTY and avoids the stdout-buffering hangs raw `subprocess.Popen` invites with prompt-driven games. Log every shell command and every file the agent creates; those artifacts *are* the self-scaffold. Twenty or thirty games is plenty for an "in the wild" baseline.
 
 Then measure one thing: **does the trusted narrator lie?** And if it does, **which kind of lie**? Compared to "the agent went sideways and we don't know where," that's already a better foundation (`../harebrain/harebrain.md:236`).
 
