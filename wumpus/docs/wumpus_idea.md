@@ -111,9 +111,12 @@ Aggregate win-rate is the noisiest possible measure. Sharper:
 | Win rate over N seeds | Aggregate — easy to read, slow to convince | Bar chart across A–F |
 | Turns to victory (winning runs only) | Efficiency — does the brain find the wumpus faster? | Boxplot per implementation |
 | Variance across seeds | Robustness — does the brain handle awkward boards a heuristic stumbles on? | Spread of the boxplot |
+| **Obfuscation gap** | Classic-minus-Mystery win rate — how much was 1973-game pattern-completion rather than reasoning | Per-implementation bar; D and controls flat by construction |
 | **Divergence events per run** | The headline metric — how often does the trusted narrator lie about the world? | Line: cumulative divergences vs turn |
+| **Back-prompt convergence** | Does an LLM-Modulo critique loop close the divergence gap or just patch a leaky narrator? | Line: divergence events per turn, with vs without back-prompt |
 | **Scaffolding leaks per run** | The companion metric — how often does the agent lie about its own role inside the graph? | Stacked bar of leak events by node, segmented by graph variant |
 | **Scratchpad accuracy** | For graphs with explicit memory: does the maintained state match the oracle? | Line: scratchpad-vs-oracle agreement vs turn |
+| **Verification accuracy** | Can the agent recognize its own state on demand? Tests the verification-vs-generation asymmetry | Line: verification correctness vs turn, E and F |
 | **Post-bat recovery turns** | Turns to re-orient after a teleport — a built-in stress test of context-based state tracking | Boxplot per implementation |
 | **Arrow-shoot accuracy** | Per-decision: given smell history, was the path optimal? | Per-decision bar, segmented by implementation |
 | Tokens per turn | What the cage costs vs. what it saves | Line: tokens vs turn |
@@ -123,6 +126,34 @@ The **divergence-events** metric is the one the audit architecture buys us that 
 The **arrow-shoot decision** is the most likely seam where the LLM beats the heuristic in classic Wumpus. Move decisions are mostly "don't enter rooms with bad senses" — a heuristic eats that. But shooting is multi-room backward inference from sensed history, and a crooked-arrow path is a sequence under uncertainty. That's where the brain plausibly earns its keep.
 
 **Post-bat recovery** deserves a separate mention. Bats grab the player and drop them in a random room, invalidating every "I am in room 5, adjacent rooms are 1/6/7" the agent has built up in context. Turns-to-reorient after a teleport is one of the cleanest signals in classic Yob — it doesn't require escalating to L2 or beyond. We expect D to handle teleports trivially because the chart's `current_room` slot is one assignment from the new value; E and F to flounder, because re-deriving spatial state from prose history is hard and the prose history still contains all the old "I am in room 5" assertions to confuse the model.
+
+## Three more probes from LLM-Modulo
+
+The two-architecture split above is already an instance of the LLM-Modulo pattern (`../llm-modulo/llm-modulo.md`) — LLM as candidate generator paired with an external sound verifier whose verdict is what counts. Where Kambhampati et al. use VAL (Howey 2004) on PDDL plans, the harebrain demo uses the MPL chart on Wumpus turns. Three of the paper's probes drop onto the existing matrix with light effort, and each tests a property of the cage that divergence-events and scaffolding-leaks don't.
+
+### Mystery Wumpus — the obfuscation gap
+
+Run the matrix a second time on a relabeled variant of the game. Rooms become symbols (`α`, `β`, …) instead of integers; senses are rewritten in unfamiliar vocabulary ("you detect resonance ζ" for the smell, "the air shifts in cadence Φ" for the draft, "harmonics III hum nearby" for the bats); arrows are renamed. The dodecahedron topology and the rules are byte-identical — only the surface strings change.
+
+This is the Mystery Blocksworld experiment applied to Wumpus. The structural argument is the same: a model that genuinely *reasons* about the game is invariant to surface tokens; a model that *retrieves* solutions seen in training corpora — and Hunt the Wumpus has been on the public internet since 1973 — is not. The expected obfuscation gap (Mystery win-rate ≪ Classic win-rate for E, F, G) is the cleanest measurement we have of how much LLM performance on Classic was canonical-form pattern-completion rather than reasoning from observations.
+
+D and the controls A, B, C should be near-invariant by construction — the chart owns the topology and the rules; relabeling external strings doesn't change them. That asymmetry is itself a finding: the cage is structurally robust to obfuscation in a way the prose-only architectures aren't.
+
+### Back-prompt loop — does critique close the gap?
+
+LLM-Modulo's headline diagram is a Generate-Test-Critique loop: critic disagrees → meta controller pools critiques → LLM regenerates. The paper's Figure 5 reports final pass rate as a function of back-prompt iteration; in the travel-planner adaptation, GPT-3.5-Turbo with the loop reaches roughly 6× the baseline rate of GPT-3.5-Turbo alone.
+
+The Wumpus analog is direct. When the oracle detects a divergence in E or F — agent claims room 5, oracle says room 12 — emit a single consolidated back-prompt: *"the game state disagrees with your last claim; here is the actual current room, arrow count, and sensed warnings; revise and continue."* Plot cumulative divergence events versus turn, with and without the loop.
+
+The interesting question is whether back-prompting *substitutes* for the cage or just *patches* a leaky narrator. If E-with-backprompt approaches D on divergence count, the cage's contribution is fast detection, not state ownership — and the LLM-Modulo loop is enough on its own. If E-with-backprompt still accumulates divergences faster than they can be corrected, the loop is straining against an unreliable candidate generator and the cage is doing structurally different work: the oracle isn't *correcting* state, it *is* state. Either result is interpretable.
+
+### Verification vs generation — can the agent recognize its own state?
+
+The paper's graph-coloring result showed an asymmetry that should not have existed: LLMs were *worse* at verifying colorings than producing them, and self-critique iteration made it *worse* still — they "corrected" valid colorings into invalid ones. The same probe applies here.
+
+Every K turns, pause E and F mid-game and pose an out-of-band verification question grounded in the agent's own transcript: *"given the moves and observations so far, what room are you currently in? how many arrows remain? which rooms have you confirmed safe?"* Compare each answer to the oracle ledger. The metric is verification accuracy as a function of turn count.
+
+If verification accuracy is *worse* than implicit-state generation accuracy — the agent acts roughly correctly but can't describe its own situation when asked — that mirrors the graph-coloring finding and tells you the failure is in self-modeling, not action selection. If it's *better*, the agent has more state than its actions reveal and the failure is in decision-making despite intact memory. Either outcome is diagnostic, and the diagnostic is something divergence-events alone can't produce. D's score is again degenerate by construction: the chart owns the state, so the question reduces to a Manifest read.
 
 ## Honest framing: cage demo first, brain demo second
 
@@ -134,7 +165,7 @@ Each step on the ladder isolates a *specific* payoff from `../harebrain/harebrai
 
 The framing for the series, if all of this pays off:
 
-- **Note 1: "The cage works."** Classic Wumpus. A–F runs (G as a wild baseline alongside). Headline metrics: **divergence events** *and* **scaffolding leaks** per run — two halves of the same claim. Expected result: D = 0 by construction on both, E and F nonzero with characteristic per-kind distributions; A, B, C as control sanity. Validates the structural claim.
+- **Note 1: "The cage works."** Classic *and* Mystery Wumpus, A–F across both surface forms (G as a wild baseline alongside). Headline metrics: **divergence events**, **scaffolding leaks**, and the **obfuscation gap** between Classic and Mystery — three halves of the same claim. Expected result: D ≈ 0 by construction on all three; E and F nonzero on divergence and scaffolding-leaks with characteristic per-kind distributions, and a large drop from Classic to Mystery on the obfuscation axis; A, B, C as control sanity. Validates the structural claim.
 - **Note 2: "The brain earns its keep."** Whichever escalation (L2 most likely) first surfaces a measurable gap between D and C on a specific decision class. Validates the cooperative claim.
 
 That progression matches the article: the four payoffs are *separable*, not a single monolithic bet (`../harebrain/harebrain.md:48-110`). Demonstrating them one at a time, with an experimental design that isolates each, is more convincing than one run trying to show everything.
@@ -149,6 +180,7 @@ The pragmatic first cut, in five steps:
 4. **The three LLM players.** D wires the LLM into the chart's decide-leaf as a host import. E and F take the rules-and-board prompt and narrate; the oracle harness replays their moves through the chart and emits divergence events. Same seeds across all three.
 5. **The plots.** One Jupyter notebook reads ledgers + divergence logs + leak logs and produces the measurements above. Identical templates for the two notes.
 6. **Optional: G, the wild baseline.** Put `wumpus.py` in a directory, hand Claude Code or Codex the task with a no-modify, no-source-read constraint, and let it run. Use `pexpect` for the game wrapper if you write one — it emulates a TTY and avoids the stdout-buffering hangs raw `subprocess.Popen` invites with prompt-driven games. Log every shell command and every file the agent creates; those artifacts *are* the self-scaffold. Twenty or thirty games is plenty for an "in the wild" baseline.
+7. **Optional: the three LLM-Modulo probes.** Mystery Wumpus is a single config — relabel the chart's externally-facing strings and rerun E, F, G; D and the controls are invariant. Back-prompt loop wraps E/F's outer loop with an oracle-driven critique injection — one prompt template, no new infrastructure. Verification probe schedules an out-of-band question to E/F every K turns and scores the answer against the oracle ledger. The three are independent; each adds a column to the result tables, and Mystery Wumpus is the highest-leverage of the three.
 
 Then measure one thing: **does the trusted narrator lie?** And if it does, **which kind of lie**? Compared to "the agent went sideways and we don't know where," that's already a better foundation (`../harebrain/harebrain.md:236`).
 
@@ -164,7 +196,8 @@ This note sketches the experiment that follows from the synthesis.
 | [MPLv2 vs. Harel](../mpl/mpl.md) | The runtime — host imports, Manifest, ledger, snapshots |
 | [Traditional Game AI Primitives](../game-ai/game-ai.md) | The blackboard and working-memory-fact patterns the cage borrows |
 | [SBIR proposal as a harebrain chart](../sbir_idea/sbir_idea.md) | The other application sketch; this one is the *experimental* counterpart |
+| [LLM-Modulo, redrawn](../llm-modulo/llm-modulo.md) | The framework this experiment instantiates on a 1973 game; the obfuscation, back-prompt, and verification probes are lifted from it |
 
 ---
 
-**Sources.** Yob, G., "Hunt the Wumpus" (1973), originally published in *People's Computer Company*. Russell, S. & Norvig, P., *Artificial Intelligence: A Modern Approach* — uses Wumpus as the canonical knowledge-representation example. Orkin, J., "Three States and a Plan: The AI of F.E.A.R." GDC 2006 — working-memory facts. `github.com/lostinplace/mplv2` — runtime, host imports, ledger, snapshots. All figures original SVGs drawn for this note.
+**Sources.** Yob, G., "Hunt the Wumpus" (1973), originally published in *People's Computer Company*. Russell, S. & Norvig, P., *Artificial Intelligence: A Modern Approach* — uses Wumpus as the canonical knowledge-representation example. Orkin, J., "Three States and a Plan: The AI of F.E.A.R." GDC 2006 — working-memory facts. Kambhampati, S. et al., "Position: LLMs Can't Plan, But Can Help Planning in LLM-Modulo Frameworks," ICML 2024 — the obfuscation, back-prompt, and verification probes. Howey, R., Long, D., Fox, M., "VAL: Automatic Plan Validation," IEEE-TAI 2004 — the external-verifier reference the MPL chart plays the role of. `github.com/lostinplace/mplv2` — runtime, host imports, ledger, snapshots. All figures original SVGs drawn for this note.

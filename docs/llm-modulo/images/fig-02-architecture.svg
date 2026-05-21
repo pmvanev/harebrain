@@ -1,0 +1,270 @@
+<svg viewBox="0 0 660 440" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="LLM-Modulo architecture: a Problem Specification feeds the LLM, which writes candidate plans to a Plan Blackboard read by a bank of stacked critics; critic disagreement returns through a Meta Controller as a backprompt, critic agreement exits to a Valid Solution. Side paths show synthetic-data fine-tuning and LLM-assisted domain-model acquisition.">
+  <style>
+    .paper          { color: #f3eddc; }
+    .paper-edge-2   { color: #e4dbc1; }
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .blueprint      { color: #1f4f7a; }
+    .blueprint-deep { color: #143553; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
+    .oxblood        { color: #8b1f2c; }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage           { color: #4f6b3f; }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    .muted-tint     { color: rgba(93, 85, 63, 0.05); }
+    @media (prefers-color-scheme: dark) {
+      .paper          { color: #14130c; }
+      .paper-edge-2   { color: #221f15; }
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .blueprint      { color: #88c0e8; }
+      .blueprint-deep { color: #bcdcf2; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood        { color: #e09098; }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage           { color: #b1c98c; }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+      .muted-tint     { color: rgba(168, 156, 125, 0.10); }
+    }
+  </style>
+
+  <!-- ============== Problem Specification (top-left) ============== -->
+  <g class="muted-tint" stroke="none" fill="currentColor">
+    <rect x="14" y="36" width="150" height="98" rx="8"/>
+  </g>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="14" y="36" width="150" height="98" rx="8" stroke-width="1.4" fill="none"/>
+    <text x="89" y="56" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle" stroke="none">Problem spec</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="89" y="72" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">complete &#183; partial &#183; abstract</text>
+  </g>
+  <!-- end-user icon -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <circle cx="40" cy="103" r="6" stroke-width="1.2" fill="none"/>
+    <path d="M 30 122 Q 30 110 40 110 Q 50 110 50 122" stroke-width="1.2" fill="none"/>
+    <text x="60" y="113" font-family="JetBrains Mono, monospace" font-size="9" stroke="none">end-user</text>
+    <line x1="60" y1="121" x2="140" y2="121" stroke-width="0.9" stroke-dasharray="2 2"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="100" y="130" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">refinement loop</text>
+  </g>
+
+  <!-- ============== Synthetic data (top-center) ============== -->
+  <g class="muted-tint" stroke="none" fill="currentColor">
+    <rect x="240" y="22" width="120" height="48" rx="6"/>
+  </g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <rect x="240" y="22" width="120" height="48" rx="6" stroke-width="1.2" fill="none"/>
+    <text x="300" y="40" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">synthetic data</text>
+    <text x="300" y="56" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">accepted plans &#183; critic notes</text>
+  </g>
+
+  <!-- ============== LLM (center) ============== -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor">
+    <rect x="240" y="155" width="160" height="118" rx="10"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="240" y="155" width="160" height="118" rx="10" stroke-width="2" fill="none"/>
+  </g>
+  <g class="paper" stroke="none" fill="currentColor">
+    <ellipse cx="320" cy="214" rx="62" ry="22"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="none">
+    <ellipse cx="320" cy="214" rx="62" ry="22" stroke-width="1.4"/>
+  </g>
+  <g class="blueprint-deep" stroke="none" fill="currentColor">
+    <text x="320" y="220" font-family="JetBrains Mono, monospace" font-size="18" text-anchor="middle" letter-spacing="0.12em">LLM</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="320" y="253" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">guesses &#183; reformulates &#183; refines</text>
+  </g>
+
+  <!-- ============== Plan blackboard (below LLM) ============== -->
+  <g class="sage-tint" stroke="none" fill="currentColor">
+    <rect x="200" y="310" width="240" height="72" rx="6"/>
+  </g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="200" y="310" width="240" height="72" rx="6" stroke-width="1.6" fill="none"/>
+    <text x="320" y="328" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle" stroke="none">Plan blackboard</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="210" y1="336" x2="430" y2="336" stroke-width="1"/>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="9">
+    <text x="212" y="352">concrete plan</text>
+    <text x="212" y="366">hierarchical plan</text>
+    <text x="430" y="352" text-anchor="end">v3</text>
+    <text x="430" y="366" text-anchor="end">draft</text>
+  </g>
+
+  <!-- ============== Critic bank (right, stacked cards) ============== -->
+  <!-- card 1 -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor">
+    <rect x="470" y="92" width="180" height="56" rx="6"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="470" y="92" width="180" height="56" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="480" y="110" font-family="Fraunces, serif" font-size="11" font-style="italic" stroke="none">B&#x2081; &#8201;&#8211;&#8201; hard / binary</text>
+    <text x="480" y="124" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">sound: model-based</text>
+    <text x="480" y="138" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">VAL, simulator, unit tests</text>
+  </g>
+  <!-- card 2 -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor">
+    <rect x="470" y="156" width="180" height="56" rx="6"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="470" y="156" width="180" height="56" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="480" y="174" font-family="Fraunces, serif" font-size="11" font-style="italic" stroke="none">C&#x1d62; &#8201;&#8211;&#8201; constructive</text>
+    <text x="480" y="188" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">&#8220;here is what is wrong&#8221;</text>
+    <text x="480" y="202" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">partial-plan suggestions</text>
+  </g>
+  <!-- card 3 -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor">
+    <rect x="470" y="220" width="180" height="56" rx="6"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="470" y="220" width="180" height="56" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="480" y="238" font-family="Fraunces, serif" font-size="11" font-style="italic" stroke="none">S&#x1d62; &#8201;&#8211;&#8201; soft / style</text>
+    <text x="480" y="252" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">explicability, preference</text>
+    <text x="480" y="266" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">may be LLM-based</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="560" y="86" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" letter-spacing="0.12em">CRITIC BANK</text>
+  </g>
+
+  <!-- ============== Meta Controller (between LLM and critics, lower) ============== -->
+  <g class="muted-tint" stroke="none" fill="currentColor">
+    <rect x="430" y="296" width="170" height="60" rx="6"/>
+  </g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <rect x="430" y="296" width="170" height="60" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="515" y="314" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">Meta controller</text>
+    <text x="515" y="328" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">prompt selection</text>
+    <text x="515" y="340" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">diversification</text>
+  </g>
+
+  <!-- ============== Valid solution (top-right) ============== -->
+  <g class="sage-tint" stroke="none" fill="currentColor">
+    <rect x="470" y="22" width="180" height="50" rx="6"/>
+  </g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="470" y="22" width="180" height="50" rx="6" stroke-width="1.6" fill="none"/>
+    <text x="560" y="42" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle" stroke="none">Valid solution</text>
+    <text x="560" y="58" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">critic agreement &#8594; out</text>
+  </g>
+
+  <!-- ============== Model acquisition (bottom-left) ============== -->
+  <g class="muted-tint" stroke="none" fill="currentColor">
+    <rect x="14" y="295" width="170" height="120" rx="6"/>
+  </g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <rect x="14" y="295" width="170" height="120" rx="6" stroke-width="1.2" fill="none"/>
+    <text x="99" y="314" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">model acquisition</text>
+  </g>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <circle cx="40" cy="345" r="6" stroke-width="1.2" fill="none"/>
+    <path d="M 30 364 Q 30 352 40 352 Q 50 352 50 364" stroke-width="1.2" fill="none"/>
+    <text x="60" y="354" font-family="JetBrains Mono, monospace" font-size="9" stroke="none">domain expert</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="60" y="370" font-family="JetBrains Mono, monospace" font-size="8">+ LLM-assisted HIL</text>
+    <text x="40" y="390" font-family="Spectral, serif" font-size="9">build the model that</text>
+    <text x="40" y="402" font-family="Spectral, serif" font-size="9">the hard critic checks</text>
+  </g>
+
+  <!-- ====================== arrows ====================== -->
+
+  <!-- (1) Problem Spec -> LLM -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <path d="M 164 90 Q 200 90 240 175" stroke-width="1.3" fill="none"/>
+    <polygon points="240,175 234,170 240,166" stroke="none"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <circle cx="190" cy="92" r="8" stroke-width="1.2" fill="none"/>
+    <text x="190" y="95" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">1</text>
+  </g>
+
+  <!-- (2) LLM -> Plan Blackboard (response) -->
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <line x1="320" y1="273" x2="320" y2="308" stroke-width="1.3"/>
+    <polygon points="320,310 317,304 323,304" stroke="none"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <circle cx="345" cy="290" r="8" stroke-width="1.2" fill="none"/>
+    <text x="345" y="293" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">2</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="362" y="293" font-family="JetBrains Mono, monospace" font-size="8">LLM response</text>
+  </g>
+
+  <!-- (3) Plan Blackboard -> Critic Bank (candidate read) -->
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <path d="M 440 330 Q 460 320 470 220" stroke-width="1.3" fill="none" stroke-dasharray="4 3"/>
+    <polygon points="470,220 466,226 472,224" stroke="none"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <circle cx="464" cy="290" r="8" stroke-width="1.2" fill="none"/>
+    <text x="464" y="293" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">3</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="450" y="276" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="end">read</text>
+  </g>
+
+  <!-- (4) Critic Bank -> Meta Controller (disagree) -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <line x1="560" y1="276" x2="510" y2="294" stroke-width="1.3"/>
+    <polygon points="510,294 516,289 519,295" stroke="none"/>
+    <circle cx="540" cy="284" r="8" stroke-width="1.2" fill="none"/>
+    <text x="540" y="287" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">4</text>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="558" y="275" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="end">disagree</text>
+  </g>
+
+  <!-- (5) Meta Controller -> LLM (backprompt) -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <path d="M 430 312 Q 410 290 400 230" stroke-width="1.3" fill="none" stroke-dasharray="4 3"/>
+    <polygon points="400,230 396,236 402,235" stroke="none"/>
+    <circle cx="412" cy="270" r="8" stroke-width="1.2" fill="none"/>
+    <text x="412" y="273" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">5</text>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="394" y="294" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="end">backprompt</text>
+  </g>
+
+  <!-- (6) Critic Bank -> Valid Solution (agree) -->
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <line x1="560" y1="90" x2="560" y2="74" stroke-width="1.4"/>
+    <polygon points="560,72 557,78 563,78" stroke="none"/>
+    <circle cx="585" cy="82" r="8" stroke-width="1.2" fill="none"/>
+    <text x="585" y="85" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">6</text>
+  </g>
+  <g class="sage" stroke="none" fill="currentColor">
+    <text x="555" y="85" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="end">agree</text>
+  </g>
+
+  <!-- (7) Synthetic Data -> LLM (finetune) -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="300" y1="70" x2="300" y2="153" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <polygon points="300,155 297,149 303,149" stroke="none"/>
+    <circle cx="276" cy="120" r="8" stroke-width="1.2" fill="none"/>
+    <text x="276" y="123" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">7</text>
+    <text x="296" y="118" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="end">fine-tune</text>
+  </g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <path d="M 470 50 Q 410 50 360 50" stroke-width="1.2" fill="none" stroke-dasharray="4 3"/>
+    <polygon points="360,50 366,47 366,53" stroke="none"/>
+  </g>
+
+  <!-- Model acquisition -> Critic Bank -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <path d="M 184 320 Q 350 280 470 144" stroke-width="1.1" fill="none" stroke-dasharray="3 3"/>
+    <polygon points="470,144 466,150 472,148" stroke="none"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="320" y="295" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">supplies the model behind B&#x2081;</text>
+  </g>
+</svg>

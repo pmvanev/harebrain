@@ -1,0 +1,124 @@
+<svg viewBox="0 0 540 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The six roles the LLM plays in the framework, arranged radially around a central LLM disc: candidate generator, reformatter, soft critic, critic enumerator, model acquisition helper, and specification refiner.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .blueprint      { color: #1f4f7a; }
+    .blueprint-deep { color: #143553; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.10); }
+    .oxblood        { color: #8b1f2c; }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .paper          { color: #f3eddc; }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .blueprint      { color: #88c0e8; }
+      .blueprint-deep { color: #bcdcf2; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.12); }
+      .oxblood        { color: #e09098; }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .paper          { color: #14130c; }
+    }
+  </style>
+
+  <!-- spokes (drawn first, behind boxes) -->
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="270" y1="180" x2="270" y2="50"  stroke-width="1"/>
+    <line x1="270" y1="180" x2="400" y2="105" stroke-width="1"/>
+    <line x1="270" y1="180" x2="400" y2="255" stroke-width="1"/>
+    <line x1="270" y1="180" x2="270" y2="310" stroke-width="1"/>
+    <line x1="270" y1="180" x2="140" y2="255" stroke-width="1"/>
+    <line x1="270" y1="180" x2="140" y2="105" stroke-width="1"/>
+  </g>
+
+  <!-- LLM disc -->
+  <g class="paper" stroke="none" fill="currentColor">
+    <circle cx="270" cy="180" r="42"/>
+  </g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor">
+    <circle cx="270" cy="180" r="42"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <circle cx="270" cy="180" r="42" stroke-width="2" fill="none"/>
+  </g>
+  <g class="blueprint-deep" stroke="none" fill="currentColor">
+    <text x="270" y="186" font-family="JetBrains Mono, monospace" font-size="16" text-anchor="middle" letter-spacing="0.12em">LLM</text>
+  </g>
+
+  <!-- TOP: candidate generator -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor">
+    <rect x="190" y="10" width="160" height="42" rx="6"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="190" y="10" width="160" height="42" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="270" y="27" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">candidate generator</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="270" y="44" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">guesses plans for the bank to vet &#183; step (2)</text>
+  </g>
+
+  <!-- TOP-RIGHT: reformatter -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor">
+    <rect x="380" y="80" width="150" height="52" rx="6"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="380" y="80" width="150" height="52" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="455" y="98" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">reformatter</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="455" y="114" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">translates the plan</text>
+    <text x="455" y="124" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">into each critic&#8217;s grammar</text>
+  </g>
+
+  <!-- BOTTOM-RIGHT: soft critic -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor">
+    <rect x="380" y="230" width="150" height="52" rx="6"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="380" y="230" width="150" height="52" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="455" y="248" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">soft critic</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="455" y="264" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">style &#183; explicability</text>
+    <text x="455" y="274" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">stand-in for human taste</text>
+  </g>
+
+  <!-- BOTTOM: critic enumerator -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor">
+    <rect x="190" y="308" width="160" height="42" rx="6"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="190" y="308" width="160" height="42" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="270" y="325" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">critic enumerator</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="270" y="341" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">suggests what to vet for in the first place</text>
+  </g>
+
+  <!-- BOTTOM-LEFT: model acquisition -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor">
+    <rect x="10" y="230" width="150" height="52" rx="6"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="10" y="230" width="150" height="52" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="85" y="248" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">model acquisition</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="85" y="264" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">helps domain expert</text>
+    <text x="85" y="274" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">draft the PDDL model</text>
+  </g>
+
+  <!-- TOP-LEFT: spec refiner -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor">
+    <rect x="10" y="80" width="150" height="52" rx="6"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="10" y="80" width="150" height="52" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="85" y="98" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">spec refiner</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="85" y="114" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">draws a fuller problem</text>
+    <text x="85" y="124" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">out of the end-user &#183; step (1)</text>
+  </g>
+</svg>
