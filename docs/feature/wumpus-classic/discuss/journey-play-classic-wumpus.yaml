@@ -1,0 +1,634 @@
+schema_version: 1
+
+journey:
+  name: "Play Classic Wumpus"
+  goal: "Play Yob's 1973 Hunt the Wumpus with byte-recognizable fidelity, and (for harness consumers) capture the complete event stream from the same session."
+  feature_id: wumpus-classic
+  personas:
+    - id: player-pat
+      ref: docs/product/jobs.yaml#personas/player-pat
+    - id: harness-harriet
+      ref: docs/product/jobs.yaml#personas/harness-harriet
+  jobs:
+    - play-classic-wumpus
+    - instrument-wumpus-play
+    - replay-wumpus-deterministically
+
+emotional_arc:
+  player_pat:
+    start: "Curious / off-balance"
+    middle: "Tension — smell + draft + bats-nearby triangulation, with the wumpus's startle rule keeping every shot epistemically expensive"
+    end: "Catharsis — Yob's swapped HA HA HA / HEE HEE HEE message confirms the outcome"
+  harness_harriet:
+    start: "Skeptical — does this really agree with Yob?"
+    middle: "Trust building — seeded replays come back byte-identical, event signatures cover every rule from the Yob audit"
+    end: "Conviction — the engine is the ground-truth oracle"
+
+steps:
+
+  - id: 1
+    name: "Start a game"
+    command: "wumpus  (Pat) | Game(seed=42)  (Harriet)"
+    description: |
+      Engine reads optional seed, generates cave layout (place wumpus, 2 pits, 2 bats,
+      player; resolve crossovers per Yob lines 0240-0340), prints HUNT THE WUMPUS
+      banner (CLI) and emits GameStarted event (engine).
+
+    tui_mockup: |
+      +-- Step 1: Start ----------------------------+
+      | INSTRUCTIONS (Y-N)? N                       |
+      | HUNT THE WUMPUS                             |
+      |                                             |
+      +---------------------------------------------+
+      (header line for transcript file, written when --transcript=PATH:)
+      # wumpus_classic v${version}  seed=42  layout-hash=${layout_hash}
+
+    shared_artifacts:
+      - name: seed
+        source: "Game(seed=...) constructor arg"
+        displayed_as: "${seed}"
+        consumers: ["transcript header", "GameStarted event payload", "replay verification"]
+      - name: layout_hash
+        source: "engine: hash of (wumpus_room, pit_rooms, bat_rooms, player_start)"
+        displayed_as: "${layout_hash}"
+        consumers: ["transcript header", "GameStarted event payload", "replay verification"]
+      - name: dodecahedron_adjacency
+        source: "wumpus_classic.constants.DODECAHEDRON"
+        displayed_as: "(internal)"
+        consumers: ["cave gen", "move validation", "sense check", "arrow path"]
+
+    emotional_state:
+      pat:
+        entry: "curious"
+        exit: "ready to orient"
+      harriet:
+        entry: "skeptical"
+        exit: "expectant — wants to see byte-for-byte replay work"
+
+    integration_checkpoint: |
+      Engine state after construction must be fully determined by (seed,). Two
+      Game(seed=42) instances must have identical Snapshot.layout.
+
+    failure_modes:
+      - "Cave generation produces crossover (e.g., wumpus in same room as a pit) — Yob's lines 0290-0340 re-roll until clean; engine must do the same."
+      - "Pat answers Y to INSTRUCTIONS — must print full instructions text per Yob lines 1000-1410 before proceeding to cave gen."
+
+    gherkin: |
+      Scenario: Pat starts a game with default settings
+        Given Pat has installed wumpus_classic
+        When Pat runs the "wumpus" command
+        Then Pat sees the prompt "INSTRUCTIONS (Y-N)?"
+        And after answering "N", Pat sees the banner "HUNT THE WUMPUS"
+
+      Scenario: Harriet instantiates an engine with a seed
+        Given Harriet imports Game from wumpus_classic
+        When Harriet calls Game(seed=42)
+        Then the snapshot's layout (wumpus room, pit rooms, bat rooms, player start) is fully determined by the seed
+        And a second Game(seed=42) produces an identical layout
+
+      Scenario: Cave layout has no entity crossovers
+        Given Harriet has instantiated Game(seed=<any>)
+        Then the wumpus room, both pit rooms, both bat rooms, and the player start room are all distinct
+
+  - id: 2
+    name: "Orient"
+    command: "(none — passive print on entry to each room)"
+    description: |
+      On entering any room, engine emits sense events for adjacent hazards in Yob's
+      L-array order: wumpus (L(2)), pit (L(3)), pit (L(4)), bat (L(5)), bat (L(6)).
+      Multiple adjacent hazards of the same type print the same line once per match
+      (Yob's loop walks K=1..3 tunnels and J=2..6 hazards independently). CLI
+      renderer then prints YOU ARE IN ROOM N and TUNNELS LEAD TO A B C.
+
+    tui_mockup: |
+      +-- Step 2: Orient (room 8, adjacent to wumpus and a pit) --+
+      | I SMELL A WUMPUS!                                          |
+      | I FEEL A DRAFT                                             |
+      | YOU ARE IN ROOM  8                                         |
+      | TUNNELS LEAD TO  1  7  9                                   |
+      |                                                            |
+      +-----------------------------------------------------------+
+
+    shared_artifacts:
+      - name: sense_order
+        source: "wumpus_classic.constants.SENSE_ORDER (Yob L-array order)"
+        displayed_as: "(controls print order of I SMELL / I FEEL / BATS NEARBY)"
+        consumers: ["sense emitter", "CLI renderer", "SenseEmitted event field 'kind'"]
+      - name: sense_text
+        source: "wumpus_classic.constants.MESSAGES"
+        displayed_as: "I SMELL A WUMPUS! / I FEEL A DRAFT / BATS NEARBY!"
+        consumers: ["CLI renderer"]
+
+    emotional_state:
+      pat:
+        entry: "ready to orient"
+        exit: "weighing options"
+      harriet:
+        entry: "watching event stream"
+        exit: "sense events confirmed against adjacency table"
+
+    integration_checkpoint: |
+      Number and kind of SenseEmitted events on room entry must equal count of
+      adjacent rooms containing each hazard type. Sense events must precede the
+      LocationReported event in the stream.
+
+    failure_modes:
+      - "Sense emitted for a non-adjacent hazard (false positive)."
+      - "Sense not emitted for an adjacent hazard (false negative — the most dangerous failure)."
+      - "Order of sense events differs from Yob's L-array iteration order (cosmetic but a fidelity failure)."
+
+    gherkin: |
+      Scenario: Pat sees senses for every adjacent hazard
+        Given Pat is in a room adjacent to the wumpus and one pit
+        When the room is entered
+        Then Pat sees "I SMELL A WUMPUS!" before "I FEEL A DRAFT"
+        And Pat sees "YOU ARE IN ROOM <n>" with the current room number
+        And Pat sees "TUNNELS LEAD TO <a> <b> <c>" with the three adjacent rooms
+
+      Scenario: No sense fires for non-adjacent hazards
+        Given Pat is in a room with no adjacent hazards
+        When the room is entered
+        Then Pat sees no sense line
+        And Pat sees only "YOU ARE IN ROOM <n>" and "TUNNELS LEAD TO <a> <b> <c>"
+
+      Scenario: Sense events precede location events in the stream
+        Given Harriet is consuming the event stream from Game(seed=42)
+        When the player enters a room with two adjacent hazards
+        Then the event stream contains two SenseEmitted events followed by one LocationReported event
+
+  - id: 3
+    name: "Choose action (S or M)"
+    command: "SHOOT OR MOVE (S-M)?"
+    description: |
+      Engine emits PromptIssued(kind='action'). CLI renderer prints the prompt.
+      Pat types S or M. Anything else re-prompts (Yob lines 2510-2580).
+
+    tui_mockup: |
+      +-- Step 3: Choose ------------+
+      | SHOOT OR MOVE (S-M)? M       |
+      +------------------------------+
+
+    shared_artifacts:
+      - name: prompt_action
+        source: "wumpus_classic.constants.PROMPTS['action']"
+        displayed_as: "SHOOT OR MOVE (S-M)?"
+        consumers: ["CLI renderer"]
+
+    emotional_state:
+      pat:
+        entry: "weighing options"
+        exit: "committed (to a move or shot)"
+      harriet:
+        entry: "expecting ActionChosen event"
+        exit: "ActionChosen event observed"
+
+    integration_checkpoint: |
+      Invalid input must not advance turn counter, must not emit ActionChosen,
+      must re-emit PromptIssued.
+
+    failure_modes:
+      - "Pat types X — engine must re-prompt without advancing turn."
+      - "Pat sends EOF — engine emits SessionAborted and exits cleanly."
+
+    gherkin: |
+      Scenario: Pat chooses to move
+        Given Pat sees "SHOOT OR MOVE (S-M)?"
+        When Pat types "M"
+        Then the engine prompts "WHERE TO?"
+
+      Scenario: Invalid action input re-prompts
+        Given Pat sees "SHOOT OR MOVE (S-M)?"
+        When Pat types "X"
+        Then the engine re-prompts "SHOOT OR MOVE (S-M)?"
+        And the turn counter is unchanged
+
+  - id: 4
+    name: "Resolve action — move"
+    command: "WHERE TO? <room>"
+    description: |
+      Engine validates target room is in player's adjacency or equals current room
+      (Yob lines 4050-4110). If invalid, prints NOT POSSIBLE - and re-prompts.
+      Otherwise: player moves; engine checks hazards in Yob's order — wumpus first
+      (4150-4200), then pits (4220-4250), then bats (4270-4300). Bats teleport to
+      a uniformly random room and recursively re-enter (GOTO 4130) — sense lines
+      print again for the new room.
+
+    tui_mockup: |
+      +-- Step 4a: Move into wumpus's room (bumped) -----------+
+      | ...OOPS! BUMPED A WUMPUS!                              |
+      | TSK TSK TSK- WUMPUS GOT YOU!                           |
+      +--------------------------------------------------------+
+      +-- Step 4b: Move into pit room --------------------------+
+      | YYYIIIIEEEE . . . FELL IN PIT                          |
+      +--------------------------------------------------------+
+      +-- Step 4c: Move into bat room (then teleport to room 17)+
+      | ZAP--SUPER BAT SNATCH! ELSEWHEREVILLE FOR YOU!         |
+      | BATS NEARBY!                                           |
+      | YOU ARE IN ROOM 17                                     |
+      | TUNNELS LEAD TO  7 16 18                               |
+      +--------------------------------------------------------+
+
+    shared_artifacts:
+      - name: hazard_check_order
+        source: "wumpus_classic.constants.HAZARD_ORDER (wumpus, pit, bat — Yob lines 4150/4220/4270)"
+        displayed_as: "(internal)"
+        consumers: ["move resolution", "HazardTriggered event"]
+      - name: wumpus_startle
+        source: "Game._move_wumpus_startle() — Yob lines 3370-3440 with FNC(0) ∈ {1..4}: K∈{1,2,3} move to S(L(2),K), K=4 stay"
+        displayed_as: "(internal)"
+        consumers: ["arrow miss handler", "wumpus-bumped handler"]
+
+    emotional_state:
+      pat:
+        entry: "committed"
+        exit: "(if survived) re-orienting; (if hazard) bracing for outcome"
+      harriet:
+        entry: "watching"
+        exit: "MoveResolved + zero-or-more HazardTriggered events observed"
+
+    integration_checkpoint: |
+      Hazard resolution order is wumpus -> pit -> bat. Wumpus bump triggers startle
+      (FNC(0) ∈ {1,2,3} -> move via S(L(2),K); FNC(0)=4 -> stay). If startled wumpus
+      lands on player, player dies. Bat teleport target may itself be a hazard room
+      (Yob does NOT exclude this — recursion through 4130 means landing on the
+      wumpus or a pit ends the game immediately).
+
+    failure_modes:
+      - "Move to non-adjacent room — engine must reject with NOT POSSIBLE - and re-prompt for WHERE TO?"
+      - "Move to current room — Yob permits this (line 4090); engine must too."
+      - "Bat teleport into a pit — Yob ends the game (line 4130 recursion); engine must too."
+      - "Bat teleport into a chain of bats — Yob permits unlimited recursion; engine must too (with reasonable safeguard against pathological infinite loops via the cave-gen constraint that bats aren't co-located)."
+
+    gherkin: |
+      Scenario: Pat moves into a legal adjacent room
+        Given Pat is in room 8 with tunnels to rooms 1, 7, 9
+        When Pat types "M" then "7"
+        Then Pat is in room 7
+        And the engine emits MoveAttempted(from=8, to=7) and MoveResolved(to=7)
+
+      Scenario: Pat attempts an illegal move
+        Given Pat is in room 8 with tunnels to rooms 1, 7, 9
+        When Pat types "M" then "99"
+        Then Pat sees "NOT POSSIBLE -"
+        And the engine re-prompts "WHERE TO?"
+        And Pat's room is still 8
+
+      Scenario: Pat walks into the wumpus and the wumpus startles to a safe room
+        Given the wumpus is in room 7 and Pat is in room 8 adjacent to room 7
+        And the engine's next startle roll will be 1 (move to first adjacent room)
+        When Pat moves to room 7
+        Then Pat sees "...OOPS! BUMPED A WUMPUS!"
+        And the wumpus has moved to the first room adjacent to room 7
+        And the game continues
+
+      Scenario: Pat walks into the wumpus and the wumpus startles onto Pat
+        Given the wumpus is in room 7 and Pat is in room 8 adjacent to room 7
+        And the wumpus's first adjacent room is room 7's neighbor that is room 7's neighbor (i.e., a startle landing back on player)
+        When Pat moves to room 7
+        Then Pat sees "...OOPS! BUMPED A WUMPUS!"
+        And Pat sees "TSK TSK TSK- WUMPUS GOT YOU!"
+        And Pat sees "HA HA HA - YOU LOSE!"
+        And the engine emits GameEnded(outcome=eaten_after_bump)
+
+      Scenario: Pat falls into a pit
+        Given a pit is in room 4 and Pat is in room 3 adjacent to room 4
+        When Pat moves to room 4
+        Then Pat sees "YYYIIIIEEEE . . . FELL IN PIT"
+        And Pat sees "HA HA HA - YOU LOSE!"
+        And the engine emits GameEnded(outcome=fell_in_pit)
+
+      Scenario: Pat is grabbed by a bat and teleported to a safe room
+        Given a bat is in room 5 and Pat is in room 4 adjacent to room 5
+        And the engine's next bat-teleport roll will land Pat in room 17 which is safe
+        When Pat moves to room 5
+        Then Pat sees "ZAP--SUPER BAT SNATCH! ELSEWHEREVILLE FOR YOU!"
+        And Pat sees the sense lines for room 17
+        And Pat sees "YOU ARE IN ROOM 17"
+
+      Scenario: Pat is teleported by a bat into a pit
+        Given a bat is in room 5 and a pit is in room 17
+        And the engine's next bat-teleport roll will land Pat in room 17
+        When Pat moves to room 5
+        Then Pat sees "ZAP--SUPER BAT SNATCH! ELSEWHEREVILLE FOR YOU!"
+        And Pat sees "YYYIIIIEEEE . . . FELL IN PIT"
+        And Pat sees "HA HA HA - YOU LOSE!"
+
+  - id: 5
+    name: "Resolve action — shoot"
+    command: "NO. OF ROOMS(1-5)?  then  ROOM #  (repeated)"
+    description: |
+      Engine prompts for path length (1-5; out-of-range re-prompts per Yob 3060).
+      For each of N rooms, prompts ROOM #. After the second room, rejects any
+      entry equal to room K-2 with ARROWS AREN'T THAT CROOKED - TRY ANOTHER ROOM
+      and re-prompts for that slot only (3095-3110). Once path is collected, walks
+      it from current room: at each step, if S(L, K1)==P(K) for some K1, arrow
+      proceeds to P(K); if no tunnel matches, arrow goes to S(L, FNB(1)) (random
+      adjacent) and stops checking remaining path (3170-3210). If arrow lands on
+      wumpus -> WIN. If arrow lands on player -> OUCH! ARROW GOT YOU! and decrement
+      arrow as if missed (3340-3360 falls through to 3270 which decrements). On
+      complete miss (path consumed without hitting wumpus or player): MISSED,
+      wumpus startles, arrow count decrements; if A=0 then lose.
+
+    tui_mockup: |
+      +-- Step 5a: Successful shot ----------------------------+
+      | SHOOT OR MOVE (S-M)? S                                 |
+      | NO. OF ROOMS(1-5)? 2                                   |
+      | ROOM #? 7                                              |
+      | ROOM #? 14                                             |
+      | AHA! YOU GOT THE WUMPUS!                               |
+      | HEE HEE HEE - THE WUMPUS'LL GETCHA NEXT TIME!!         |
+      +--------------------------------------------------------+
+      +-- Step 5b: Miss, wumpus startles, last arrow exhausted -+
+      | NO. OF ROOMS(1-5)? 3                                   |
+      | ROOM #? 7                                              |
+      | ROOM #? 14                                             |
+      | ROOM #? 13                                             |
+      | MISSED                                                 |
+      | HA HA HA - YOU LOSE!                                   |
+      +--------------------------------------------------------+
+      +-- Step 5c: Crooked path rejected ----------------------+
+      | NO. OF ROOMS(1-5)? 3                                   |
+      | ROOM #? 7                                              |
+      | ROOM #? 14                                             |
+      | ROOM #? 7                                              |
+      | ARROWS AREN'T THAT CROOKED - TRY ANOTHER ROOM          |
+      | ROOM #?                                                |
+      +--------------------------------------------------------+
+      +-- Step 5d: Arrow loops back and kills shooter ---------+
+      | NO. OF ROOMS(1-5)? 4                                   |
+      | ROOM #? 7                                              |
+      | ROOM #? 6                                              |
+      | ROOM #? 5                                              |
+      | ROOM #? 8                                              |
+      | OUCH! ARROW GOT YOU!                                   |
+      | HA HA HA - YOU LOSE!                                   |
+      +--------------------------------------------------------+
+
+    shared_artifacts:
+      - name: arrow_count
+        source: "Game._arrows (initialized to 5, decremented on miss/self-shot, never on hit)"
+        displayed_as: "(not displayed by Yob; engine emits ArrowCountChanged events)"
+        consumers: ["arrow resolution", "GameEnded(outcome=out_of_arrows)"]
+      - name: crooked_path_constraint
+        source: "Yob lines 3095-3110: P(K) != P(K-2) when K > 2"
+        displayed_as: "ARROWS AREN'T THAT CROOKED - TRY ANOTHER ROOM"
+        consumers: ["path collection", "CLI renderer"]
+      - name: arrow_random_step
+        source: "Game._arrow_random_step() — Yob FNB(1) ∈ {1,2,3} picks S(L, FNB)"
+        displayed_as: "(internal)"
+        consumers: ["arrow walk on missing tunnel"]
+
+    emotional_state:
+      pat:
+        entry: "committed (to a shot is risk)"
+        exit: "elated (hit) | dread (self-shot) | tense (miss, wumpus moved)"
+      harriet:
+        entry: "watching arrow walk events"
+        exit: "ArrowFired + ArrowPathStep* + (ArrowHitWumpus | ArrowHitPlayer | ArrowMissed) + WumpusStartled? events"
+
+    integration_checkpoint: |
+      Arrow walk emits one ArrowPathStep event per room traversed (including
+      random-deflection step on missing tunnel). On miss, exactly one
+      WumpusStartled event MUST be emitted before ArrowCountChanged.
+
+    failure_modes:
+      - "Path length out of range (0, 6+) — re-prompt for NO. OF ROOMS(1-5)?"
+      - "Crooked path (P(K) == P(K-2)) — print ARROWS AREN'T THAT CROOKED and re-prompt for that single room slot."
+      - "Path entry references room not in arrow's current possible adjacency — Yob takes random tunnel (line 3170-3210) and stops checking remaining path; engine must replicate exactly."
+      - "Arrow loops back through dodecahedron to shooter's room — OUCH! ARROW GOT YOU!, decrement arrow, lose if A=0."
+      - "Wumpus startled onto player on miss — TSK TSK TSK message, eaten."
+
+    gherkin: |
+      Scenario: Pat shoots and hits the wumpus
+        Given Pat is in room 8 with 5 arrows
+        And the wumpus is in room 14
+        And rooms 8-7 and 7-14 are connected
+        When Pat shoots a 2-room path through rooms 7, 14
+        Then Pat sees "AHA! YOU GOT THE WUMPUS!"
+        And Pat sees "HEE HEE HEE - THE WUMPUS'LL GETCHA NEXT TIME!!"
+        And the engine emits GameEnded(outcome=wumpus_shot)
+
+      Scenario: Pat shoots, misses, and the wumpus startles
+        Given Pat is in room 8 with 5 arrows
+        And the wumpus is in room 14
+        And Pat's shot path does not reach the wumpus
+        And the engine's next startle roll will be 4 (wumpus stays)
+        When Pat shoots
+        Then Pat sees "MISSED"
+        And Pat has 4 arrows remaining
+        And the wumpus is still in room 14
+        And the engine emits ArrowMissed, WumpusStartled(moved=False), ArrowCountChanged(to=4)
+
+      Scenario: Pat exhausts the last arrow
+        Given Pat is in room 8 with 1 arrow
+        And Pat's shot will miss
+        When Pat shoots
+        Then Pat sees "MISSED"
+        And Pat sees "HA HA HA - YOU LOSE!"
+        And the engine emits GameEnded(outcome=out_of_arrows)
+
+      Scenario: Pat enters a crooked path and is asked to retry
+        Given Pat is shooting and has entered rooms 7, 14 for the first two slots
+        When Pat enters 7 again for the third slot
+        Then Pat sees "ARROWS AREN'T THAT CROOKED - TRY ANOTHER ROOM"
+        And the engine re-prompts "ROOM #?" for the third slot only
+        And the previously entered rooms 7 and 14 are unchanged
+
+      Scenario: Pat's arrow takes a random tunnel when path room is not adjacent
+        Given Pat is in room 8 and shoots a path that begins with room 14 (not adjacent to 8)
+        When the arrow is walked
+        Then the arrow goes to a uniformly random adjacent room of room 8
+        And the engine emits ArrowPathStep(room=<random>, deflected=True)
+        And no further path rooms are consulted
+
+      Scenario: Pat's arrow loops back and kills Pat
+        Given Pat is in room 8
+        And Pat's path walks through rooms whose adjacency loops the arrow back to room 8
+        When the arrow lands on room 8
+        Then Pat sees "OUCH! ARROW GOT YOU!"
+        And Pat has 4 arrows remaining (decremented as if missed)
+        And the engine emits ArrowHitPlayer, ArrowCountChanged(to=4)
+        # Note: Yob's self-shot does not end the game by itself; only out-of-arrows does.
+
+  - id: 6
+    name: "Reach terminal state"
+    command: "(none — engine-driven)"
+    description: |
+      Game ends on: arrow hits wumpus (WIN), wumpus eats player (LOSE), pit (LOSE),
+      arrow self-shot AND last arrow (LOSE via out-of-arrows). Engine prints Yob's
+      swapped messages: HEE HEE HEE on win, HA HA HA on lose. Then prompts SAME
+      SET-UP (Y-N)?.
+
+    tui_mockup: |
+      +-- Step 6: Terminal + replay prompt --------------------+
+      | HA HA HA - YOU LOSE!                                   |
+      | SAME SET-UP (Y-N)? Y                                   |
+      | HUNT THE WUMPUS                                        |
+      | I SMELL A WUMPUS!                                      |
+      | YOU ARE IN ROOM  8                                     |
+      | TUNNELS LEAD TO  1  7  9                               |
+      +--------------------------------------------------------+
+
+    shared_artifacts:
+      - name: outcome_messages
+        source: "wumpus_classic.constants.MESSAGES — Yob lines 0520 ('HA HA HA - YOU LOSE!'), 0550 ('HEE HEE HEE - THE WUMPUS'LL GETCHA NEXT TIME!!')"
+        displayed_as: "HA HA HA on lose, HEE HEE HEE on win (the famous Yob swap)"
+        consumers: ["CLI renderer"]
+      - name: replay_layout
+        source: "Game._initial_layout — saved at construction, restored on SAME SET-UP=Y"
+        displayed_as: "(internal)"
+        consumers: ["SAME SET-UP=Y handler"]
+
+    emotional_state:
+      pat:
+        entry: "bracing"
+        exit: "catharsis (the message text confirms — and the swap is the tell)"
+      harriet:
+        entry: "watching"
+        exit: "GameEnded event with outcome field observed"
+
+    integration_checkpoint: |
+      GameEnded event must be the last event in the stream for that game session.
+      SAME SET-UP=Y starts a new game using the same initial layout (Yob lines 0560-0610).
+      SAME SET-UP=N starts a new game with a freshly generated layout from the same RNG.
+
+    failure_modes:
+      - "Win message swapped to LOSE text or vice versa — fidelity failure."
+      - "SAME SET-UP=Y produces a different layout than the just-finished game."
+
+    gherkin: |
+      Scenario: Win message is Yob's swapped text
+        Given Pat just shot the wumpus
+        Then Pat sees "HEE HEE HEE - THE WUMPUS'LL GETCHA NEXT TIME!!"
+        And the engine emits GameEnded(outcome=wumpus_shot, message_kind=win)
+
+      Scenario: Loss message is Yob's swapped text
+        Given Pat just fell into a pit
+        Then Pat sees "HA HA HA - YOU LOSE!"
+        And the engine emits GameEnded(outcome=fell_in_pit, message_kind=lose)
+
+      Scenario: SAME SET-UP=Y restores the initial layout
+        Given Pat just finished a game and the initial layout placed the wumpus in room 14
+        When Pat answers "Y" to "SAME SET-UP (Y-N)?"
+        Then the new game's wumpus is in room 14
+        And the new game's player start, pits, and bats match the initial layout
+
+  - id: 7
+    name: "Replay (programmatic)"
+    command: "Game(seed=42)"
+    description: |
+      For Harriet: a recorded session can be replayed by instantiating Game with
+      the same seed and feeding the same command sequence. The resulting event
+      stream must be byte-identical to the original.
+
+    tui_mockup: |
+      +-- Step 7: Programmatic replay --------------------------+
+      | >>> g1 = Game(seed=42)                                  |
+      | >>> events1 = []                                        |
+      | >>> g1.events.subscribe(events1.append)                 |
+      | >>> for cmd in ["N", "M 7", "M 14", "S 2 7 14"]:        |
+      | ...     g1.step(cmd)                                    |
+      | >>> g2 = Game(seed=42)                                  |
+      | >>> events2 = []                                        |
+      | >>> g2.events.subscribe(events2.append)                 |
+      | >>> for cmd in ["N", "M 7", "M 14", "S 2 7 14"]:        |
+      | ...     g2.step(cmd)                                    |
+      | >>> assert events1 == events2  # byte-identical          |
+      +---------------------------------------------------------+
+
+    shared_artifacts:
+      - name: transcript_format
+        source: "wumpus_classic.transcript module"
+        displayed_as: "JSONL: one event per line, header line with seed and version"
+        consumers: ["--transcript=PATH CLI flag", "harness sink", "replay loader"]
+
+    emotional_state:
+      harriet:
+        entry: "expectant"
+        exit: "conviction — the engine is the oracle"
+
+    integration_checkpoint: |
+      Property: for any seed s and any valid command sequence c, Game(seed=s)
+      replaying c produces an event sequence byte-identical to the original.
+      No sink attachment, no harness consumer, may alter this property.
+
+    failure_modes:
+      - "Engine uses os.urandom or time.time() somewhere — replays diverge."
+      - "Sink subscription order changes event emission order — fidelity break."
+      - "JSONL transcript missing seed in header — replay impossible."
+
+    gherkin: |
+      Scenario: Seeded replay is byte-identical
+        Given Harriet recorded a session from Game(seed=42) with commands C
+        When Harriet creates Game(seed=42) and replays C
+        Then the new event stream equals the recorded event stream byte-for-byte
+
+      Scenario: Sink attachment does not alter event stream
+        Given Harriet runs Game(seed=42) with command sequence C and no sinks
+        And Harriet runs Game(seed=42) with command sequence C and a JsonlSink attached
+        Then the event sequence emitted is identical in both runs
+
+      Scenario: Concurrent CLI + JSONL sink — observer effect absent
+        Given Pat plays a CLI session with a JsonlSink tee-d to disk
+        And Pat plays the identical CLI session with no JsonlSink attached
+        When the two runs are compared
+        Then Pat's stdout is byte-identical between the two runs
+        And the JSONL file from the tee-d run contains the complete event sequence
+
+integration_validation:
+
+  shared_artifact_consistency:
+    - artifact: dodecahedron_adjacency
+      must_match_across: [1, 2, 4, 5]
+      failure_message: "Cave gen, sense check, move validation, and arrow path must all consult the same adjacency table. Inconsistency = phantom geography."
+
+    - artifact: sense_order
+      must_match_across: [2]
+      failure_message: "Sense order on room entry must match Yob's L-array iteration (wumpus, pit, pit, bat, bat)."
+
+    - artifact: hazard_check_order
+      must_match_across: [4]
+      failure_message: "Move resolution order must be wumpus -> pit -> bat (Yob 4150/4220/4270)."
+
+    - artifact: outcome_messages
+      must_match_across: [6]
+      failure_message: "Yob's win/lose message swap must be preserved exactly."
+
+    - artifact: seed
+      must_match_across: [1, 7]
+      failure_message: "Seed printed in transcript header must equal the value passed to Game(seed=...) and must be sufficient to reproduce the session."
+
+  invariants:
+    - id: INV-1
+      name: "Cave geometry is fixed dodecahedron"
+      statement: "Adjacency table is constant across all games regardless of seed (only entity placement varies)."
+      source: "Yob lines 0130-0160 DATA statements"
+
+    - id: INV-2
+      name: "Cave gen produces no entity crossovers"
+      statement: "wumpus, pit1, pit2, bat1, bat2, player_start are all distinct rooms."
+      source: "Yob lines 0240-0340"
+
+    - id: INV-3
+      name: "Determinism under seed"
+      statement: "Game(seed=s) with command sequence C produces a deterministic event sequence E. Two instances with the same (s, C) produce equal E."
+      source: "Decision 2"
+
+    - id: INV-4
+      name: "Observer-effect absence"
+      statement: "Sink subscription does not alter event emission. Engine emits the same events whether 0, 1, or N sinks are attached."
+      source: "Decision 4"
+
+    - id: INV-5
+      name: "Yob message swap preserved"
+      statement: "Win prints HEE HEE HEE - THE WUMPUS'LL GETCHA NEXT TIME!!; Loss prints HA HA HA - YOU LOSE!"
+      source: "Decision 3; Yob lines 0490-0550"
+
+    - id: INV-6
+      name: "GameEnded is terminal"
+      statement: "No event is emitted after GameEnded for that game session."
+
+changelog:
+  - date: "2026-05-20"
+    feature: wumpus-classic
+    change: "Initial journey for both personas (Player Pat, Harness Harriet) covering 7 steps from start through programmatic replay."

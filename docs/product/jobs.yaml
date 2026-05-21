@@ -1,0 +1,100 @@
+schema_version: 1
+
+# Single source of truth for jobs-to-be-done across the harebrain repo.
+# Stories in docs/feature/*/discuss/user-stories.md reference these job_id values.
+#
+# Validation status legend:
+#   validated                       - confirmed by ODI interview or DIVERGE wave
+#   synthesized-from-informal-notes - reverse-engineered from prose notes; needs interview confirmation later
+#   infrastructure-only             - story is plumbing with no direct user job (story must carry infrastructure_rationale)
+
+jobs:
+
+  - id: play-classic-wumpus
+    title: Play the 1973 Hunt the Wumpus game faithfully
+    statement: |
+      When a person who knows or wants to learn Yob's 1973 Hunt the Wumpus opens a
+      terminal, they want to play the game with byte-recognizable fidelity to the
+      BASIC original, so they can experience the game that lives in the historical
+      record without an emulator detour.
+    primary_persona: player-pat
+    validation: synthesized-from-informal-notes
+    evidence:
+      - "wumpus/docs/wumpus_idea.md: frames classic Wumpus as the cell-A game across the experiment matrix; fidelity to Yob 1973 is the baseline."
+      - "wumpus/experiments/g_wild_baseline/README.md: documents byte-audited Yob source; fidelity is the reason the BASIC reference exists."
+    forces:
+      push: "Running PC-BASIC requires installing a Python 3.12 isolated tool environment and tolerating GW-BASIC dialect patches."
+      pull: "A pip-installable Python game that runs anywhere Python runs and feels like the original."
+      anxiety: "A 'modern reimplementation' that softens the original's quirks (the message swap, the startle rule) is not the game."
+      habit: "Players reach for PC-BASIC or the kingsawyer mirror; this needs to be at least as one-step as those."
+
+  - id: instrument-wumpus-play
+    title: Capture every game event from a live or programmatic session
+    statement: |
+      When a researcher runs an LLM agent or a human against Hunt the Wumpus and
+      needs to diff what the agent claimed against what actually happened, they want
+      a structured, append-only event stream from every game session, so they can
+      compute divergence-event metrics post-hoc without re-running the game.
+    primary_persona: harness-harriet
+    validation: synthesized-from-informal-notes
+    evidence:
+      - "wumpus/docs/wumpus_idea.md (sections 'What gets compared' and 'What \"smarter\" actually means'): divergence-events is the headline metric; requires per-turn ground-truth state."
+      - "wumpus/experiments/pure_llm_trust.md: explicitly anticipates retroactive replay against the oracle once the chart exists."
+    forces:
+      push: "Without instrumentation, divergence metrics require re-running the game alongside the agent, doubling compute and risking RNG drift."
+      pull: "Tee the same event stream to the CLI renderer and to a JSONL ledger; no compute doubled, no drift."
+      anxiety: "Instrumentation that mutates game behavior (observer effect) invalidates every measurement built on it."
+      habit: "Researchers reach for print-statement archaeology or stdout regex parsing; a typed event schema must be easier than either."
+
+  - id: replay-wumpus-deterministically
+    title: Reproduce a specific game from a recorded seed
+    statement: |
+      When a researcher finds an interesting divergence or scenario in a recorded
+      transcript, they want to replay the exact game from a seed value, so they
+      can investigate without searching for a needle in a stochastic haystack.
+    primary_persona: harness-harriet
+    validation: synthesized-from-informal-notes
+    evidence:
+      - "wumpus/docs/wumpus_idea.md (section 'The experiment matrix'): 'Same seeds across all three' is load-bearing for the comparison design."
+      - "wumpus/experiments/g_wild_baseline/README.md caveat: 'For reproducible experiment runs (later), insert a 5 RANDOMIZE <seed> line at the top.'"
+    forces:
+      push: "Non-seeded runs can't be replayed; bug reports become unreproducible folklore."
+      pull: "Seed value in the transcript header is sufficient to reconstruct the game byte-for-byte."
+      anxiety: "Seeded mode that differs from unseeded mode (e.g., picks different layouts) silently invalidates cross-comparisons."
+      habit: "Researchers expect `Game(seed=42)` to work like NumPy or Python's `random.Random(42)`."
+
+personas:
+
+  - id: player-pat
+    name: Player Pat
+    summary: |
+      A person at a terminal who wants to play Yob's 1973 Hunt the Wumpus. Two
+      sub-shapes: (a) someone who already knows the game and recognizes the quirks
+      ("HA HA HA - YOU LOSE!" on death is the tell); (b) someone learning the game
+      for the first time who needs the on-disk INSTRUCTIONS prompt to do its job.
+    surface: CLI (line-buffered, all-caps prompts, no curses, no scrollback hijack)
+    success_feel: "This is the 1973 game."
+    emotional_arc:
+      start: Curious / off-balance (the game is supposed to disorient — that's the design)
+      middle: Tension (smell + draft + bats-nearby triangulation)
+      end: Catharsis (whether win or lose, the outcome is final and the message text confirms it)
+    anti-confidence: |
+      Note: Yob's game does not build player confidence as it progresses. Bat
+      teleports erase mental maps; the wumpus's 25% stay-put startle rule means
+      "I shot, I missed" doesn't tell the player where the wumpus is. Designing
+      for player confidence would be designing against the game. Pat's good outcome
+      is the *experience* of disorientation, not the absence of it.
+
+  - id: harness-harriet
+    name: Harness Harriet
+    summary: |
+      A researcher or LLM agent driving the game programmatically. Needs the game
+      as a *library* with a Snapshot API, an Event stream, and a deterministic
+      `step()` method. Will run thousands of games unattended, will diff transcripts
+      across replays, will tee event streams into JSONL ledgers.
+    surface: Python API (`Game(seed).step(command) -> Snapshot, list[Event]`)
+    success_feel: "Deterministic, instrumented, oracular."
+    emotional_arc:
+      start: Skepticism ("does this really agree with PC-BASIC?")
+      middle: Trust (seeded replays come back byte-identical; event stream covers every rule from the Yob audit)
+      end: Conviction (the engine is now the ground-truth oracle; LLM divergences are measurable against it)
