@@ -1,0 +1,87 @@
+name: Nightly Full Sweep
+
+on:
+  schedule:
+    - cron: "0 0 * * *"  # 00:00 UTC daily
+  workflow_dispatch: {}  # manual trigger
+
+# Full 3 × 3 matrix (Python 3.11/3.12/3.13 × Linux/macOS/Windows = 9 cells).
+# Runs the full test suite + property tests (hypothesis profile: ci-nightly)
+# + all audits (no continue-on-error).
+
+jobs:
+  full-matrix:
+    name: nightly / ${{ matrix.os }} / py${{ matrix.python-version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.11", "3.12", "3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Install workspace dependencies
+        run: uv sync --all-extras
+        working-directory: python
+
+      - name: Full unit + integration + acceptance test suite
+        run: uv run pytest python/packages/wumpus/tests -v
+        working-directory: python
+
+      - name: R3-S01 snapshot property (nightly profile)
+        run: |
+          if [ -f python/packages/wumpus/tests/property/test_snapshot_property.py ]; then
+            uv run pytest python/packages/wumpus/tests/property/test_snapshot_property.py \
+              --hypothesis-profile=ci-nightly -v
+          else
+            echo "R3-S01 snapshot property test not yet present. Skipping."
+          fi
+        shell: bash
+        working-directory: ${{ github.workspace }}
+
+      - name: R5-S02 variant sweep (nightly profile)
+        run: |
+          if [ -f python/packages/wumpus/tests/property/test_variant_sweep.py ]; then
+            uv run pytest python/packages/wumpus/tests/property/test_variant_sweep.py \
+              --hypothesis-profile=ci-nightly -v
+          else
+            echo "R5-S02 variant sweep not yet present. Skipping."
+          fi
+        shell: bash
+        working-directory: ${{ github.workspace }}
+
+      - name: random.Random stability regression (L7)
+        run: |
+          uv run python -c "import random; assert random.Random(42).randrange(20) == 0, 'random.Random drift detected'"
+        shell: bash
+        working-directory: ${{ github.workspace }}
+
+      - name: All audits (hard-blocking nightly; no continue-on-error)
+        run: |
+          if uv run python -c "import wumpus.audits.surface_leak" 2>/dev/null; then
+            uv run python -m wumpus.audits.surface_leak \
+              python/packages/wumpus/src/wumpus/engine \
+              python/packages/wumpus/src/wumpus/types
+          fi
+          if uv run python -c "import wumpus.audits.determinism_source" 2>/dev/null; then
+            uv run python -m wumpus.audits.determinism_source \
+              python/packages/wumpus/src/wumpus/engine \
+              python/packages/wumpus/src/wumpus/surfaces
+          fi
+          if uv run python -c "import wumpus.audits.module_state" 2>/dev/null; then
+            uv run python -m wumpus.audits.module_state \
+              python/packages/wumpus/src/wumpus
+          fi
+          if [ -f python/packages/wumpus/tests/audits/test_snapshot_serializability.py ]; then
+            uv run pytest python/packages/wumpus/tests/audits/test_snapshot_serializability.py
+          fi
+        shell: bash
+        working-directory: ${{ github.workspace }}

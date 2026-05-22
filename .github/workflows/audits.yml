@@ -1,0 +1,133 @@
+name: Audits
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Four parallel audit jobs (collect-all: a PR sees every audit's result).
+# Each audit is gated by file-existence so the workflow doesn't fail at R0
+# while the audit scripts themselves are still pending implementation (DELIVER
+# creates wumpus.audits.* modules during R3-S03 + R4-S04).
+
+jobs:
+  surface-leak:
+    name: audit / surface-leak (SC8, R4-S04)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync
+        working-directory: python
+      - name: Surface-leak audit (R4-S04)
+        run: |
+          if uv run python -c "import wumpus.audits.surface_leak" 2>/dev/null; then
+            uv run python -m wumpus.audits.surface_leak \
+              python/packages/wumpus/src/wumpus/engine \
+              python/packages/wumpus/src/wumpus/types
+          else
+            echo "Surface-leak audit module not yet present (lands at R4-S04). Skipping."
+          fi
+        shell: bash
+        working-directory: ${{ github.workspace }}
+      - name: Self-test
+        run: |
+          if [ -f python/packages/wumpus/tests/audits/test_surface_leak_self.py ]; then
+            uv run pytest python/packages/wumpus/tests/audits/test_surface_leak_self.py -v
+          else
+            echo "Surface-leak self-test not yet present. Skipping."
+          fi
+        shell: bash
+        working-directory: ${{ github.workspace }}
+
+  determinism-source:
+    name: audit / determinism-source (SC1, R3-S03)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync
+        working-directory: python
+      - name: Determinism-source audit (R3-S03)
+        run: |
+          if uv run python -c "import wumpus.audits.determinism_source" 2>/dev/null; then
+            uv run python -m wumpus.audits.determinism_source \
+              python/packages/wumpus/src/wumpus/engine \
+              python/packages/wumpus/src/wumpus/surfaces
+          else
+            echo "Determinism-source audit not yet present (lands at R3-S03). Skipping."
+          fi
+        shell: bash
+        working-directory: ${{ github.workspace }}
+      - name: Self-test
+        run: |
+          if [ -f python/packages/wumpus/tests/audits/test_determinism_source_self.py ]; then
+            uv run pytest python/packages/wumpus/tests/audits/test_determinism_source_self.py -v
+          else
+            echo "Determinism-source self-test not yet present. Skipping."
+          fi
+        shell: bash
+        working-directory: ${{ github.workspace }}
+
+  module-state:
+    name: audit / module-state (SC7, R3-S03)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync
+        working-directory: python
+      - name: Module-state audit (R3-S03)
+        run: |
+          if uv run python -c "import wumpus.audits.module_state" 2>/dev/null; then
+            uv run python -m wumpus.audits.module_state \
+              python/packages/wumpus/src/wumpus
+          else
+            echo "Module-state audit not yet present (lands at R3-S03). Skipping."
+          fi
+        shell: bash
+        working-directory: ${{ github.workspace }}
+      - name: Self-test
+        run: |
+          if [ -f python/packages/wumpus/tests/audits/test_module_state_self.py ]; then
+            uv run pytest python/packages/wumpus/tests/audits/test_module_state_self.py -v
+          else
+            echo "Module-state self-test not yet present. Skipping."
+          fi
+        shell: bash
+        working-directory: ${{ github.workspace }}
+
+  snapshot-serializability:
+    name: audit / snapshot-serializability (SC6, R3-S02)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync
+        working-directory: python
+      - name: Snapshot serializability fixture suite (R3-S02)
+        run: |
+          if [ -f python/packages/wumpus/tests/audits/test_snapshot_serializability.py ]; then
+            uv run pytest python/packages/wumpus/tests/audits/test_snapshot_serializability.py -v
+          else
+            echo "Snapshot serializability tests not yet present (land at R3-S02). Skipping."
+          fi
+        shell: bash
+        working-directory: ${{ github.workspace }}
+
+  audits-summary:
+    name: audits / composite (K-5)
+    needs: [surface-leak, determinism-source, module-state, snapshot-serializability]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Verify all audits passed
+        run: |
+          if [[ "${{ needs.surface-leak.result }}" != "success" || \
+                "${{ needs.determinism-source.result }}" != "success" || \
+                "${{ needs.module-state.result }}" != "success" || \
+                "${{ needs.snapshot-serializability.result }}" != "success" ]]; then
+            echo "One or more audits failed."
+            exit 1
+          fi

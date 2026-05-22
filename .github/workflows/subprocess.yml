@@ -1,0 +1,54 @@
+name: Subprocess Smoke
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# K-7 — pexpect on Linux+macOS; wexpect on Windows. R1-S09 acceptance criteria.
+# At R0 the subprocess tests don't exist yet; the workflow gracefully skips
+# until DELIVER's R1-S09 slice lands.
+
+jobs:
+  pexpect:
+    name: subprocess / pexpect (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync
+        working-directory: python
+      - name: pexpect smoke test (R1-S09)
+        run: |
+          if [ -f python/packages/wumpus/tests/subprocess/test_pexpect_smoke.py ]; then
+            uv run pytest python/packages/wumpus/tests/subprocess/test_pexpect_smoke.py -v
+          else
+            echo "pexpect smoke not yet present (lands at R1-S09). Skipping."
+          fi
+        shell: bash
+        working-directory: ${{ github.workspace }}
+
+  wexpect:
+    name: subprocess / wexpect (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync
+        working-directory: python
+      - name: wexpect smoke test (R1-S09)
+        # continue-on-error on PRs per L4 (wexpect-on-Windows fragility); hard
+        # gate on nightly cron.
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
+        shell: pwsh
+        run: |
+          if (Test-Path python/packages/wumpus/tests/subprocess/test_wexpect_smoke.py) {
+            uv run pytest python/packages/wumpus/tests/subprocess/test_wexpect_smoke.py -v
+          } else {
+            Write-Host "wexpect smoke not yet present (lands at R1-S09). Skipping."
+          }

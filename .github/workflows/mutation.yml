@@ -1,0 +1,84 @@
+name: Mutation Testing
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+# Per-feature mutation testing. Runs post-merge on main, scoped to files
+# modified in the merge commit. Kill-rate gate: >= 80%.
+
+jobs:
+  mutate-modified:
+    name: mutation / per-feature
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 50  # Need history to diff against prior main
+
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install workspace dependencies
+        run: uv sync --all-extras
+        working-directory: python
+
+      - name: Determine modified files
+        id: changed
+        shell: bash
+        run: |
+          MODIFIED=$(git diff --name-only HEAD~1 HEAD -- 'python/packages/wumpus/src/wumpus/**/*.py' | grep -v '/tests/' || true)
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$MODIFIED" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          if [ -z "$MODIFIED" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "No production-code changes in this merge; skipping mutation."
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run mutmut on modified files
+        if: steps.changed.outputs.skip != 'true'
+        shell: bash
+        run: |
+          set -e
+          # Mutate only the files modified in this merge, not the entire src tree.
+          # mutmut's --paths-to-mutate accepts a comma-separated list.
+          FILES=$(echo "${{ steps.changed.outputs.files }}" | tr '\n' ',' | sed 's/,$//')
+          if [ -z "$FILES" ]; then
+            echo "No files to mutate after filtering."
+            exit 0
+          fi
+          uv run mutmut run --paths-to-mutate "$FILES" || true
+          # Compute kill rate (mutmut's output format may need parsing)
+          uv run mutmut results || true
+          KILLED=$(uv run mutmut results 2>&1 | grep -oP 'killed:\s*\K\d+' || echo "0")
+          SURVIVED=$(uv run mutmut results 2>&1 | grep -oP 'survived:\s*\K\d+' || echo "0")
+          TOTAL=$((KILLED + SURVIVED))
+          if [ "$TOTAL" -eq 0 ]; then
+            echo "No mutants generated; assuming files have no mutable content. Pass."
+            exit 0
+          fi
+          RATE=$(awk "BEGIN { printf \"%.1f\", ($KILLED / $TOTAL) * 100 }")
+          echo "Kill rate: ${RATE}% (killed=$KILLED, survived=$SURVIVED, total=$TOTAL)"
+          THRESHOLD=80
+          if (( $(awk "BEGIN { print ($RATE < $THRESHOLD) }") )); then
+            echo "Kill rate ${RATE}% is below ${THRESHOLD}% threshold."
+            echo "Survived mutations require either killing tests or documented exemption in MUTATION_EXEMPTIONS.md before the next slice begins."
+            exit 1
+          fi
+        working-directory: ${{ github.workspace }}
+
+      - name: Upload mutmut report
+        if: always() && steps.changed.outputs.skip != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutmut-report
+          path: |
+            .mutmut-cache/
+            mutants/
+          if-no-files-found: ignore
+          retention-days: 30

@@ -1,0 +1,111 @@
+name: PR Gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    name: test (${{ matrix.os }} / py${{ matrix.python-version }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Install workspace dependencies
+        run: uv sync --all-extras
+        working-directory: python
+
+      - name: Run unit + integration tests (wumpus package)
+        run: uv run pytest python/packages/wumpus/tests -v --tb=short
+        working-directory: python
+
+      # The KPI-specific test files below are guarded: if they don't exist yet
+      # (DELIVER hasn't created them at this slice), the step skips cleanly.
+
+      - name: Run K-1 byte-fidelity (R1-S10 BASIC fixtures)
+        run: |
+          if [ -f python/packages/wumpus/tests/regression/test_basic_fixtures.py ]; then
+            uv run pytest python/packages/wumpus/tests/regression/test_basic_fixtures.py -v
+          else
+            echo "K-1 fixture suite not yet present (lands at R1-S10). Skipping."
+          fi
+        shell: bash
+        working-directory: ${{ github.workspace }}
+
+      - name: Run K-2 determinism property (R2-S03)
+        run: |
+          if [ -f python/packages/wumpus/tests/property/test_determinism.py ]; then
+            uv run pytest python/packages/wumpus/tests/property/test_determinism.py -v
+          else
+            echo "K-2 determinism property not yet present (lands at R2-S03). Skipping."
+          fi
+        shell: bash
+        working-directory: ${{ github.workspace }}
+
+      - name: Run K-3 Mystery-seam paired-hash (R4-S05)
+        run: |
+          if [ -f python/packages/wumpus/tests/property/test_mystery_seam.py ]; then
+            uv run pytest python/packages/wumpus/tests/property/test_mystery_seam.py -v
+          else
+            echo "K-3 Mystery-seam test not yet present (lands at R4-S05). Skipping."
+          fi
+        shell: bash
+        working-directory: ${{ github.workspace }}
+
+      - name: Run K-4 snapshot round-trip (R3-S01/R3-S02)
+        run: |
+          if [ -f python/packages/wumpus/tests/property/test_snapshot.py ]; then
+            uv run pytest python/packages/wumpus/tests/property/test_snapshot.py -v
+          else
+            echo "K-4 snapshot tests not yet present (land at R3-S01/R3-S02). Skipping."
+          fi
+        shell: bash
+        working-directory: ${{ github.workspace }}
+
+      - name: Coverage
+        run: |
+          uv run pytest python/packages/wumpus/tests \
+            --cov=python/packages/wumpus/src/wumpus \
+            --cov-report=xml --cov-report=term \
+            --cov-fail-under=0
+        working-directory: ${{ github.workspace }}
+        # cov-fail-under=0 at R0 (no production code yet); raise to 85 at R1-S01
+        continue-on-error: true
+
+      - name: Upload coverage as PR comment
+        if: github.event_name == 'pull_request' && matrix.os == 'ubuntu-latest'
+        uses: py-cov-action/python-coverage-comment-action@v3
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MINIMUM_GREEN: 90
+          MINIMUM_ORANGE: 85
+        continue-on-error: true
+
+  pre-commit:
+    name: pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pre-commit
+        run: pip install pre-commit
+      - name: Run pre-commit on all files
+        run: pre-commit run --all-files
+        continue-on-error: true
+        # continue-on-error until DELIVER has lifted formatting; flip after R0.

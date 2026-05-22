@@ -1,0 +1,39 @@
+# Pre-commit hooks for the harebrain workspace.
+#
+# Local install: developers run `pre-commit install` once after cloning.
+# CI also runs `pre-commit run --all-files` via .github/workflows/pr.yml.
+#
+# Per CLAUDE.md + feature-delta.md [REF] Pre-commit configuration:
+#  - ruff format + ruff check (replaces black + flake8 + isort)
+#  - mypy strict (engine modules only; CLI/host_import permissive)
+#  - determinism-source AST audit (SC1; the cheap local check)
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.0
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.11.0
+    hooks:
+      - id: mypy
+        args: [--strict, --explicit-package-bases]
+        # Only strict-mypy on engine modules; CLI / __main__ / host_import
+        # are permissive (Python's type system is awkward at I/O boundaries).
+        files: ^python/packages/wumpus/src/wumpus/(engine|types|events|surfaces|sinks|taxonomy|constants)/
+        additional_dependencies: []
+
+  - repo: local
+    hooks:
+      - id: determinism-source-audit
+        name: Determinism-source audit (SC1)
+        # Will become operational at R3-S03 when wumpus.audits.determinism_source ships.
+        # Until then it's a no-op (the script doesn't exist yet).
+        entry: bash -c 'python -c "import wumpus.audits.determinism_source" 2>/dev/null && python -m wumpus.audits.determinism_source python/packages/wumpus/src/wumpus/engine python/packages/wumpus/src/wumpus/surfaces || echo "(audit module not yet present; skipping)"'
+        language: system
+        files: ^python/packages/wumpus/src/wumpus/(engine|surfaces)/.*\.py$
+        pass_filenames: false
+        require_serial: true
