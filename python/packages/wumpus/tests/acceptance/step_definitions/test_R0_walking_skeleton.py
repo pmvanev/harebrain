@@ -17,7 +17,6 @@ from __future__ import annotations
 
 from typing import Any
 
-import pytest
 from pytest_bdd import given, scenarios, then, when
 
 # Bind the .feature file. Path is relative to this step-defs file's parent.
@@ -83,7 +82,9 @@ def _action_sequence() -> list[str]:
 
 
 @when("both instances execute the action sequence to completion")
-def _execute_paired_runs(paired_games: dict[str, Any], action_sequence: list[str]) -> None:
+def _execute_paired_runs(
+    paired_games: dict[str, Any], action_sequence: list[str]
+) -> None:
     """Drive both Games through the action sequence, collecting their events.
 
     At DISTILL-time, paired_games['g1'].step doesn't exist yet — this will
@@ -182,7 +183,9 @@ def _run_no_sink(game_and_actions: dict[str, Any]) -> list[Any]:
     "the run is performed once with an InMemorySink attached",
     target_fixture="sink_events",
 )
-def _run_with_sink(game_and_actions: dict[str, Any], in_memory_sink_factory) -> list[Any]:
+def _run_with_sink(
+    game_and_actions: dict[str, Any], in_memory_sink_factory
+) -> list[Any]:
     g = game_and_actions["make_game"](seed=42)
     sink = in_memory_sink_factory()
     g.subscribe(sink)
@@ -253,7 +256,9 @@ def _world_states_equal(world_state_results: dict[str, Any]) -> None:
 
 @then("neither call advances the engine's RNG cursor")
 def _rng_cursor_unchanged(world_state_results: dict[str, Any]) -> None:
-    assert world_state_results["before_cursor"] == world_state_results["after_cursor"], (
+    assert (
+        world_state_results["before_cursor"] == world_state_results["after_cursor"]
+    ), (
         "Game.world_state() advanced the RNG cursor. "
         "Goal 5.2 'API is inspectable' implies side-effect-free reads; SC1 also at risk."
     )

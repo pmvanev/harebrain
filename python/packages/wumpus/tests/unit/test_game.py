@@ -18,7 +18,7 @@ from wumpus.sinks import InMemorySink
 def test_construction_emits_game_started() -> None:
     """A freshly-constructed Game has exactly one event in its debug log:
     a GameStarted carrying the seed."""
-    game = Game(seed=42)
+    game = Game(seed=42, cave="toy")
     assert len(game._debug_events) == 1
     event = game._debug_events[0]
     assert isinstance(event, GameStarted)
@@ -37,9 +37,9 @@ def test_construction_emits_game_started() -> None:
     ],
 )
 def test_step_rejects_malformed_action(bad_action: str) -> None:
-    """R0 supports `move <int>` ONLY; everything else raises ValueError so
-    no R1+ action types accidentally execute against the R0 engine."""
-    game = Game(seed=42)
+    """The engine supports `move <int>` ONLY; everything else raises ValueError
+    so no R1+ action types accidentally execute before their slice lands."""
+    game = Game(seed=42, cave="toy")
     with pytest.raises(ValueError):
         game.step(bad_action)
 
@@ -48,7 +48,7 @@ def test_subscribe_replays_history_to_late_sink() -> None:
     """A sink attached AFTER `GameStarted` still records that event,
     because subscribe() replays history. This is the contract scenario 2
     of the R0 acceptance suite depends on."""
-    game = Game(seed=42)
+    game = Game(seed=42, cave="toy")
     game.step("move 2")  # turn 1: MoveAttempted + MoveResolved
     sink = InMemorySink()
     game.subscribe(sink)

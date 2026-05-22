@@ -15,11 +15,13 @@ from wumpus.events import MoveAttempted, MoveResolved
 
 
 def test_accepted_move_advances_world_and_emits_two_events() -> None:
-    """Move from room 1 to adjacent room 2: player_room updates, turn+=1,
-    two events emitted (MoveAttempted accepted=True, then MoveResolved)."""
+    """Move from room 1 to adjacent room 2 in the toy cave: player_room updates,
+    turn+=1, two events emitted (MoveAttempted accepted=True, then MoveResolved)."""
     world = initial_world()
     rng = random.Random(42)
-    next_world, events = resolve_move(world, target_room=2, rng_cursor="x", rng=rng)
+    next_world, events = resolve_move(
+        world, target_room=2, rng_cursor="x", rng=rng, cave="toy"
+    )
 
     assert next_world.player_room == 2
     assert next_world.turn == world.turn + 1
@@ -32,11 +34,13 @@ def test_accepted_move_advances_world_and_emits_two_events() -> None:
 
 
 def test_rejected_move_leaves_world_unchanged_and_emits_rejection() -> None:
-    """Move from room 1 to non-adjacent room 3: world stays put,
+    """Move from room 1 to non-adjacent room 3 in the toy cave: world stays put,
     single MoveAttempted(accepted=False) event emitted."""
     world = initial_world()
     rng = random.Random(42)
-    next_world, events = resolve_move(world, target_room=3, rng_cursor="x", rng=rng)
+    next_world, events = resolve_move(
+        world, target_room=3, rng_cursor="x", rng=rng, cave="toy"
+    )
 
     assert next_world == world
     assert len(events) == 1

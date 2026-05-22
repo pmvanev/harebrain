@@ -44,20 +44,20 @@ def in_memory_sink_factory():
 
 @pytest.fixture
 def make_game():
-    """Factory that constructs a Game with the canonical R0 toy-cave fixture.
+    """Factory that constructs a Game with the R0 toy-cave fixture.
 
     R0 uses a hardcoded 3-room linear cave with one wumpus; this is NOT the
     real dodecahedron (that lands at R1-S01). The fixture is intentional: R0
     locks the abstractions on the cheapest substrate.
 
-    The actual Game class is implemented by DELIVER's R0 slice; this fixture
-    imports it lazily.
+    Post R1-S01, `Game(seed=k)` defaults to the real Yob dodecahedron. The
+    R0 acceptance scenarios still rely on the toy cave's deterministic
+    "move 1 -> 2 -> 3" path, so this factory threads `cave="toy"` through.
     """
 
     def _make(seed: int = 42):
-        # Lazy import: ImportError until DELIVER R0 lands.
         from wumpus import Game  # noqa: F401
 
-        return Game(seed=seed)
+        return Game(seed=seed, cave="toy")
 
     return _make

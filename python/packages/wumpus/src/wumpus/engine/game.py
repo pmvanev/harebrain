@@ -27,9 +27,10 @@ import pickle
 import random
 from typing import TYPE_CHECKING
 
-from wumpus.engine._r0_toy_cave import initial_world
+from wumpus.engine._r0_toy_cave import initial_world as _r0_toy_initial_world
+from wumpus.engine.cave_gen import generate_initial_layout
 from wumpus.engine.hash import internal_state_hash
-from wumpus.engine.transitions import resolve_move
+from wumpus.engine.transitions import _adjacent_rooms_for_cave, resolve_move
 from wumpus.events import SCHEMA_VERSION, Event, GameStarted
 from wumpus.types import Observation, Snapshot, World
 
@@ -42,18 +43,29 @@ _R0_ENGINE_VERSION: str = "0.0.0"
 _R0_SURFACE_ID: str = "<placeholder>"
 _R0_SURFACE_VARIANT: str = "<placeholder>"
 
+# Cave-topology selector. "yob" is the canonical 20-room dodecahedron + FNB
+# rejection-loop layout (R1-S01 default). "toy" is the R0 walking-skeleton
+# 3-room linear cave, retained for the R0 acceptance + unit tests that pin
+# the engine's deterministic-from-seed abstractions on the cheapest substrate.
+_CAVE_YOB: str = "yob"
+_CAVE_TOY: str = "toy"
+
 
 class Game:
     """OOP shell over the functional engine core.
 
-    R0 supports `step("move <N>")` only. `shoot`, `arrow walks`, hazard
-    resolution, and surface seam land in later releases.
+    R1-S01 supports `step("move <N>")` against the 20-room dodecahedron by
+    default. The `cave="toy"` constructor option falls back to R0's 3-room
+    linear cave for tests that pin the engine's abstractions on the cheapest
+    substrate; that fallback is test-only and will be retired when R0's
+    acceptance scenarios are rewritten against the real geometry.
     """
 
-    def __init__(self, seed: int) -> None:
+    def __init__(self, seed: int, cave: str = _CAVE_YOB) -> None:
         self._seed: int = seed
         self._random: random.Random = random.Random(seed)
-        self._world: World = initial_world()
+        self._cave: str = cave
+        self._world: World = self._build_initial_world(cave)
         self._subscribers: list[Sink] = []
         # R0 _debug_events decision (Option A): always-populated internal
         # event log, scoped to the Game instance. Tests use this to compare
@@ -87,7 +99,7 @@ class Game:
         target_room = self._parse_move_action(action)
         rng_cursor = self._encode_rng_cursor()
         next_world, events = resolve_move(
-            self._world, target_room, rng_cursor, self._random
+            self._world, target_room, rng_cursor, self._random, cave=self._cave
         )
         self._world = next_world
         for event in events:
@@ -159,21 +171,45 @@ class Game:
         return base64.b64encode(state_bytes).decode("ascii")
 
     def _render_observation(self) -> Observation:
-        """R0 observation: placeholder rendered lines + ground-truth fields.
+        """Placeholder rendered lines + ground-truth fields.
 
-        The real Yob render lands at R4-S03; R0 emits `<placeholder>` lines so
-        no Yob text leaks into engine code (SC8).
+        The real Yob render lands at R4-S03; until then the engine emits
+        `<placeholder>` lines so no Yob text leaks into engine code (SC8).
         """
-        from wumpus.engine._r0_toy_cave import adjacent_rooms
-
+        adjacencies = _adjacent_rooms_for_cave(self._cave, self._world.player_room)
         return Observation(
             rendered_lines=("<placeholder>",),
             prompt=None,
             outcome=None,
             player_room=self._world.player_room,
-            adjacencies=adjacent_rooms(self._world.player_room),
+            adjacencies=adjacencies,
             senses=(),
         )
+
+    def _build_initial_world(self, cave: str) -> World:
+        """Construct the initial World per the selected cave topology.
+
+        - `"yob"`: roll Yob's FNB rejection-loop layout from the seeded RNG
+          against the 20-room dodecahedron (R1-S01 canonical path).
+        - `"toy"`: return the R0 walking-skeleton 3-room linear cave fixture
+          (test-only; no RNG consumed).
+        """
+        if cave == _CAVE_YOB:
+            layout = generate_initial_layout(self._random)
+            return World(
+                player_room=layout.player_start,
+                wumpus_rooms=layout.wumpus_rooms,
+                pit_rooms=layout.pit_rooms,
+                bat_rooms=layout.bat_rooms,
+                arrows=0,
+                turn=0,
+                alive=True,
+                pending_prompt=None,
+                pending_arrow_path=(),
+            )
+        if cave == _CAVE_TOY:
+            return _r0_toy_initial_world()
+        raise ValueError(f"Unknown cave topology: {cave!r}. Expected 'yob' or 'toy'.")
 
     @staticmethod
     def _parse_move_action(action: str) -> int:
