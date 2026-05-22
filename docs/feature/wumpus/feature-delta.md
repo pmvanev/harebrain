@@ -2747,13 +2747,128 @@ The ledger is observability, not a driving port. Files under `docs/product/journ
 
 ---
 
+## Wave: DISCUSS / [REF] Benchmark Substrate Notes
+
+This engine is the **substrate** for the experiment matrix described in `wumpus_idea.md`. The benchmarks themselves (cells A–G across classic + mystery + escalation ladders) live in the harness layer **above** the engine. This section records what the substrate *enables* vs. what the *harness must build on top*, aligned with the Agentic Benchmark Checklist (ABC, Zhu et al. 2025, `arXiv:2507.02825`).
+
+### What the substrate ships (engine's responsibility)
+
+- Deterministic-from-seed runs (SC1, K-2) — repeatable end-to-end testing
+- Structured ground truth via `Game.world_state()` (R0, R1-S01) — separable from `Observation` shown to the LLM
+- Full event ledger with all state diff'able post-hoc (Tier A4 + R2-S01) — no need to re-run for divergence metrics
+- Snapshot/restore byte-exact round-trip (R3-S01, R3-S02) — verification probes can pause without losing state
+- Surface seam for contamination control (R4-S03 through R4-S06) — Mystery variant addresses public-corpus contamination structurally
+- Variant parametric coverage (R5-S02) — fuzz-test depth across 7+ dimensions including topology
+- Multiple terminal outcomes explicit (R1-S07) — state-matching covers all achievable outcomes
+- Schema-validated events with additive evolution (R2-S01, CC-AC-2) — schema drift fails fast
+
+### What the substrate enables but does NOT ship (harness builds on top)
+
+- **Per-seed solvability filter** — some seeds produce unwinnable boards (player adjacent to wumpus turn 1; bat-loops into pits). The engine does not reject unwinnable seeds. **Harness** filters via `Game.world_state()` + path-search before assigning seeds to tasks, OR reports win-rate as bounded by solvability-rate.
+- **Optimal-play oracle** — Cells A/C are scripted/heuristic, not Bayesian-optimal. A true Wumpus oracle (back out wumpus location from sense history under full observability) is feasible against `world_state()` + the event ledger but lives in the harness, not the engine.
+- **Per-task statistical significance** — N-seed runs are trivially possible (`Game(seed=i) for i in range(N)`); confidence intervals, hypothesis tests, and effect-size calculations live in the analysis notebook.
+- **Non-AI baseline reporting (ABC R.12)** — cells A (scripted), B (random-legal), C (heuristic) wire trivially through the substrate. The *requirement to report them alongside LLM results* lives in the parent note's benchmark protocol.
+- **Trivial-agent floor (ABC R.13)** — a no-op or always-room-1 agent runs through the substrate without issue. The *requirement to include such a baseline* is the harness's.
+- **LLM-as-Judge guidance (ABC O.c)** — the engine intentionally avoids LLM-as-Judge because ground truth is structured. Where harnesses use LLM-as-Judge for *narration quality* (subjective), the engine substrate is silent; the harness must validate judge accuracy + self-consistency per ABC O.c.1.
+- **Open evaluation harness (ABC R.2)** — the engine is open-source; the harness/notebook layer is a separate downstream artifact.
+
+### ABC checklist mapping
+
+Items the engine substrate satisfies, vs. items deferred to the harness layer:
+
+| ABC item | Wumpus alignment | Owner |
+|---|---|---|
+| **T.4** Residual state cleared between runs | SC7 + R3-S03 audit + R3-S01 snapshot round-trip | engine ✓ |
+| **T.5** Agent isolated from ground truth | `world_state()` harness-only; `Observation` player-only | engine ✓ |
+| **T.6** Setup does not change over time | Local, frozen, no external URLs | engine ✓ |
+| **T.7** Ground truth verified for correctness | BASIC source IS the ground truth; verified via R1-S10 byte-identical fixtures | engine ✓ |
+| **T.8** Each task verified solvable | Engine doesn't ship per-seed solvability check | **harness** |
+| **T.9** Oracle solver included | Cells A/C are not optimal; true oracle is harness-layer | **harness** |
+| **T.10** No exploit vulnerabilities | SC1 + SC7 + SC8 + R4-S04 surface-leak audit | engine ✓ |
+| **O.d** Unit testing well-designed | R1-S10 byte-identical regression (not just "tests pass") + R2-S01 schema validation | engine ✓ |
+| **O.e.1–3** Fuzz testing covers edge cases / data types / value ranges | R5-S02 sweeps 7+ dimensions including topology (KernelBench failure avoided) | engine ✓ |
+| **O.f.1** E2E testing covers all workflow branches | J1 + R1-S10 covers multiple seeds × terminal-outcomes | engine ✓ |
+| **O.f.2** E2E prevents non-deterministic ("flaky") results | SC1 forbids `time`/`urandom`; K-2 measures determinism | engine ✓ |
+| **O.g.1** Ground truth includes all achievable outcomes | All `GameEnded(outcome=...)` types explicit; multiple terminal outcomes per seed possible | engine ✓ |
+| **O.g.2** State space covers relevant + irrelevant states | `internal_state_hash` covers ALL state, not just task-relevant | engine ✓ |
+| **O.g.3** State space complex enough to prevent trivial mods | Multi-room, multi-hazard, RNG-cursored snapshot | engine ✓ |
+| **R.1–2** Open-source data + harness | Engine open-source; harness is separate downstream artifact | engine ✓ + harness |
+| **R.3** Data contamination prevention | **Mystery surface seam IS the contamination control** | engine ✓ (structurally) |
+| **R.7–9** Document mitigations + qualitative + quantitative impact | DoR caveats + `[REF] Known Limitations` below + per-slice Risk rows | engine ✓ (this wave) |
+| **R.10** Statistical significance reporting | Substrate ready; CI computation is notebook | **harness** |
+| **R.12** Non-AI baselines reported | Cells A/B/C wire trivially; reporting is harness | **harness** |
+| **R.13** Trivial-agent baselines reported | No-op agent runs; reporting requirement is harness | **harness** |
+
+### Failure modes the design structurally cannot have
+
+Listed for the record so future maintainers don't reintroduce them. Each row is a known failure-mode the ABC paper found in popular agentic benchmarks; each is structurally precluded by a specific wave-decision.
+
+| Paper's failure-mode | Why wumpus cannot have it |
+|---|---|
+| τ-bench: "do-nothing → 38% success" | No "leave environment unchanged → success" framing; terminal states are explicit; no-op agent dies or runs out of arrows |
+| SWE-Lancer: agent overwrote test files for `assert 1 == 1` | No test files to manipulate at runtime; ground truth is captured BASIC transcripts on disk (R1-S10) |
+| SWE-bench-Verified: tests pass without resolving issue (24% of top-50) | Closed-form spec (BASIC source); byte-exact regression replaces "did tests pass" |
+| WebArena: substring matching with extraneous content | Wumpus uses structured state diff (`internal_state_hash`), never substring matching, anywhere |
+| WebArena: LLM-as-judge with unvalidated accuracy | Engine avoids LLM-as-judge — structured ground truth makes it unnecessary |
+| OSWorld: HTML selectors broken by website updates | Engine is a frozen pip-installable package; no external URLs anywhere |
+| KernelBench: fuzzer only varied tensor values not shapes | R5-S02 sweeps topology, hazard counts, arrow counts, move probability — not just RNG seed |
+
+---
+
+## Wave: DISCUSS / [REF] Known Limitations
+
+What this engine substrate does NOT guarantee. Aggregates DoR caveats from `[REF] DoR Validation`, ABC-audit gaps from `[REF] Benchmark Substrate Notes`, and structural caveats from prior phases. Maintaining this list is **insurance against the ABC paper's headline finding** that 80% of audited agentic benchmarks fail to acknowledge weaknesses.
+
+### Engine-layer limitations (this feature's scope)
+
+- **L1 — Per-seed solvability not verified.** Some random seeds produce unwinnable Wumpus boards. The engine does not filter these out. *Impact:* naive benchmarking under-reports LLM capability if some seeds are structurally unwinnable. *Mitigation:* harness filters via `Game.world_state()` + path-search BEFORE assigning seeds to tasks, OR reports win-rate alongside solvability-rate as a bounded measurement.
+
+- **L2 — No optimal-play oracle ships.** Cell A is scripted (faithful Yob), cell C is heuristic; neither is a Bayesian-optimal player that back-projects wumpus location from sense history. *Impact:* "optimal play" is unmeasured; the ceiling of measurable agent capability is bounded above by whatever oracle the harness chooses. *Mitigation:* the engine's `world_state()` + ledger make a true oracle feasible as a downstream feature; track as a candidate post-feature slice.
+
+- **L3 — Mid-prompt snapshot shape risk** (DoR C-R1-S05). Snapshot's `pending_prompt` + `pending_arrow_path` fields land in R1-S05; if their shape needs adjustment, downstream stories may need rework. *Mitigation:* DESIGN locks shape before R1-S05 starts.
+
+- **L4 — `wexpect` on Windows is fragile** (DoR C-R1-S09). *Mitigation:* slice splits into pexpect (Linux/macOS, ready) and wexpect (Windows, optional) if Windows blocks.
+
+- **L5 — `EscalationRule` hook methods deferred to DESIGN** (DoR C-R4-S02). The extension slot's exact hook API is not pinned. *Mitigation:* slot ships empty + a no-op `IdentityRule`; hook methods land with the first L3/L4 downstream feature.
+
+- **L6 — MPL host-import signature blocked-on-spike** (R5-S01). Engine substrate is ready (SC12, R3); adapter waits on external work. *Mitigation:* R0–R4 ship without R5-S01; goals-doc done-criterion #3 deferred until spike completes.
+
+- **L7 — `random.Random` stability across Python versions is a Python guarantee we depend on but Python does not strongly promise.** Python's stdlib does NOT contractually guarantee `random.Random` produces identical sequences across major Python versions. *Mitigation:* pin Python 3.11+ (`requires-python` in pyproject.toml); R1-S01 has a regression test (`random.Random(42).randrange(20)` equals a pinned constant) that catches drift at CI time. If Python ever breaks this guarantee, every replay fails CI immediately and we know.
+
+- **L8 — Pre-state / post-state framing deferred to DESIGN** (Tier A4 amendment). This wave does not pin a once-per-turn `TurnBoundary` event; instead emits per-effect events with `internal_state_hash`. *Mitigation:* DESIGN closes the open decision (per-effect framing recommended, with opt-in `TurnBoundary` available for verbose-mode sessions).
+
+### Harness-layer limitations (downstream responsibility, surfaced here for explicit handoff)
+
+- **L9 — Statistical significance not computed by engine.** Multi-seed runs produce ledgers; CIs, hypothesis tests, and effect sizes are notebook concerns. (ABC R.10)
+
+- **L10 — Non-AI baselines and trivial-agent baselines must be REPORTED, not just RUN.** Cells A (scripted), B (random-legal), C (heuristic), and a no-op trivial agent all run trivially through the substrate. *The requirement to include them in benchmark output* lives in the parent note's protocol. (ABC R.12, R.13)
+
+- **L11 — LLM-as-Judge for narration quality.** Where downstream benchmarks score *narration quality* via LLM-as-Judge (separate from scoring *correctness* via structured state diff), the judge's accuracy + self-consistency must be validated per ABC O.c.1.
+
+- **L12 — Substring matching is forbidden for correctness-scoring.** Use `internal_state_hash` or structured event diff. Substring matching against rendered text is brittle, surface-form-dependent (defeats J2), and is the exact failure mode τ-bench and WebArena exhibited.
+
+### Validation-hygiene limitations
+
+- **L13 — DIVERGE wave was not run.** All five jobs in `[REF] JTBD` carry `validation: synthesized-from-goals-doc`. Real ODI interviews would refine the JTBD framing and may surface unstated jobs. (See `[REF] Wave Decisions` R1.)
+
+- **L14 — `docs/product/vision.md` is deleted in working tree.** Changes 1–3 in `[REF] Changed Assumptions` are queued as deferred-text per user direction at Phase 3 review. DESIGN inherits the deferred status. (See `[REF] Pre-requisites`.)
+
+### Maintenance contract
+
+- New limitations added as they surface (downstream waves, post-release findings, etc.)
+- Items marked **RESOLVED** with date + commit reference rather than removed
+- Each limitation has: description, impact (what it breaks if ignored), mitigation (how to live with it or fix it)
+- If a limitation is resolved, the resolution mitigates the impact — not just "it stopped mattering"
+
+---
+
 ## Wave: DISCUSS / [REF] Handoff Package
 
 End of DISCUSS. Phase 5 output. Structured to match the `/nw-discuss` command's Wave Decisions Summary template + the explicit handoff destinations.
 
 ### Handoff destinations
 
-- **Primary:** `nw-solution-architect` (DESIGN wave) — for `[REF] Journeys`, `[REF] Shared Artifacts Registry`, `[REF] System Constraints`, `[REF] User Stories`, `[REF] Acceptance Criteria`, `[REF] Wave Decisions`, `[REF] Story Map`.
+- **Primary:** `nw-solution-architect` (DESIGN wave) — for `[REF] Journeys`, `[REF] Shared Artifacts Registry`, `[REF] System Constraints`, `[REF] User Stories`, `[REF] Acceptance Criteria`, `[REF] Wave Decisions`, `[REF] Story Map`, `[REF] Benchmark Substrate Notes`, `[REF] Known Limitations`.
 - **Secondary:** `nw-platform-architect` (DEVOPS wave, KPIs only) — for `[REF] Outcome KPIs`. The eight feature-level KPIs (K-1 through K-8) are the DevOps wave's measurement contract.
 - **Tertiary (if invoked):** `nw-ddd-architect` for the `Snapshot` / `Observation` / `Event` / `VariantConfig` / `Surface` type designs (Tier A1–A5) — they have cross-cutting domain implications.
 
