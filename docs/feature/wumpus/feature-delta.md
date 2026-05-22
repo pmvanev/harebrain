@@ -2994,3 +2994,1107 @@ When DESIGN accepts handoff:
 - Flip `[REF] Phase Tracker` row 5 from `in-progress` to `done`.
 - DISCUSS wave artifacts in this file become read-only for DESIGN purposes (any change requires re-opening DISCUSS).
 - The 25 stories become the input to DESIGN's component decomposition.
+
+---
+
+## Wave: DESIGN / [REF] Phase Tracker
+
+Workflow status for the DESIGN wave. All phases completed in a single dispatch following user approval of the trade-offs draft at `docs/feature/wumpus/design-tradeoffs-draft.md`.
+
+| # | Phase | Status | Output |
+|---|---|---|---|
+| 1 | Mode selection (Guide vs Propose) | **done** — Guide mode | trade-offs draft existed; user weighed options inline |
+| 2 | Multi-architect context (read `docs/product/architecture/brief.md`) | **done** (no prior brief.md; first architect for this feature; harebrain single-file convention) | inputs noted in `[REF] Inputs Consulted` below |
+| 3 | Requirements analysis (quality attributes, constraints, team structure) | **done** | `[REF] Quality Attributes` |
+| 4 | Existing system analysis (Glob/Grep) | **done** | sibling-package patterns mined; see `[REF] Quality Attributes` § Existing system findings |
+| 5 | Constraint and priority analysis | **done** | quality attributes ranked; J4 cold-start surfaced as a non-obvious driver |
+| 6 | Architecture design (paradigm, C4, components, ADRs, tech stack) | **done** | `[REF] Paradigm`, `[REF] C4 Context`, `[REF] C4 Container`, `[REF] Component Sketch`, `[REF] Tier A type definitions`, `[REF] Engine module layout`, `[REF] ADRs`, `[REF] Tech Stack` |
+| 7 | Quality validation (ISO 25010, dependency-inversion, simplest-solution, C4 completeness) | **done** | gates checked inline against `[REF] Quality Attributes` ranking |
+| 8 | Peer review + handoff | **deferred** (harebrain convention: peer review is an explicit user trigger, not gate-default; user has approved trade-offs, dispatch finalizes inline) | `[REF] Handoff Package` |
+
+---
+
+## Wave: DESIGN / [REF] Inputs Consulted
+
+Read before DESIGN execution (prior-wave consultation gate). The DISCUSS sections in this file are the primary input.
+
+- ✓ `## Wave: DISCUSS / [REF] JTBD` — five jobs, three personas; quality-attribute prioritization derives from job opportunity scores
+- ✓ `## Wave: DISCUSS / [REF] Personas` — three personas (player-pat, harness-harriet, mpl-cell-consumer); each maps to a driving port
+- ✓ `## Wave: DISCUSS / [REF] Journeys` — J1 (CLI / Pat), J2 (Mystery probe / Harriet+LLM), J3 (programmatic API + JSONL / Harriet), J4 (host-import / MPL)
+- ✓ `## Wave: DISCUSS / [REF] Shared Artifacts Registry` — Tier A (Snapshot, Observation, Event, VariantConfig, Surface skeletons) → DESIGN locks the exact shapes; Tier B (engine constants) → unchanged
+- ✓ `## Wave: DISCUSS / [REF] System Constraints` — SC1–SC12; non-functional contract
+- ✓ `## Wave: DISCUSS / [REF] User Stories` — R0–R5 slice carpaccio; AC reviewed for technical feasibility
+- ✓ `## Wave: DISCUSS / [REF] Acceptance Criteria` — CC-AC-1 through CC-AC-5; cross-cutting
+- ✓ `## Wave: DISCUSS / [REF] Wave Decisions` — D1–D11; pinned business decisions
+- ✓ `## Wave: DISCUSS / [REF] Known Limitations` — L1–L20; risks that ADRs must address (especially L4 pexpect/wexpect, L7 random.Random stability, L15/L16 agent-vs-harness leak)
+- ✓ `wumpus/docs/wumpus_python_goals.md` — five-goal substrate spec
+- ✓ `docs/product/jobs.yaml` — confirmed 5 jobs with 2 NEW + 3 refined (DISCUSS Phase 5 update)
+- ✓ Existing system: `python/packages/hello_world/`, `python/packages/embedding_db/`, root `python/pyproject.toml` (uv workspace already configured)
+- ✓ `wumpus/experiments/g_wild_baseline/wumpus.gwbasic.bas` — BASIC reference for R1-S10
+- ⊘ `docs/product/architecture/brief.md` — does not exist; harebrain convention is single-file `feature-delta.md`
+
+---
+
+## Wave: DESIGN / [REF] Quality Attributes
+
+### Quality attributes prioritized (ISO 25010 framing)
+
+Ranked by frequency of appearance in `[REF] System Constraints`, `[REF] Wave Decisions`, and the goals doc:
+
+1. **Reliability — determinism / reproducibility** (SC1, SC2, K-1, K-2). Single hardest constraint. Seed is the only entropy source; same inputs produce byte-identical outputs across processes, OSes, and CI runs.
+2. **Maintainability — testability + analyzability** (SC4, SC5, SC8, audit gates). Every behavior observable; ledger is source of truth; schema additive; static audits gate every PR.
+3. **Compatibility — interoperability** (SC10, SC11, SC12, D2). Three driving ports on one bounded context; no framework deps; cross-package imports clean.
+4. **Functional Suitability — correctness vs. literal reference** (SC2, R1-S10, D11). Bug-for-bug fidelity against `wumpus.gwbasic.bas`.
+5. **Performance Efficiency — startup cost** (J4, R5-S01). MPL host-import path may invoke engine for a single turn; cold-start matters. Throughput is not a priority.
+
+Notably *not* priorities: scalability (single-user library), security (no auth/data-at-rest), availability (CLI / lib, not a service), usability beyond CLI faithfulness.
+
+### Constraints inherited from DISCUSS
+
+- **Python 3.11+** (workspace policy, `requires-python` in root `pyproject.toml`).
+- **Solo / small team** — Conway's Law is trivial (one head, one architecture).
+- **uv workspace + hatchling + src-layout** (workspace convention, observed in `python/pyproject.toml` and sibling packages).
+- **No DB**, no service, no deployment — pip-installable library.
+- **No framework deps** in engine (SC10 / D7).
+- **OSS only** (project default; nothing proprietary appears anywhere upstream).
+- **Mostly synchronous Python** — SC4 forbids background-thread emission; engine is a single-threaded state machine.
+
+### Existing system findings (Glob/Grep)
+
+- `python/packages/hello_world/` and `python/packages/embedding_db/` — sibling packages confirm: `src/<pkg>/` layout, hatchling, `requires-python >= 3.11`, no `[tool.uv.sources]` block at the package level.
+- Root `python/pyproject.toml` declares `[tool.uv.workspace] members = ["packages/*"]` and uses `[tool.uv.sources] hello_world = { workspace = true }` to wire workspace deps. **This pre-answers ADR-006** (the mechanism already exists).
+- `wumpus/experiments/g_wild_baseline/wumpus.gwbasic.bas` — the BASIC reference; byte-audited; the spec for SC2.
+- No `python/packages/wumpus/` yet — greenfield (per `[REF] Pre-requisites`).
+- MPL lives at `lostinplace/mplv2/` (outside the Python workspace) — host-import path is across-repo; ADR-006 covers in-workspace; cross-repo handled by R5 adapter (blocked-on-spike).
+
+---
+
+## Wave: DESIGN / [REF] Tech Stack
+
+OSS-first; license documented per row.
+
+| Concern | Choice | Version | License | Rationale (one line) |
+|---|---|---|---|---|
+| Language | Python | 3.11+ (CPython) | PSF | Workspace policy; `random.Random` stability tracked from 3.11 forward (L7 mitigation) |
+| Build system | hatchling | latest | MIT | Already used by sibling packages; zero-friction |
+| Package layout | `src/wumpus/` | n/a | n/a | Sibling-package convention; avoids implicit import-from-cwd |
+| Workspace integration | uv workspace | latest | Apache-2.0 | Root `pyproject.toml` already configured; new package drops in as `packages/wumpus/` |
+| Dataclass lib | stdlib `dataclasses` + manual `__post_init__` validators | n/a | PSF | ADR-007; defends against startup cost (J4), avoids third-party schema lock-in, schema-additivity (CC-AC-2) easier to police in pure Python |
+| Test framework | pytest | 8+ | MIT | Already in workspace root `[dependency-groups]` |
+| Property tests | hypothesis | latest | MPL-2.0 | Required by R2-S03 (100-seed) / R3-S01 (1000-trial) / R4-S05 (100×50) / R5-S02 (500-config) — written into AC |
+| Type checker | mypy (strict) | latest | MIT | Required to enforce Surface interface + Snapshot field types |
+| Formatter | ruff format | latest | MIT | Modern, fast, single-tool replaces black + isort |
+| Linter | ruff | latest | MIT | Includes most flake8 + pylint rules; same tool as formatter |
+| Architecture-rules linter (custom audit scripts) | `ast` stdlib + custom `pytest` checks | n/a | PSF | Audit gates (SC8 surface-leak, SC1/SC7 determinism-source + module-state) are project-specific text/AST scans, not generic import-graph checks |
+| Optional: import-graph linter | deferred (revisit if engine grows) | — | — | `import-linter` is overkill for a single bounded context; documented as candidate if `wumpus.engine` ever splits |
+| JSON Schema validator | jsonschema | latest | MIT | Required by ADR-002 (per-version schema docs); per-event validation in tests |
+| JSON serialization | stdlib `json` + custom `to_json/from_json` | n/a | PSF | SC6 (snapshot JSON round-trip) is structural, not a library concern; stdlib sufficient |
+| CLI argument parsing | stdlib `argparse` | n/a | PSF | Three flags (`--seed`, `--ledger`, `--surface`); zero need for click/typer |
+| Subprocess test harness | pexpect / wexpect | latest | ISC / MIT | Required by R1-S09 AC; pexpect on Linux/macOS, wexpect on Windows (L4 risk) |
+| CI runner | GitHub Actions | n/a | n/a | Workspace convention assumed; matrix per ADR-009 |
+| Reserve: msgspec for fast JSON | deferred | — | BSD-3-Clause | If R3-S02 finds stdlib `json` is the bottleneck — drop in for encoding only; not recommended today |
+
+**Why no `pydantic`:** pydantic v2 imports `pydantic_core` (Rust extension), adding ~30-50ms cold-start; engine has *no* validation needs that stdlib dataclasses + small helper can't cover; schema-additivity (CC-AC-2) is *easier* to police with raw `@dataclass` (grep field names) than with a pydantic `Model` (validators may shadow field defaults). See ADR-007.
+
+**Why no `attrs`:** attrs is mature and good, but adds a dependency to a package whose constraint is "plain Python" (SC10). Marginal value over stdlib `dataclasses` is `__init_subclass__` hooks and slotted classes — neither needed here.
+
+**Why no `msgspec` today:** msgspec is fast and JSON-native (attractive for SC6) but is a young library (first 1.0 in 2023, low ecosystem awareness) and adds a binary dependency. Deferred candidate; revisit only if benchmarks demand it.
+
+---
+
+## Wave: DESIGN / [REF] Paradigm
+
+**Locked: "OOP at the seam, functional inside."** See ADR-001.
+
+### Why this hybrid
+
+Pure FP in Python is uphill: no real ADTs, no exhaustive pattern matching pre-3.10 (and `match` statements work but read awkwardly), no Haskell-style purity guarantees. Insisting on FP means wrestling with the language. Pure OOP in Python attracts deep inheritance trees and hidden mutation. The hybrid below pays the FP tax where it earns SC1/SC7/SC12, and pays the OOP tax where it earns clarity at the seam.
+
+### Structural rules
+
+- **The `Game` object is a state container with mutation contracts.** `Game.step(action)` returns an `Observation` *and* mutates internal state. Matches Python idiom + the AC in DISCUSS (every `Game.step(action) -> Observation` AC reads that way). However: `Game` carries no identity; two Games with the same `(seed, action_sequence)` are observationally equivalent (SC1).
+- **State data is immutable dataclasses (`frozen=True`).** `Snapshot`, `Observation`, `Event`, `VariantConfig`, `World` are all `@dataclass(frozen=True)`. `Game._snapshot()` constructs new values; never mutates.
+- **The transition core is pure functions.** Inside `Game.step`, the actual rule logic — `resolve_hazard(world, room) -> (world', events)`, `walk_arrow(world, path) -> (world', events)`, `startle_wumpus(world, rng) -> (world', event)` — are pure functions on values. `Game` is a thin shell that holds the latest `World` value + `Random` instance and emits events.
+- **`Surface` is a `typing.Protocol`** (structural typing).
+- **`EscalationRule` is a `typing.Protocol`** (see ADR-005).
+- **Sinks are duck-typed** — anything with an `emit(event: Event) -> None` method works; `Protocol` for type-checking (see ADR-008).
+- **No inheritance hierarchies anywhere.** Composition over inheritance. The `Event` type is per-class `@dataclass` with a `type: Literal["..."]` discriminator field (ADR-010), **not** an ABC + 20 subclasses.
+
+### Recommendation for project-wide CLAUDE.md (advisory; not applied here)
+
+The DELIVER wave should use `nw-software-crafter` (general crafter), **not** the functional crafter, because the codebase wants the hybrid above rather than strict FP. If the project's `CLAUDE.md` carries a paradigm hint, recommend adding a line like:
+
+> *Wumpus engine paradigm: hybrid OOP-at-the-seam + FP-inside; use `nw-software-crafter` for DELIVER; see `docs/feature/wumpus/feature-delta.md` § Wave: DESIGN / [REF] Paradigm and ADR-001.*
+
+This note is **advisory only**. The orchestrator may offer it as a follow-up edit if the user wants project-wide CLAUDE.md to record paradigm hints for wumpus DELIVER dispatch; this DESIGN dispatch does not modify CLAUDE.md.
+
+### Affects slices
+
+Affects every slice; the most load-bearing impact is in R0 — the walking-skeleton chooses this paradigm, and changing it later costs a refactor across all subsequent slices.
+
+---
+
+## Wave: DESIGN / [REF] C4 Context
+
+```mermaid
+C4Context
+  title System Context — wumpus engine
+
+  Person(pat, "Player Pat", "Plays Yob 1973 at a terminal")
+  Person(harriet, "Harness Harriet", "Drives the engine programmatically; runs experiments, replays, Mystery probes")
+
+  System(wumpus, "wumpus engine", "Python package; faithful Yob 1973 + variant config + Mystery surface + snapshot/restore")
+
+  System_Ext(basic, "wumpus.gwbasic.bas (Yob 1973)", "Reference BASIC source; byte-audited; tie-breaker spec")
+  System_Ext(mpl, "MPL chart (cell D, harebrain)", "Owns world state in Manifest; host-imports the engine at decide-leaves; signature blocked-on-spike")
+  System_Ext(llm, "LLM cells (D, E, F, G)", "Different per cell: chart-driven (D), narration-driven (E/F), CLI-wrapped (G); read events + render output")
+  System_Ext(notebook, "Analysis notebook", "Reads JSONL ledgers; computes divergence-events, obfuscation-gap, scaffolding-leaks, post-bat-recovery")
+
+  Rel(pat, wumpus, "Plays via CLI", "stdio")
+  Rel(harriet, wumpus, "Drives via Python API + JSONL ledger", "in-process + filesystem")
+  Rel(mpl, wumpus, "Host-imports for stateless turn-step", "snapshot in / snapshot out (signature TBD)")
+  Rel(llm, wumpus, "Reads Observation.rendered_lines; submits actions", "via harriet or mpl")
+  Rel(notebook, wumpus, "Consumes JSONL ledgers", "filesystem")
+  Rel(wumpus, basic, "Mirrors faithfully; defers to on disagreement", "design-time only")
+```
+
+---
+
+## Wave: DESIGN / [REF] C4 Container
+
+```mermaid
+C4Container
+  title Container Diagram — wumpus package internals
+
+  Person(pat, "Player Pat", "Terminal")
+  Person(harriet, "Harness Harriet", "Python harness")
+  System_Ext(mpl, "MPL chart (cell D)", "blocked-on-spike adapter")
+  System_Ext(notebook, "Analysis notebook", "Reads JSONL")
+
+  Container_Boundary(pkg, "wumpus package") {
+    Container(cli, "CLI front-end", "Python module `wumpus.__main__`", "Argparse, stdin reader, stdout renderer; subscribes a renderer-sink to the engine")
+    Container(api, "Programmatic API", "Python module `wumpus` (top-level exports)", "Exports `Game`, `Observation`, `Snapshot`, `VariantConfig`, surfaces, sinks")
+    Container(host, "Host-import adapter", "Python module `wumpus.host_import` (placeholder)", "Thin adapter; ships in R5 once MPL spike pins signature")
+
+    Container(engine, "Engine core", "Python package `wumpus.engine`", "Game state machine; pure transition functions; emits typed events; depends on nothing in this diagram below")
+    Container(surfaces, "Surfaces", "Python package `wumpus.surfaces`", "YobSurface, MysterySurface, FrenchSurface; translation layer, no engine state, no RNG access")
+    Container(events, "Event types + schema", "Python module `wumpus.events`", "Dataclasses; schema_version; JSON encoding helpers")
+    Container(sinks, "Sinks", "Python module `wumpus.sinks`", "InMemorySink, JsonlSink, RendererSink (used by CLI); Protocol-based; synchronous emit")
+    Container(types, "Public types", "Python module `wumpus.types`", "Snapshot, Observation, World, VariantConfig, Surface protocol, EscalationRule protocol")
+    Container(constants, "Engine constants", "Python module `wumpus.constants`", "DODECAHEDRON, SENSE_ORDER, HAZARD_ORDER (Yob defaults); surface-form strings live in surfaces, not here")
+    Container(taxonomy, "Field taxonomy", "Python module `wumpus.taxonomy`", "AGENT_SAFE_FIELDS / HARNESS_PRIVATE_FIELDS sets + project_for_agent helper")
+  }
+
+  Rel(pat, cli, "Types commands; sees rendered output")
+  Rel(harriet, api, "Imports `Game`; subscribes sinks; reads `Observation`")
+  Rel(mpl, host, "Calls host-import; passes snapshot in, gets snapshot out")
+  Rel(notebook, sinks, "Reads JSONL files produced by JsonlSink", "filesystem")
+
+  Rel(cli, api, "Uses")
+  Rel(cli, sinks, "Subscribes RendererSink to")
+  Rel(host, api, "Wraps")
+  Rel(api, engine, "Constructs Game; calls step")
+  Rel(engine, events, "Emits typed events via")
+  Rel(engine, surfaces, "Reads strings from (only at output boundary)")
+  Rel(engine, types, "Uses immutable value types from")
+  Rel(engine, constants, "Reads Yob defaults from")
+  Rel(events, sinks, "Synchronously delivered to (subscribed)")
+  Rel(events, taxonomy, "Classified by")
+```
+
+**Notes on the container diagram:**
+- **The arrow from `engine` to `surfaces` is one-way only.** Engine reads strings from a Surface at the *output* boundary (rendering an `Observation`). The Surface never calls into the engine, never holds engine state, never touches `Game._random`. This is SC8 ("Surface is the only string boundary") + SC9 (paired-run hash equality).
+- **The arrow from `engine` to `sinks` goes through `events`.** Engine emits a typed event; the runtime subscriber list (sinks) consumes it synchronously. Order is engine-controlled.
+- **`wumpus.host_import` ships empty until R5.** Placeholder in the diagram so the spike doesn't surprise the architecture.
+- **`wumpus.taxonomy` is consulted at PR time, not runtime.** A property test in the engine package iterates Event subclasses and asserts that every declared field is classified XOR. `project_for_agent` is called by harnesses (not the engine) when forwarding events to an agent context.
+- **No DB, no broker, no async runtime.** This is a library; everything runs in-process.
+
+---
+
+## Wave: DESIGN / [REF] Component Sketch
+
+C4 L3 view of `wumpus.engine` — the only internal container complex enough to warrant L3 (5+ components). Other containers (`surfaces`, `sinks`, `events`, `types`, `constants`, `taxonomy`) are single-module or trivially-decomposed.
+
+```mermaid
+graph TD
+  subgraph wumpus.engine
+    Game[Game<br/>state container + step entry point]
+    World[World<br/>frozen dataclass: rooms, hazards, player, arrows]
+    Transitions[transitions module<br/>pure functions: resolve_move, resolve_shoot, resolve_hazard, walk_arrow, startle_wumpus]
+    CaveGen[cave_gen module<br/>FNB rejection loop; takes Random + VariantConfig, returns initial World]
+    Validation[validation module<br/>adjacency check, path validation, command parsing]
+    Emit[emit module<br/>thin helper: events flowed from transitions to subscribed sinks]
+    Hash[hash module<br/>internal_state_hash + layout_hash; blake2b over World]
+  end
+
+  External[wumpus.types<br/>Snapshot, Observation, World, VariantConfig, Surface, EscalationRule]
+  EventsMod[wumpus.events]
+  Surfaces[wumpus.surfaces]
+  Sinks[wumpus.sinks]
+
+  Game -->|holds| World
+  Game -->|calls| Transitions
+  Game -->|calls| Validation
+  Game -->|calls| Emit
+  Game -->|calls on construction| CaveGen
+  Game -->|computes| Hash
+  Transitions -->|calls| Hash
+  Transitions -->|produces| EventsMod
+  CaveGen -->|reads from| External
+  Game -->|exposes| External
+  Game -->|asks for strings from| Surfaces
+  Emit -->|delivers to| Sinks
+```
+
+### Module-level dependency direction (top-down, never upward)
+
+```
+  wumpus.__main__ / wumpus.cli   (CLI front-end)
+  wumpus.host_import             (R5 adapter — blocked-on-spike)
+        |
+        v
+  wumpus (top-level: exports Game, types)
+        |
+        v
+  wumpus.engine
+        |--> wumpus.engine.transitions   (pure functions)
+        |--> wumpus.engine.cave_gen      (pure)
+        |--> wumpus.engine.validation    (pure)
+        |--> wumpus.engine.emit          (sink dispatch)
+        |--> wumpus.engine.hash          (state-hashing helpers)
+        |
+        v
+  wumpus.events       (event dataclasses + JSON helpers)
+  wumpus.types        (Snapshot, Observation, World, VariantConfig, Surface Protocol, EscalationRule Protocol)
+  wumpus.sinks        (Protocol + InMemorySink + JsonlSink + RendererSink)
+  wumpus.surfaces     (YobSurface + MysterySurface + FrenchSurface)
+  wumpus.constants    (DODECAHEDRON, SENSE_ORDER, HAZARD_ORDER — Yob's adjacency/ordering data)
+  wumpus.taxonomy     (AGENT_SAFE_FIELDS / HARNESS_PRIVATE_FIELDS sets + project_for_agent)
+```
+
+### Hexagonal / ports-and-adapters mapping
+
+- **Driving ports (inbound):** CLI front-end, programmatic API, host-import adapter. Three of them; this is what makes wumpus "cross-cutting" per the DISCUSS scope assessment.
+- **Driven ports (outbound):** the `Sink` Protocol (event emission). That's the only outbound port.
+- **Adapters:** `JsonlSink` (filesystem), `InMemorySink` (test/host-import), `RendererSink` (CLI stdout).
+- **Hexagon (the engine core):** `wumpus.engine.*` — pure-Python rule logic; depends only on `wumpus.events`, `wumpus.types`, `wumpus.constants`.
+
+**What does NOT belong inside `wumpus.engine.*`:**
+- Yob string literals (SC8). They live in `wumpus.surfaces.yob`.
+- File I/O. That belongs in sinks.
+- `time.time()`, `os.urandom`, top-level `random.*` (SC1).
+- Module-level mutable state (SC7).
+
+These are exactly the four CI audits (R3-S03 + R4-S04 + R3-S02).
+
+---
+
+## Wave: DESIGN / [REF] Tier A type definitions
+
+These are **shape-pinning sketches**, not implementation files. DISTILL derives Gherkin scenarios from them; DELIVER (software-crafter) writes the actual implementation in `python/packages/wumpus/src/wumpus/`. Field bodies are `...` where DELIVER has freedom.
+
+### A1 — `World` (NEW: first-class shared dataclass — Decision 1b)
+
+```python
+# wumpus/types.py
+from dataclasses import dataclass
+from typing import Sequence
+
+@dataclass(frozen=True)
+class World:
+    """Engine's internal state-of-record. Value-typed; transitions return new World instances."""
+    player_room: int
+    wumpus_rooms: tuple[int, ...]       # tuple for frozen hashability; length = variant.wumpus_count
+    pit_rooms: tuple[int, ...]
+    bat_rooms: tuple[int, ...]
+    arrows: int
+    initial_layout: "World | None"      # snapshot taken at Game(seed=k) start for SAME SET-UP=Y replay; None on the inner reference to avoid infinite nesting
+    turn: int                           # monotonic; advances per Game.step
+    pending_prompt: str | None          # mid-turn awaiting input (e.g., between NO. OF ROOMS and ROOM #); None most of the time
+    pending_arrow_path: tuple[int, ...] # partially-collected arrow path slots
+```
+
+### A2 — `Snapshot` (refined per Decisions 1b + 1c)
+
+```python
+# wumpus/types.py
+@dataclass(frozen=True)
+class Snapshot:
+    schema_version: int
+    engine_version: str
+    seed: int
+    rng_cursor: str                     # base64-encoded pickled random.Random.getstate() — Decision 1c
+    variant_config: "VariantConfig"
+    surface_id: str                     # "yob" | "mystery" | "french" | ...
+    world: World                        # same World type Game._world carries — Decision 1b
+    active_escalation_rules: tuple[str, ...]  # rule.name list; for ledger reproducibility
+
+    def to_json(self) -> str: ...
+    @classmethod
+    def from_json(cls, s: str) -> "Snapshot": ...
+```
+
+### A3 — `Observation`
+
+```python
+# wumpus/types.py
+@dataclass(frozen=True)
+class Observation:
+    """What the player (or LLM) sees this turn."""
+    rendered_lines: tuple[str, ...]     # surface-translated lines, in emission order
+    prompt: str | None                  # the question text the engine is waiting on (e.g., "SHOOT OR MOVE (S-M)?")
+    outcome: str | None                 # "win" | "lose_pit" | "lose_wumpus" | "lose_arrow" | "lose_out_of_arrows" | None (in-game)
+    # Parsed fields below are HARNESS_PRIVATE per taxonomy (ADR-004); LLM agents must derive from rendered_lines.
+    player_room: int                    # ground truth; classified harness_private
+    adjacencies: tuple[int, ...]        # ground truth
+    senses: tuple[str, ...]             # parsed sense kinds ("wumpus", "pit", "bat") — ground truth
+```
+
+### A4 — `Event` family (per Decision 1a + ADR-010)
+
+Per-type frozen dataclasses with `Literal[...]` discriminator. Shared fields composed via a private helper, not via inheritance for dispatch.
+
+```python
+# wumpus/events.py
+from dataclasses import dataclass, field
+from typing import Literal, Sequence
+
+# Base-fields composition pattern (NOT a polymorphic base; just shared field declaration).
+@dataclass(frozen=True)
+class _BaseEventFields:
+    schema_version: int
+    turn: int                           # monotonic_turn equivalent; advances per Game.step
+    surface_variant: str
+    internal_state_hash: str            # blake2b over World (post-effect)
+    rng_cursor: str                     # base64-encoded post-effect cursor
+    wall_clock_ts: float | None = None  # optional; harness_private
+    actor_node: str | None = None       # optional; harness-supplied; agent_safe by construction
+    back_prompted: bool | None = None
+    actor_scratchpad: str | None = None
+    tokens_in: int | None = None
+    tokens_out: int | None = None
+
+# Per-type event dataclass (illustrative; ~21 of these total — see Tier A4 in DISCUSS for the full list)
+@dataclass(frozen=True)
+class GameStarted(_BaseEventFields):
+    type: Literal["GameStarted"] = "GameStarted"
+    seed: int = 0
+    engine_version: str = ""
+    variant_config: "VariantConfig | None" = None
+    surface_id: str = ""
+    layout_hash: str = ""
+    active_escalation_rules: tuple[str, ...] = ()
+
+@dataclass(frozen=True)
+class MoveAttempted(_BaseEventFields):
+    type: Literal["MoveAttempted"] = "MoveAttempted"
+    raw_input_bytes: bytes | None = None
+    target_room: int = -1
+    accepted: bool = False              # False on adjacency rejection; engine re-prompts
+
+@dataclass(frozen=True)
+class SenseEmitted(_BaseEventFields):
+    type: Literal["SenseEmitted"] = "SenseEmitted"
+    kind: str = ""                      # "wumpus" | "pit" | "bat"; ordered per SENSE_ORDER
+    rendered_text: str = ""             # surface-translated string (yob: "I SMELL A WUMPUS!")
+
+@dataclass(frozen=True)
+class SinkFailure(_BaseEventFields):
+    type: Literal["SinkFailure"] = "SinkFailure"
+    sink_name: str = ""
+    exception_summary: str = ""
+
+# Discriminated union alias — used at the dispatch boundary; mypy verifies exhaustiveness on match.
+Event = GameStarted | MoveAttempted | SenseEmitted | SinkFailure  # ... extended with all 21+ types
+
+# JSON encoding helpers
+def encode_event(event: Event) -> dict:
+    """Tagged-union dict encoding for JSONL serialization."""
+    ...
+
+def decode_event(d: dict) -> Event:
+    """Inverse; uses `type` discriminator to pick the right dataclass."""
+    ...
+```
+
+**Critical:** `_BaseEventFields` is *only* for shared field declaration. No virtual methods, no event-dispatch hierarchy. Pattern-matching at consumers uses `match event: case GameStarted(...): ...` and mypy verifies exhaustiveness.
+
+### A5 — `VariantConfig`
+
+```python
+# wumpus/types.py
+@dataclass(frozen=True)
+class VariantConfig:
+    """The non-surface dimensions of a Wumpus game. Frozen at Yob defaults unless explicitly overridden."""
+    room_count: int = 20
+    wumpus_count: int = 1
+    pit_count: int = 2
+    bat_count: int = 2
+    arrows: int = 5
+    topology: str = "dodecahedron"      # "dodecahedron" | "random_3regular" | "complete" | ...
+    wumpus_startle_pmf: tuple[float, float, float, float] = (0.25, 0.25, 0.25, 0.25)  # FNC distribution (move 1, 2, 3, stay)
+    # ...
+```
+
+### A6 — `Surface` (Protocol — structural typing)
+
+```python
+# wumpus/types.py
+from typing import Protocol
+
+class Surface(Protocol):
+    """Translation layer between engine internals (IDs, enum tags) and player-facing strings.
+    The engine reads strings from a Surface at the output boundary. The Surface never reads
+    engine state and never consumes RNG (SC8, SC9)."""
+
+    surface_id: str                     # "yob" | "mystery" | "french" | ...
+
+    def render_room(self, room_id: int) -> str: ...
+    def render_sense(self, kind: str) -> str: ...
+    def render_message(self, key: str) -> str: ...  # MESSAGES table lookup
+    def render_prompt(self, key: str) -> str: ...   # PROMPTS table lookup
+    def parse_command(self, raw: str) -> "ParsedCommand": ...
+```
+
+### A7 — `EscalationRule` (Protocol — per Decision 4 + ADR-005)
+
+```python
+# wumpus/types.py
+from typing import Protocol, Sequence
+
+class EscalationRule(Protocol):
+    """Hook surface for downstream L3 (partial observability) and L4 (graph variants) features.
+    Rules are pure functions on values; composition is left-to-right."""
+
+    name: str                           # for ledger logging in GameStarted.active_escalation_rules
+
+    def filter_observation(self, obs: Observation, world: World) -> Observation:
+        """Modify what the player sees this turn. L3 implements this. Default: identity."""
+        ...
+
+    def filter_events(self, events: Sequence[Event], world: World) -> Sequence[Event]:
+        """Modify the event stream emitted this turn. Allows adding/dropping/rewriting events.
+        Default: identity."""
+        ...
+
+class IdentityRule:
+    """No-op default; explicitly identity on both hooks."""
+    name = "identity"
+
+    def filter_observation(self, obs: Observation, world: World) -> Observation:
+        return obs
+
+    def filter_events(self, events: Sequence[Event], world: World) -> Sequence[Event]:
+        return events
+```
+
+### A8 — `Sink` (Protocol — per Decision 6 + ADR-008)
+
+```python
+# wumpus/sinks.py
+from typing import Protocol
+
+class Sink(Protocol):
+    """Outbound port for event emission. Called synchronously from the engine's thread.
+    Sinks MUST NOT assume multi-thread coordination."""
+    name: str
+
+    def emit(self, event: Event) -> None: ...
+
+class SchemaValidationError(Exception):
+    """Event fails JSON Schema validation. Always propagates; session aborts."""
+
+class SinkIOError(Exception):
+    """Sink's underlying I/O fails. Engine emits SinkFailure to remaining sinks; unsubscribes; continues."""
+```
+
+---
+
+## Wave: DESIGN / [REF] Engine module layout
+
+Concrete module/file plan for `python/packages/wumpus/src/wumpus/`. For each module: purpose, ~3-bullet content sketch, allowed/forbidden dependencies.
+
+### `wumpus/__init__.py` (top-level package)
+
+- **Purpose:** export the public surface (`Game`, `Observation`, `Snapshot`, `World`, `VariantConfig`, `IdentityRule`, sink classes, surface classes).
+- **Contents:** `from .game import Game`; `from .types import *`; `from .sinks import JsonlSink, InMemorySink, RendererSink`; `from .surfaces.yob import YobSurface`; `from .surfaces.mystery import MysterySurface`.
+- **Allowed deps:** all internal modules. **Forbidden:** filesystem side-effects on import; logging configuration; any `os.environ` reads.
+
+### `wumpus/types.py`
+
+- **Purpose:** immutable value types (`World`, `Snapshot`, `Observation`, `VariantConfig`) + Protocols (`Surface`, `EscalationRule`).
+- **Contents:** the dataclasses + protocols sketched in `[REF] Tier A type definitions` above; `__post_init__` validators (e.g., "room_count > 0").
+- **Allowed deps:** stdlib only. **Forbidden:** any other `wumpus.*` module (this is a leaf).
+
+### `wumpus/events.py`
+
+- **Purpose:** Event dataclasses + JSON encoding helpers + schema-version constant.
+- **Contents:** `_BaseEventFields`; the ~21 per-type frozen dataclasses (`GameStarted`, `MoveAttempted`, `SenseEmitted`, `HazardResolved`, `ArrowPathStep`, `GameEnded`, `SessionAborted`, `SinkFailure`, ...); `SCHEMA_VERSION = 1`; `encode_event` / `decode_event`.
+- **Allowed deps:** `wumpus.types` (for `VariantConfig` referenced in `GameStarted`). **Forbidden:** `wumpus.engine`, `wumpus.sinks`, `wumpus.surfaces`.
+
+### `wumpus/taxonomy.py`
+
+- **Purpose:** field-level classification for ABC T.5 (ADR-004).
+- **Contents:** `AGENT_SAFE_FIELDS: frozenset[str]`; `HARNESS_PRIVATE_FIELDS: frozenset[str]`; `project_for_agent(event: Event) -> dict`; a property-test helper that walks every Event subclass and asserts XOR classification.
+- **Allowed deps:** `wumpus.events`. **Forbidden:** `wumpus.engine`, `wumpus.sinks`.
+
+### `wumpus/constants.py`
+
+- **Purpose:** Yob's adjacency table + ordering constants. Surface-form strings DO NOT live here.
+- **Contents:** `DODECAHEDRON: tuple[tuple[int, int, int], ...]` (20-room adjacency); `SENSE_ORDER: tuple[str, ...] = ("wumpus", "pit", "pit", "bat", "bat")`; `HAZARD_ORDER: tuple[str, ...] = ("wumpus", "pit", "bat")`.
+- **Allowed deps:** none. **Forbidden:** all other `wumpus.*` modules.
+
+### `wumpus/engine/__init__.py`
+
+- **Purpose:** engine package marker; expose `Game` to the top-level package.
+- **Contents:** `from .game import Game`.
+
+### `wumpus/engine/game.py`
+
+- **Purpose:** the `Game` state container; entry point for `step(action)`, `snapshot()`, `from_snapshot()`.
+- **Contents:** `class Game` with `_world: World`, `_random: random.Random`, `_surface: Surface`, `_rules: tuple[EscalationRule, ...]`, `_subscribers: list[Sink]`; methods `step(action) -> Observation`, `snapshot() -> Snapshot`, classmethod `from_snapshot(snap) -> Game`, `subscribe(sink) -> None`, `unsubscribe(sink) -> None`.
+- **Allowed deps:** `wumpus.engine.transitions`, `wumpus.engine.cave_gen`, `wumpus.engine.validation`, `wumpus.engine.emit`, `wumpus.engine.hash`, `wumpus.events`, `wumpus.types`, `wumpus.constants`, `wumpus.surfaces` (for default surface lookup at construction only). **Forbidden:** `wumpus.sinks` direct import (sinks are duck-typed via Protocol).
+
+### `wumpus/engine/transitions.py`
+
+- **Purpose:** pure transition functions on `World` values.
+- **Contents:** `resolve_move(world, target, rng) -> (World, list[Event])`; `resolve_shoot(world, path, rng) -> (World, list[Event])`; `resolve_hazard(world, room, rng) -> (World, list[Event])`; `walk_arrow(world, path, rng) -> (World, list[Event])`; `startle_wumpus(world, rng) -> (World, Event)`.
+- **Allowed deps:** `wumpus.types`, `wumpus.events`, `wumpus.constants`, `wumpus.engine.hash`. **Forbidden:** `wumpus.engine.game` (no upward dep); `wumpus.sinks`; `wumpus.surfaces`.
+
+### `wumpus/engine/cave_gen.py`
+
+- **Purpose:** initial cave layout from a seeded `random.Random` + `VariantConfig`.
+- **Contents:** `generate_initial_world(rng: random.Random, variant: VariantConfig) -> World`; FNB rejection-loop logic mirroring Yob's `bas` lines 100-170; topology dispatch based on `variant.topology`.
+- **Allowed deps:** `wumpus.types`, `wumpus.constants`. **Forbidden:** `wumpus.engine.game`; module-level `random.*`.
+
+### `wumpus/engine/validation.py`
+
+- **Purpose:** input validation; pure functions returning result types.
+- **Contents:** `validate_adjacency(world, target) -> bool`; `validate_arrow_path(path, world) -> ValidationResult`; `parse_command(raw, surface) -> ParsedCommand` (delegates string parsing to the surface).
+- **Allowed deps:** `wumpus.types`, `wumpus.constants`. **Forbidden:** `wumpus.engine.game`; `wumpus.sinks`.
+
+### `wumpus/engine/emit.py`
+
+- **Purpose:** thin helper for flowing events from transitions to subscribed sinks.
+- **Contents:** `emit(event: Event, subscribers: list[Sink]) -> None`; catches `SinkIOError`, emits `SinkFailure` to remaining sinks, unsubscribes failing sink; re-raises `SchemaValidationError`.
+- **Allowed deps:** `wumpus.events`, `wumpus.sinks` (Protocol). **Forbidden:** `wumpus.engine.game`.
+
+### `wumpus/engine/hash.py`
+
+- **Purpose:** state-hashing helpers; deterministic across processes.
+- **Contents:** `internal_state_hash(world: World) -> str` (blake2b over a canonical World serialization); `layout_hash(world: World) -> str` (blake2b over initial layout only — for SAME SET-UP=Y).
+- **Allowed deps:** `wumpus.types`, stdlib `hashlib`. **Forbidden:** any other `wumpus.*` module.
+
+### `wumpus/surfaces/__init__.py`
+
+- **Purpose:** surface package marker; expose surface classes.
+- **Contents:** `from .yob import YobSurface`; `from .mystery import MysterySurface`; (R5+) `from .french import FrenchSurface`.
+
+### `wumpus/surfaces/yob.py`
+
+- **Purpose:** Yob 1973 surface — the default; contains ALL canonical Yob string literals.
+- **Contents:** `class YobSurface` implementing `Surface` Protocol; PROMPTS table (verbatim); MESSAGES table (verbatim — including `HEE HEE HEE` for win, `HA HA HA` for lose, the swap); instruction block including `RAMDOM` typo.
+- **Allowed deps:** `wumpus.types`. **Forbidden:** `wumpus.engine`; module-level mutable state.
+
+### `wumpus/surfaces/mystery.py`
+
+- **Purpose:** Mystery surface — relabeled tokens for the obfuscation-gap probe (J2).
+- **Contents:** `class MysterySurface`; symbol map (fixed or seeded by a *separate*, declared seed logged in ledger header — NOT engine RNG); translation tables; `translate_back` for parsing player input.
+- **Allowed deps:** `wumpus.types`. **Forbidden:** access to `Game._random`; engine state.
+
+### `wumpus/surfaces/french.py` (R5 stretch — placeholder)
+
+- **Purpose:** localization smoke-test of the seam (Gherkin C5 in J2).
+- **Contents:** drop-in localization; same Protocol, French strings.
+
+### `wumpus/sinks.py`
+
+- **Purpose:** `Sink` Protocol + three reference implementations + error classes.
+- **Contents:** `Sink` Protocol; `SchemaValidationError`, `SinkIOError`; `class InMemorySink` (collects events in `.events: list[Event]`); `class JsonlSink` (opens file in `__init__`, appends JSON lines on emit, JSON Schema validates each event); `class RendererSink` (writes `rendered_lines` to stdout).
+- **Allowed deps:** `wumpus.events`, stdlib `json`, `jsonschema`. **Forbidden:** `wumpus.engine`.
+
+### `wumpus/cli.py` (also referenced as `wumpus.__main__`)
+
+- **Purpose:** the CLI front-end; argparse + stdin reader + RendererSink wiring.
+- **Contents:** `main(argv: list[str] | None = None) -> int`; flag parsing (`--seed`, `--ledger`, `--surface`, `--yob`); constructs `Game(seed=..., surface=..., ledger=...)`; loops on stdin; surfaces engine output via `RendererSink`.
+- **Allowed deps:** `wumpus` (top-level), `wumpus.sinks`, `wumpus.surfaces`, stdlib `argparse`, `sys`. **Forbidden:** `wumpus.engine.*` direct (uses the public API).
+
+### `wumpus/__main__.py`
+
+- **Purpose:** entry point for `python -m wumpus`.
+- **Contents:** `from .cli import main; raise SystemExit(main())`.
+
+### `wumpus/host_import.py` (R5 placeholder)
+
+- **Purpose:** MPL host-import adapter; blocked-on-spike for signature.
+- **Contents:** module exists empty (or with a single `# blocked-on-mpl-spike` comment) until R5-S01 lands. Adapter wraps `Game.from_snapshot(snap).step(action) -> (Snapshot, Observation, list[Event])` into whatever shape MPL pins.
+- **Allowed deps:** `wumpus` (top-level). **Forbidden:** until the spike, nothing.
+
+### `wumpus/schemas/v1.json` (per ADR-002)
+
+- **Purpose:** frozen JSON Schema for schema_version = 1. Referenced by `JsonlSink` for per-event validation.
+- **Contents:** JSON Schema document describing every event type's shape + the tagged-union discriminator.
+
+---
+
+## Wave: DESIGN / [REF] ADRs
+
+Ten ADRs. Each is one section: title, status, context, decision, alternatives considered + why rejected, consequences. ADRs are immutable once Accepted; supersede via a new ADR. All cite DISCUSS-wave sources (story IDs, SC numbers, journey numbers).
+
+### ADR-001 — Hybrid paradigm: OOP at the seam, FP inside
+
+**Status:** Accepted.
+
+**Context.** The engine's core determinism constraint (SC1) and the host-import round-trip (SC12, J4) want `Game` to be a value you can snapshot/restore — that's the FP "fold over actions" model. But Python idiom + the AC throughout DISCUSS (`Game(seed=k).step(action) -> Observation` everywhere) want OOP entry points. Pure FP in Python fights the language; pure OOP attracts mutation and inheritance hierarchies. DELIVER needs to know which crafter dispatch to use (`nw-software-crafter` general vs. `nw-functional-software-crafter`).
+
+**Decision.** Hybrid: OOP shell + functional core.
+- `Game` is an OOP state container with mutation contracts; `step()` mutates internal state but `Game` has no identity (two Games with the same `(seed, action_sequence)` are observationally equivalent).
+- `World`, `Snapshot`, `Observation`, `Event`, `VariantConfig` are all `@dataclass(frozen=True)` — immutable values.
+- Transition logic (`resolve_move`, `walk_arrow`, `startle_wumpus`, ...) are pure functions on values in `wumpus.engine.transitions`.
+- `Surface`, `EscalationRule`, `Sink` are `typing.Protocol` (structural; no inheritance).
+- No inheritance hierarchies anywhere; composition only.
+
+**Alternatives considered.**
+- *Pure FP (Haskell-style)* — rejected. Python lacks ADTs, lacks compiler-enforced purity, makes `match` exhaustiveness brittle on union-typed events. The cost of policing purity (linting `random.random()` calls, banning class methods) exceeds the benefit. Harness operators expect `game.step(action)`, not `step(game, action)` (goals doc § 5.2 "obvious mental model").
+- *Pure OOP (deep inheritance + visitor pattern for events)* — rejected. The DISCUSS Event family is 21+ types in 6 shapes; a `class Event(ABC)` + 21 subclasses + visitor pattern adds boilerplate that mypy + Literal discriminator already give us for free. Mutation inside `World` would break SC12 host-import round-trip.
+
+**Consequences.**
+- Positive: SC1, SC7, SC12 satisfied without language fight. Transitions are testable in isolation (pure functions, no mocks). Snapshot/restore is "construct a new `Game` and replay the World" — trivial. Pattern-matching at event consumers is exhaustive (mypy).
+- Negative: contributors must internalize the "frozen dataclass + new World value per transition" pattern. Reflexive Python OOP ("just mutate `self._world.player_room`") is wrong here. Tooling (mypy strict) catches most slips.
+- DELIVER wave uses `nw-software-crafter` (general), not the functional crafter. The paradigm is internal-functional but the public API and module structure are OOP-flavored.
+
+---
+
+### ADR-002 — Schema evolution: per-version JSON Schema + semver major-version-pinning + cross-version compat shim
+
+**Status:** Accepted.
+
+**Context.** CC-AC-2 (Schema additivity): notebook code from N versions ago must still read N+k ledgers. Without enforcement, "additive only" is a convention that drifts. The substrate's entire analysis story (J3 ledger, divergence-event metrics, parent-note's metric table) depends on schema stability across many months and many engine commits.
+
+**Decision.** Three coordinated mechanisms:
+1. **Per-version JSON Schema documents** at `wumpus/schemas/v<N>.json`. `JsonlSink` validates every event at emission time against `schemas/v<schema_version>.json`. Schema bumps are explicit: `schemas/v2.json` is a *new file*; `v1.json` becomes immutable post-release.
+2. **Semver major-version-pinning to schema version.** Engine v1.x.x = schema v1; engine v2.x.x = schema v2. Minor versions are additive within a schema version (new optional fields, new event types). Major version bump = schema major bump.
+3. **Cross-version compatibility shim.** `wumpus.compat.v1` module ships when v2 lands; translates v1-emitted events into v2 in-memory representations for cross-version replay.
+
+CI gate: any PR touching `wumpus.events` must either edit `schemas/vN.json` additively (new optional field, new event type) or add a new `vN+1.json` + bump `wumpus.events.SCHEMA_VERSION` + add a compat shim entry.
+
+**Alternatives considered.**
+- *Manual code review only* — rejected. Schema drift is exactly the failure-mode that gets caught three notebooks later; humans miss it in PR review when the diff doesn't visibly say "schema." (Source: every team's experience with implicit JSON contracts.)
+- *Runtime schema discovery (notebooks introspect ledger header)* — rejected. Heavier than per-version files; doesn't solve the additivity-enforcement problem (engine could still ship a renamed field).
+- *Pydantic models as the schema source-of-truth* — rejected per ADR-007 (no pydantic dependency).
+
+**Consequences.**
+- Positive: SC5 mechanically enforced. Notebook code keyed to schema_version N continues to parse engine emissions until a new major version explicitly retires v1. The compat shim makes cross-version replay (J3) bounded-cost rather than unbounded breakage.
+- Negative: JSON Schema validation has per-event runtime cost (~tens of microseconds with `jsonschema`). At ~hundreds of turns per game × thousands of games per experiment, this is bounded; if it becomes a hotspot, the validator caches schema compilation across a process and we can disable validation in NDEBUG mode. Reserve: msgspec-based validation if `jsonschema` is too slow.
+
+**Cites.** CC-AC-2; SC5; J3 (Scenario: Engine refuses to start with a schema-drift sink).
+
+---
+
+### ADR-003 — Pre-state / post-state framing: per-effect events + optional verbose TurnBoundary
+
+**Status:** Accepted.
+
+**Context.** Tier A4 in DISCUSS deferred the framing question: does each event carry both pre-state and post-state, or only post-state with pre-state inferred from chain? J3's "ledger is the source of truth" claim depends on the framing being unambiguous. CC-AC-6 ("engine state and ledger state never disagree") needs a single authoritative hash sequence.
+
+**Decision.** Per-effect events carry `internal_state_hash` (post-state of that effect) and `monotonic_turn`. Pre-state of turn t = post-state of last event at turn t-1. No once-per-turn boundary event in R0–R5.
+
+`TurnBoundary(pre_state_snapshot, post_state_snapshot, turn)` is deferred as an opt-in additive feature (not in R0–R5 scope). When verbose mode is needed for hard-to-debug sessions (or for an experiment that wants snapshot-per-turn ledgers), `TurnBoundary` ships as a new event type via additive schema evolution (ADR-002).
+
+**Alternatives considered.**
+- *TurnBoundary always emitted* — rejected. Ledger size at experiment scale (thousands of games × hundreds of turns × ~1KB snapshot serialization per turn) reaches MB-scale per game and GB-scale per experiment. The notebook complexity argument for always-emit is a 10-line `iter_turns(events)` helper in the analysis layer — cheap.
+- *Pre-state hash on every event in addition to post-state hash* — rejected. Doubles the hash overhead; redundant (pre-state is post-state of previous event); risks divergence between the two paths.
+- *No internal_state_hash at all (rely on `monotonic_turn` + replay)* — rejected. Defeats CC-AC-6 (engine state and ledger state never disagree) — there's no way for a notebook to detect engine/ledger mismatch without a hash.
+
+**Consequences.**
+- Positive: ledger size minimized; CC-AC-6 satisfied via per-event hash chain; future TurnBoundary is additive (no schema break).
+- Negative: notebooks doing "show me turn N's pre-state" need 10 extra lines. The cost lives in analysis, not in the engine.
+
+**Cites.** Tier A4 DISCUSS deferral; CC-AC-6; SC4 (observability by default); J3 (ledger is source of truth).
+
+---
+
+### ADR-004 — Agent-vs-harness ledger-field taxonomy (ABC T.5 substrate-side)
+
+**Status:** Accepted.
+
+**Context.** Goals doc + parent-note (`wumpus_idea.md:104-122`) and Known Limitations L15/L16 establish a critical isolation requirement: an LLM agent must not see ground-truth engine state (RNG cursor, full world state, parsed sense kinds). The engine cannot enforce this at runtime — it has no way to identify "which consumer is the agent." But the engine *can* declare which fields are agent-safe and which are harness-private, so harnesses build agent-safe projections by construction.
+
+**Decision.** Ship `wumpus.taxonomy` module with:
+- `AGENT_SAFE_FIELDS: frozenset[str]` — fields safe to forward to an LLM agent's context (e.g., `type`, `schema_version`, `monotonic_turn`, `surface_variant`, `rendered_lines`, `prompt`, `raw_input_bytes`, `outcome` when terminal, harness-supplied annotations).
+- `HARNESS_PRIVATE_FIELDS: frozenset[str]` — ground-truth fields (`internal_state_hash`, `rng_cursor`, `wall_clock_ts`, parsed `player_room`, `adjacencies`, parsed `senses`).
+- `project_for_agent(event: Event) -> dict` — returns a JSON-shaped dict with only AGENT_SAFE fields.
+
+**Property test (enforcement):** for every Event subclass in `wumpus.events`, every declared field must be in AGENT_SAFE_FIELDS XOR HARNESS_PRIVATE_FIELDS. CI catches any new field that lacks a classification.
+
+**Schema additivity coupling (extends ADR-002):** every new field added to an event MUST have a taxonomy classification before the schema-bump PR can merge. This makes the leak window structurally zero.
+
+**Critical policy:** when in doubt, classify as `harness_private`. Adding a field to AGENT_SAFE later is additive; reclassifying from safe → private is a leak that already happened.
+
+**Alternatives considered.**
+- *Two distinct event-emission paths (`events_agent_safe()` and `events_full()`)* — rejected. Doubles the surface area; the engine would need to *know* which channel an event belongs on; harnesses still have to pick the right channel; doesn't help against "harness subscribed to the wrong channel" failure.
+- *Tag-based filtering at parse time* — rejected. Same end result as Option A but enforced at parse time rather than declaration time; less reviewable in PRs.
+- *Engine refuses to emit harness-private fields to "agent-shaped" consumers* — rejected. The engine has no way to know what's agent-shaped. Trying to introspect harness code is brittle and impossible.
+
+**Consequences.**
+- Positive: L15/L16 mitigated structurally. Harnesses opt into discipline by calling `project_for_agent`; the engine's role is to make discipline mechanically reviewable. Any new field is a one-line PR diff in `wumpus.taxonomy` — easy to review.
+- Negative: when-in-doubt-classify-private may surface false-positive private classifications (e.g., `monotonic_turn` is obviously safe but a future field might trigger reviewer disagreement). Tolerable: review is the cost of getting this right.
+- Carries forward as a contract for downstream features (the harness wave inherits "use `project_for_agent` or violate ABC T.5").
+
+**Cites.** L15, L16; goals doc § Goal 4; ABC T.5 in `wumpus_idea.md`.
+
+---
+
+### ADR-005 — EscalationRule Protocol surface (lifecycle hooks, two starter methods)
+
+**Status:** Accepted.
+
+**Context.** Goal 2 + R4-S02 caveat: ship the escalation_rules slot empty in R4 with a no-op `IdentityRule`. The exact hook surface must be locked now because downstream L3 (partial observability) and L4 (graph variants) features depend on it.
+
+**Decision.** `EscalationRule` is a `typing.Protocol` with two starter methods:
+
+```python
+class EscalationRule(Protocol):
+    name: str
+    def filter_observation(self, obs: Observation, world: World) -> Observation: ...
+    def filter_events(self, events: Sequence[Event], world: World) -> Sequence[Event]: ...
+```
+
+- `filter_observation`: L3 (partial observability) implements this. Rule sees full `Observation` and decides what to keep. Cannot inject surface-form strings — that happens before/after via the engine's surface translation step. (Preserves SC8.)
+- `filter_events`: L4 (graph variants) or other escalations implement this. Rule sees the event sequence emitted this turn and may rewrite/drop/augment.
+
+Ship `IdentityRule` (no-op default; explicitly identity on both hooks). Rules carry `name: str` for ledger logging: `GameStarted.active_escalation_rules: tuple[str, ...]` records which rules were active at session start.
+
+**Discipline:** Rules MUST NOT import `random` at module scope or call `random.random()` directly. If a rule needs entropy, the engine passes RNG via `RuleContext` (not in starter set; added when needed via additive Protocol extension).
+
+**Alternatives considered.**
+- *Single hook `apply(event: Event, context: RuleContext) -> Iterable[Event]`* — rejected. Maximally flexible but minimally specific; rules can do anything including violate SC9 (surface seam) or SC1 (determinism). Hard to test in isolation.
+- *Event-bus filter (`consumes: list[str]`)* — rejected. More mechanism than R0–R5 needs; can be added later by enriching the Protocol with an optional `consumes` attribute.
+- *Lifecycle hooks (five+ methods: before_transition, after_transition, on_sense, on_hazard, on_terminal)* — rejected. Premature surface expansion. Two hooks cover L3/L4 cleanly; additional hooks can be added via additive Protocol extension when L5/L6 actually surface a need.
+
+**Consequences.**
+- Positive: R4-S02 ships with a small, defensible hook surface. L3/L4 downstream features have clear contracts. Protocol extension is additive (existing rules continue to work; new method has a default).
+- Negative: a malicious/careless rule could violate SC1 by importing `random`. The engine cannot prevent this in Python; ADR records the discipline explicitly.
+
+**Cites.** R4-S02 caveat C-R4-S02; Goal 2; `wumpus_idea.md:160-164`.
+
+---
+
+### ADR-006 — Cross-package import mechanism: uv workspace member
+
+**Status:** Accepted.
+
+**Context.** D5 + SC11: the engine must be importable from sibling packages (other `python/packages/*`) and from `experiments/` without `sys.path` hacks or per-consumer install steps. DISCUSS deferred the mechanism to DESIGN.
+
+**Decision.** Add `python/packages/wumpus/` as a uv workspace member. The new package gets its own `pyproject.toml` matching the sibling-package template (`hello_world`, `embedding_db`). Downstream consumers declare `dependencies = ["wumpus"]` + `[tool.uv.sources] wumpus = { workspace = true }`. `uv sync` from the workspace root resolves to a local editable install.
+
+For *outside-the-Python-workspace* consumers (MPL host-import at `lostinplace/mplv2/`), the host import is handled by the R5 adapter; the MPL spike pins the import mechanism (likely a Python interpreter invocation with `wumpus` on its path). Not a concern of this ADR.
+
+**Alternatives considered.**
+- *Manual editable install (`pip install -e ./python/packages/wumpus`)* — rejected. Works without uv but requires every consumer to remember the install step; brittle in CI.
+- *PEP 420 namespace package* — rejected. Different shape; adds nothing here; sibling packages don't use it.
+- *Vendor `wumpus` source into each consumer* — rejected. Conway-violating; duplicates source; SC11 explicitly forbids "no source mods, no hand-rolled `sys.path`."
+
+**Consequences.**
+- Positive: SC11 satisfied. `uv sync` is the single "developer ready" command. Sibling-package convention preserved (zero training cost for contributors).
+- Negative: if uv ever drops workspace support, we re-do as editable install. Tolerable risk; uv workspace is now stable upstream.
+
+**Cites.** D5; SC11; observed in root `python/pyproject.toml`.
+
+---
+
+### ADR-007 — Dataclass library: stdlib `dataclasses` + manual validators
+
+**Status:** Accepted.
+
+**Context.** Engine ships dataclasses for `Snapshot`, `Observation`, `World`, `VariantConfig`, `Surface` (interface), `Event` family. Choice between stdlib `dataclasses`, `attrs`, `pydantic` v2, and `msgspec`.
+
+**Decision.** stdlib `dataclasses` (`@dataclass(frozen=True)`) with manual `__post_init__` validators. JSON encoding via `dataclasses.asdict` + `json.dumps` + custom encoders for non-trivial fields (RNG cursor as base64). Reserve: msgspec as a future option for JSON encoding if R3-S02 benchmarks demand it (drop-in replacement for `encode_event` only, not for the dataclass types).
+
+**Alternatives considered.**
+- *pydantic v2* — rejected. Imports `pydantic_core` (Rust extension), adding ~30-50ms cold-start; J4 (MPL host-import) may invoke the engine for a single turn, so cold-start is on the critical path. Engine has *no* validation needs that stdlib + a small helper can't cover (adjacency is rule logic, not type validation; schema-version is a single int compare). Schema-additivity (CC-AC-2) is *easier* to police with raw `@dataclass` (grep field names) than with pydantic `Model` (validators may shadow field defaults).
+- *attrs* — rejected. Mature and good, but adds a dependency to a package whose constraint is "plain Python" (SC10). Marginal value over stdlib is `__init_subclass__` hooks and slotted classes — neither needed.
+- *msgspec* — deferred. Young library (first 1.0 in 2023); binary dependency. Genuinely attractive for fast JSON (SC6) but R3-S02 hasn't shown stdlib JSON is the bottleneck (snapshots are small). Revisit only if benchmarks demand.
+
+**Consequences.**
+- Positive: zero third-party dependency for type substrate; cold-start cost trivial; schema-additivity is grep-able; J4 satisfied.
+- Negative: more boilerplate per event type (~5 lines of `__post_init__` validation). Tolerable.
+- If msgspec drop-in for encoding becomes desirable later, the change is local to `wumpus.events.encode_event` — does not propagate to dataclass types.
+
+**Cites.** J4 (cold-start); SC10 (no framework deps); CC-AC-2; goals doc § 5.2.
+
+---
+
+### ADR-008 — Sink contract: Protocol, sync emit, schema errors propagate / IO errors recoverable
+
+**Status:** Accepted.
+
+**Context.** SC4 (synchronous + ordered + schema-validated). J3 (sink subscription must not alter event order; observer-effect-free). Need to pin the Sink abstraction, error-handling policy, and composition story.
+
+**Decision.**
+- `Sink` is a `typing.Protocol` with `emit(event: Event) -> None` and `name: str`. Structural; no ABC ceremony.
+- Synchronous: engine calls `emit()` on the engine's thread; emission ordering is engine-controlled, not subscriber-controlled.
+- Multiple subscribers via list; no first-class composite. A user wanting "tee" semantics subscribes both.
+- Error handling: two distinct exception classes:
+  - `SchemaValidationError` propagates uncaught — schema-validated events failing schema is a *programming error*; session aborts (SC5).
+  - `SinkIOError` is caught by `wumpus.engine.emit`; the engine emits a `SinkFailure(sink_name, exception_summary)` event to remaining sinks; unsubscribes the failing sink; continues.
+- Module location: `wumpus.sinks` (semantic name; aligns with "sinks vs. sources" pattern; avoids overloading stdlib `io`).
+- Thread safety: sinks called synchronously on engine's thread. Sinks MUST NOT assume multi-thread coordination. Documented in Protocol docstring.
+
+**Alternatives considered.**
+- *ABC instead of Protocol* — rejected. The three reference sinks (`JsonlSink`, `InMemorySink`, `RendererSink`) share no behavior; ABC adds no value beyond type-checking. Protocol allows trivial test mocking without inheritance.
+- *Engine catches all sink errors silently* — rejected. Silent data loss is the failure mode we're designing against (SC5 fail-fast on schema drift).
+- *Engine propagates all sink errors* — rejected. A single sink with a stale file handle would kill the whole session including in-memory consumers. Split based on error class is the right granularity.
+- *First-class CompositeSink* — rejected (YAGNI). One-liner if needed later.
+
+**Consequences.**
+- Positive: SC4 satisfied. Subscription does not alter event ordering. Schema drift surfaces at the first event (fail-fast). IO faults are fault-tolerant for other consumers.
+- Negative: a sink author writing a poorly-typed `emit()` doesn't get an ABC error at class-definition time. Mypy strict catches it at use.
+
+**Cites.** SC4; SC5; J3 (Scenario: Sink attachment does not alter event emission); J3 (Scenario: Engine refuses to start with a schema-drift sink).
+
+---
+
+### ADR-009 — CI matrix: hybrid PR-gate subset + nightly full sweep
+
+**Status:** Accepted.
+
+**Context.** K-2 (determinism KPI: 100% paired-process equality across `(seed, action_sequence)` × platforms). L4 (Windows wexpect risk). L7 (Python `random.Random` stability across 3.11/3.12/3.13). PR latency vs. coverage trade-off.
+
+**Decision.** Hybrid CI matrix:
+- **PR-gate (every push):** Python 3.11 × Linux + Python 3.11 × Windows (2 cells; ~5 min typical). Covers the most common dev OS + the riskiest OS (Windows / wexpect).
+- **Nightly cron (00:00 UTC):** Python 3.11, 3.12, 3.13 × Linux + macOS + Windows (9 cells; ~30 min typical). Catches Python-version drift (L7) and macOS-specific issues.
+- **R1-S10 BASIC fixture suite** runs in every cell.
+- **R2-S03 paired-sink property test** runs in every cell (the K-2 measurement).
+- **R4-S05 paired-Mystery property test** runs in every cell.
+- **pexpect/wexpect smoke test (R1-S09 AC)** runs only on its native OS: pexpect on Linux+macOS; wexpect on Windows.
+
+**Alternatives considered.**
+- *Minimum sane (3.11 × Linux only)* — rejected. L4 (wexpect) and L7 (Python version drift) are real risks; minimum matrix doesn't surface them until production.
+- *One Python × three OSes (3.11 × Linux/macOS/Windows on every PR)* — rejected. Doesn't catch L7 (Python version drift) until a 3.12 user files a bug. Marginal cost of adding the nightly is small.
+- *Full 3×3 on every PR* — rejected. ~9 cells × ~5 min = ~45 min PR latency. Pull-request cycle time is the developer-loop bottleneck; nightly handles full-sweep without slowing PRs.
+
+**Consequences.**
+- Positive: K-2 covered at the latency tier appropriate to its risk class (wexpect = fast; Python version = slow but bounded). Compute cost fits GitHub Actions free-tier.
+- Negative: a regression that affects only 3.12 × macOS surfaces 24h later, not at PR time. Tolerable: 3.12 × macOS is not the dev surface; nightly catches it before the next day's PRs.
+
+**Cites.** K-2; L4; L7; R1-S09; R1-S10; R2-S03; R4-S05.
+
+---
+
+### ADR-010 — Event shape: per-type frozen dataclasses with Literal discriminator
+
+**Status:** Accepted.
+
+**Context.** Tier A4 DISCUSS skeleton names 21+ event types. Two encoding options: per-type dataclass with discriminator, or single `Event` + `payload: dict`.
+
+**Decision.** One frozen dataclass per event type (`GameStarted`, `MoveAttempted`, `SenseEmitted`, ...), each with `type: Literal["..."]` discriminator. Shared fields composed via private `_BaseEventFields` helper (NOT a polymorphic base — no virtual methods, no event dispatch hierarchy; only shared field declaration). JSON encoding via tagged-union (`{"type": "MoveAttempted", ...}`).
+
+**Alternatives considered.**
+- *Single `Event` + `payload: dict`* — rejected. Type safety: payload is `Mapping[str, object]` — mypy cannot verify field shapes. Schema-additivity (CC-AC-2) is harder to police (new field is a runtime-only addition). Discoverability: grep `MoveAttempted` finds nothing in payload-keyed events. Risk of "secret payload field" is high.
+- *ABC + 21 subclasses with virtual methods* — rejected. Virtual dispatch on events is YAGNI; pattern-matching (`match event: case MoveAttempted(...):`) is cleaner; consumers don't need polymorphic methods (they need exhaustive case analysis, which `match` + Literal provides for free).
+
+**Consequences.**
+- Positive: mypy strict verifies field shapes per type; pattern-matching at consumers is exhaustive; schema-additivity is one-line dataclass edit + propagate to encoder; grep-ability is high.
+- Negative: ~21 dataclasses' worth of boilerplate; ~5 lines of `__post_init__` validation per type. Bounded (the 21 types fall into ~6 shape families).
+- `_BaseEventFields` is a private convenience for field declaration. Consumers MUST NOT type-annotate against `_BaseEventFields`; they type-annotate against the `Event` union or specific subtypes.
+
+**Cites.** Tier A4 DISCUSS; CC-AC-2; Decision 1a in trade-offs draft.
+
+---
+
+## Wave: DESIGN / [REF] CI matrix recommendation for DEVOPS
+
+For the DEVOPS wave (`nw-platform-architect`). The matrix per ADR-009:
+
+### Matrix spec
+
+| Tier | Cadence | Cells | Latency target | Compute cost |
+|---|---|---|---|---|
+| PR-gate | Every push | Python 3.11 × {Linux, Windows} = 2 | ≤5 min | Low |
+| Nightly | Cron 00:00 UTC | Python {3.11, 3.12, 3.13} × {Linux, macOS, Windows} = 9 | ≤30 min | Medium |
+
+### Which slices each tier gates
+
+**PR-gate (both cells):**
+- R0 walking-skeleton unit tests
+- R1 Yob mechanics unit tests
+- R1-S10 BASIC fixture byte-comparison (OS-independent if SC1 holds — but MUST verify)
+- R2-S01 JSON Schema validation tests
+- R2-S03 paired-sink property test (THIS IS the K-2 measurement)
+- R3-S01 snapshot round-trip property test
+- R3-S02 JSON round-trip property test
+- R4-S04 four static audits (surface-leak, determinism-source, module-state, snapshot-serializability)
+- R4-S05 paired-Mystery property test (also a K-2 measurement)
+
+**PR-gate (Linux only):**
+- pexpect smoke test (R1-S09 AC)
+
+**PR-gate (Windows only):**
+- wexpect smoke test (R1-S09 AC) — covers L4
+
+**Nightly (all 9 cells):**
+- Full PR-gate suite × 9 cells (catches L7 Python version drift; catches macOS-specific issues)
+- R5-S02 parametric sweep (500-config; may exceed PR-gate budget so deferred to nightly)
+- Cold-start benchmark for J4 (if R3 reveals startup cost is a problem)
+
+### What DEVOPS owns
+
+- Exact GitHub Actions YAML (workflow definitions, matrix syntax, secrets if any).
+- Caching strategy for `uv` venvs across cells.
+- Job parallelism (cells run in parallel; one fails ⇒ all reported).
+- Status badges + protected-branch settings.
+- Cron schedule + timezone.
+- Failure notification (Discord? email? — DEVOPS picks).
+
+### Outcome KPI handoff
+
+K-2 (paired-process equality) is measured by R2-S03 + R4-S05 in every cell. K-2 release-gate check: all PR-gate cells PASS at release commit. Nightly failures get a triage queue, not a release block.
+
+---
+
+## Wave: DESIGN / [REF] Open Decisions for Downstream Waves
+
+DESIGN closed the architecture-shape questions. Downstream waves still own these.
+
+### Owned by DEVOPS (`nw-platform-architect`)
+
+- **Exact GitHub Actions YAML** (`.github/workflows/*.yml`). ADR-009 specifies the matrix; DEVOPS writes the YAML.
+- **Caching strategy** for `uv sync` across CI cells.
+- **Cron schedule** for the nightly sweep (00:00 UTC suggested; DEVOPS confirms).
+- **Failure notification channel** (Discord / email / GitHub issue creation — DEVOPS picks per workspace convention).
+- **Per-release KPI snapshot mechanics** (how K-1 through K-8 are measured at each release boundary; DISCUSS lists the KPIs, DEVOPS instruments).
+- **Cold-start benchmark harness** (for J4 cold-start regression detection; ADR-007 mentions it as reserve).
+- **JSON Schema validator runtime mode** (dev/prod: validate every event; CI mode: validate + fail-fast; NDEBUG mode: skip — DEVOPS decides if NDEBUG is needed).
+
+### Owned by DISTILL (`nw-acceptance-designer`)
+
+- **Per-event Gherkin scenarios beyond what DISCUSS pinned.** DISCUSS pinned the journey-level Gherkin; DISTILL writes the per-event AC (e.g., "MoveAttempted with accepted=False emits no World mutation").
+- **Per-story acceptance test fixtures** for R0–R5 (DESIGN sketched the dataclass shapes; DISTILL writes the test fixtures).
+- **R1-S10 BASIC transcript fixture format** (DESIGN says "byte-comparison"; DISTILL pins the comparison harness).
+- **R2-S03 paired-sink property test setup** (the K-2 measurement instrumentation).
+- **R3-S01 / R3-S02 / R4-S05 / R5-S02 property test seeds and bounds** (DESIGN says "100-seed / 1000-trial / 100×50 / 500-config"; DISTILL pins seed selection, bound assertions, failure-mode taxonomies).
+
+### Owned by DELIVER (`nw-software-crafter`)
+
+- **Actual implementation** of all modules in `[REF] Engine module layout`.
+- **The exact ADR for what to call `Game.peek()` if it gets added** (a non-mutating "look at next observation without advancing" — surfaced as a possible API addition during R3 if the host-import adapter needs it; DELIVER files an ADR if and when this is added).
+- **Internal helper organization within each module** (e.g., should `transitions.py` split into `transitions/move.py` + `transitions/shoot.py` etc.; DESIGN doesn't dictate).
+- **`__post_init__` validation specifics** (DESIGN says "manual validators"; DELIVER writes the validators).
+- **JSON encoding error messages** (the exact strings raised on schema failure).
+
+### Owned by future features (or revisits)
+
+- **L3 partial observability** — implements `EscalationRule.filter_observation`.
+- **L4 graph variants beyond `VariantConfig.topology`** — implements `EscalationRule.filter_events`.
+- **MPL host-import signature** — blocked on `wumpus_idea.md:147` spike.
+- **`TurnBoundary` verbose mode** — additive event type; ships when a debugging or analysis need surfaces.
+- **`wumpus.compat.v1`** — ships when v2 schema lands (not in R0–R5).
+- **msgspec drop-in for JSON encoding** — if R3-S02 reveals stdlib JSON is a bottleneck.
+
+---
+
+## Wave: DESIGN / [REF] Wave Decisions Summary
+
+Per the `/nw-design` template.
+
+### Key Decisions
+
+- **[D-DESIGN-01] Paradigm:** Hybrid OOP-at-the-seam + FP-inside. See ADR-001.
+- **[D-DESIGN-02] Event shape:** Per-type frozen dataclasses with Literal discriminator + shared `_BaseEventFields` composition. See ADR-010.
+- **[D-DESIGN-03] World as first-class dataclass:** `World` is shared between `Game._world` and `Snapshot.world`. See `[REF] Tier A type definitions` A1.
+- **[D-DESIGN-04] RNG cursor encoding:** Base64-encoded pickled `random.Random.getstate()` (`rng_cursor: str` in Snapshot). See `[REF] Tier A type definitions` A2.
+- **[D-DESIGN-05] Schema evolution:** Per-version JSON Schema docs at `wumpus/schemas/v<N>.json` + semver major-version-pinning + cross-version compat shim. See ADR-002.
+- **[D-DESIGN-06] Cross-package imports:** uv workspace member at `python/packages/wumpus/`. See ADR-006.
+- **[D-DESIGN-07] EscalationRule hooks:** Two starter hooks (`filter_observation`, `filter_events`) + `IdentityRule` no-op default + `name: str` for ledger logging. See ADR-005.
+- **[D-DESIGN-08] Dataclass library:** stdlib `dataclasses` + manual `__post_init__` validators. See ADR-007.
+- **[D-DESIGN-09] Sink contract:** Protocol with synchronous `emit(event)`. `SchemaValidationError` propagates; `SinkIOError` triggers `SinkFailure` emission to remaining sinks + unsubscribe of the failing sink. See ADR-008.
+- **[D-DESIGN-10] CI matrix:** Hybrid PR-gate (3.11 × Linux + Windows) + nightly full sweep (3.11/3.12/3.13 × Linux/macOS/Windows). See ADR-009.
+- **[D-DESIGN-11] Pre/post-state framing:** Per-effect events with `internal_state_hash` + `monotonic_turn`. `TurnBoundary` deferred. See ADR-003.
+- **[D-DESIGN-12] Field taxonomy:** `wumpus.taxonomy` module with AGENT_SAFE / HARNESS_PRIVATE sets + `project_for_agent` helper + property test enforcing XOR classification. See ADR-004.
+
+### Architecture Summary
+
+Single bounded context: the wumpus engine. Three driving ports (CLI, programmatic API, host-import) on one hexagon. One outbound port (Sink Protocol). Engine core (`wumpus.engine.*`) is hexagonal-style: pure transition functions on immutable `World` values; `Game` is a thin OOP shell holding `_world: World` and `_random: random.Random`. Surfaces translate at the output boundary only (SC8). Sinks are duck-typed; subscription is synchronous and ordering-preserving.
+
+Modular monolith with enforced module boundaries (custom AST audits + mypy strict). No microservices, no service mesh, no broker, no async runtime. Conway's Law: trivial (solo / small team).
+
+### Technology Stack
+
+Python 3.11+ (CPython) | hatchling | uv workspace | stdlib `dataclasses` | pytest 8+ | hypothesis | mypy strict | ruff | jsonschema | pexpect/wexpect | GitHub Actions. Zero proprietary deps. No DB, no broker, no service.
+
+### Constraints Established
+
+DESIGN inherits SC1–SC12 from DISCUSS unchanged. DESIGN adds enforcement mechanisms:
+
+- **SC1 (determinism):** `wumpus.engine.hash` produces deterministic blake2b hashes; CI audit forbids `time.time()`, `os.urandom`, top-level `random.*` in `wumpus.engine.*`.
+- **SC2 (Yob fidelity):** `wumpus.surfaces.yob` contains canonical strings; R1-S10 BASIC fixture suite enforces byte parity.
+- **SC4 (synchronous logging):** sinks are synchronous-only by Protocol contract; CI audit forbids `threading.Thread` / `asyncio.create_task` in `wumpus.engine.*`.
+- **SC5 (schema additivity):** JSON Schema documents at `wumpus/schemas/v<N>.json`; per-event validation in `JsonlSink`; PR gate via taxonomy classification.
+- **SC6 (snapshot JSON):** `Snapshot.to_json` / `from_json` round-trip; property test in R3-S02; `rng_cursor` base64 encoding mandated.
+- **SC7 (no module-level state):** CI audit walks AST of `wumpus.engine.*` for module-level mutable containers.
+- **SC8 (surface-only string boundary):** CI audit forbids string literals matching Yob's MESSAGES table inside `wumpus.engine.*`.
+- **SC9 (paired-run hash equality):** R2-S03 / R4-S05 property tests measure this.
+- **SC10 (no framework deps):** `pyproject.toml` lists only stdlib + pytest + hypothesis + mypy + ruff + jsonschema + pexpect.
+- **SC11 (cross-package imports clean):** ADR-006 (uv workspace).
+- **SC12 (snapshot is host-import floor):** `Snapshot` dataclass JSON-serializable end-to-end; round-trip property test in R3-S01/R3-S02.
+
+### Upstream Changes
+
+None. DESIGN inherited the DISCUSS contract whole; no contradictions surfaced that require DISCUSS re-opening.
+
+---
+
+## Wave: DESIGN / [REF] Handoff Package
+
+End of DESIGN. Structured to match the `/nw-design` command's Handoff template.
+
+### Primary handoff: `nw-platform-architect` (DEVOPS wave)
+
+**What DEVOPS reads first:**
+1. `[REF] CI matrix recommendation for DEVOPS` — the matrix spec (ADR-009) and which slices each tier gates.
+2. `[REF] Tech Stack` — the OSS + license-documented choices. DEVOPS confirms toolchain availability in CI.
+3. `[REF] Engine module layout` — DEVOPS needs to know what the package directory looks like to wire `pyproject.toml` + `uv sync` + cache paths.
+4. `## Wave: DISCUSS / [REF] Outcome KPIs` — K-1 through K-8 are the measurement contract.
+5. `## Wave: DISCUSS / [REF] System Constraints` (SC1–SC12) — the non-functional contract.
+
+**Open decisions DEVOPS must close:** see `[REF] Open Decisions for Downstream Waves` § Owned by DEVOPS above.
+
+**Out-of-scope for the handoff:**
+- Application code (DELIVER's job).
+- Acceptance tests (DISTILL's job).
+- Architecture changes (would require re-opening DESIGN).
+
+### Secondary handoff: `nw-acceptance-designer` (DISTILL wave)
+
+**What DISTILL reads first:**
+1. `[REF] Tier A type definitions` — the dataclass shapes that AC will be written against.
+2. `[REF] Engine module layout` — the module boundaries that AC organizes around.
+3. `[REF] ADRs` (especially ADR-002 schema evolution + ADR-004 taxonomy + ADR-008 sink contract) — the rules AC must respect.
+4. `## Wave: DISCUSS / [REF] Acceptance Criteria` — CC-AC-1 through CC-AC-5 cross-cutting.
+5. `## Wave: DISCUSS / [REF] Journeys` § Gherkin blocks — journey-level scenarios; DISTILL extends to per-event AC.
+
+**Open decisions DISTILL must close:** see `[REF] Open Decisions for Downstream Waves` § Owned by DISTILL above.
+
+**Out-of-scope for the handoff:**
+- Implementation (DELIVER's job).
+- CI infrastructure (DEVOPS's job).
+- The MPL spike (external; tracked in `wumpus_idea.md:147`).
+
+### Tertiary: future DELIVER (`nw-software-crafter`)
+
+DELIVER doesn't read this handoff directly (DELIVER reads DISTILL's acceptance tests). But DELIVER inherits ADR-001 (use general `nw-software-crafter`, NOT functional crafter) and the engine module layout as the implementation target.
+
+### External integration annotations
+
+One external integration in the architecture:
+- **MPL host-import (cell D consumer).** API type: Python function-call (the MPL chart calls a host-import; signature blocked-on-spike). Consumer-driven contract testing **deferred** until the MPL spike pins the signature. When the spike lands, the R5 adapter at `wumpus.host_import` becomes the contract surface; consumer-driven contracts (Pact-style or a simpler Python-property-test equivalent) should be added at that point. Currently no consumer code exists to drive contracts against.
+
+No other external integrations (no REST APIs, no third-party services, no OAuth providers, no webhooks). The engine is an in-process Python library.
+
+### Handoff acceptance signal
+
+When DEVOPS accepts handoff:
+- Flip `[REF] Phase Tracker` row 8 status (DESIGN dispatch) — note that peer review was deferred (harebrain convention); user may invoke `/nw-review nw-solution-architect-reviewer` as a separate trigger if desired.
+- DESIGN wave artifacts in this file become read-only for DEVOPS/DISTILL/DELIVER purposes (any change requires re-opening DESIGN).
+- The 10 ADRs (ADR-001 through ADR-010) become the immutable decision record for the wumpus engine architecture.
