@@ -1,0 +1,109 @@
+"""Event dataclasses for the wumpus engine.
+
+Per ADR-010 (Event shape): one frozen dataclass per event type, each with a
+`type: Literal["..."]` discriminator. Shared fields are composed via a private
+`_BaseEventFields` helper; this is field-declaration sharing only, not a
+polymorphic base. Consumers pattern-match on the discriminated union `Event`.
+
+R0 ships only the events the walking skeleton needs:
+    - GameStarted
+    - MoveAttempted
+    - MoveResolved
+
+Additional event types (SenseEmitted, HazardResolved, ArrowPathStep, GameEnded,
+SinkFailure, ...) land in subsequent releases per their respective slices.
+
+Per ADR-002 (schema evolution) this module pins SCHEMA_VERSION; R0 ships v1.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Literal
+
+SCHEMA_VERSION: int = 1
+
+
+# ---------------------------------------------------------------------------
+# Shared field declaration (NOT a polymorphic base; per ADR-010)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class _BaseEventFields:
+    """Shared fields composed into each Event subtype.
+
+    Consumers MUST NOT type-annotate against this class. Use the `Event` union
+    or a specific subtype. Per ADR-010, this exists ONLY to share field
+    declarations across the ~21 event dataclasses; it has no virtual methods
+    and no dispatch role.
+    """
+
+    schema_version: int
+    turn: int
+    surface_variant: str
+    internal_state_hash: str
+    rng_cursor: str
+    # Optional harness-supplied fields (HARNESS_PRIVATE per ADR-004 / taxonomy):
+    wall_clock_ts: float | None = None
+    actor_node: str | None = None
+    back_prompted: bool | None = None
+    actor_scratchpad: str | None = None
+    tokens_in: int | None = None
+    tokens_out: int | None = None
+
+
+# ---------------------------------------------------------------------------
+# Per-type event dataclasses (R0 subset)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class GameStarted(_BaseEventFields):
+    """Emitted once when `Game(seed=k)` is constructed.
+
+    Carries the constructor's seed, the engine version, and a layout hash so
+    downstream replays can verify SAME SET-UP=Y semantics (R3 territory; R0
+    just ships the field).
+    """
+
+    type: Literal["GameStarted"] = "GameStarted"
+    seed: int = 0
+    engine_version: str = ""
+    surface_id: str = ""
+    layout_hash: str = ""
+    active_escalation_rules: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class MoveAttempted(_BaseEventFields):
+    """Emitted when the player issues a `move <N>` action.
+
+    `accepted=True` means the target room is adjacent and the move will be
+    resolved; `accepted=False` means the engine rejected the action (target
+    not adjacent / not a valid room) and would re-prompt.
+    """
+
+    type: Literal["MoveAttempted"] = "MoveAttempted"
+    target_room: int = -1
+    accepted: bool = False
+
+
+@dataclass(frozen=True)
+class MoveResolved(_BaseEventFields):
+    """Emitted after a `MoveAttempted(accepted=True)` is applied to the world.
+
+    Carries the resulting player room. R0 does NOT resolve hazards here; that
+    lands at R1 with pits/bats/multiple wumpuses.
+    """
+
+    type: Literal["MoveResolved"] = "MoveResolved"
+    player_room: int = -1
+
+
+# ---------------------------------------------------------------------------
+# Discriminated union — pattern matching at consumers uses this alias.
+# ---------------------------------------------------------------------------
+
+
+Event = GameStarted | MoveAttempted | MoveResolved
