@@ -1,0 +1,189 @@
+schema_version: 1
+
+# Machine-readable KPI contracts for harebrain features.
+# Translates feature-level [REF] Outcome KPIs sections into structured data
+# the DEVOPS layer (CI, observability) can consume.
+#
+# Each contract:
+#   id              -- stable identifier (K-N format; matches feature-delta.md)
+#   feature         -- feature ID (matches docs/feature/<feature>/)
+#   job             -- job_id from docs/product/jobs.yaml (or "engine-substrate" if cross-cutting)
+#   metric          -- one-line description of what's measured
+#   baseline        -- the value before any work (typically n/a for greenfield)
+#   target          -- the target value defining "passing"
+#   threshold_alert -- the value at which monitoring alerts (for libraries: when CI badge goes red)
+#   measurement_method -- how the value is computed
+#   ci_job          -- the CI job whose passing/failing IS the KPI's state (for libraries with no production telemetry)
+#   status          -- pending | active | satisfied | abandoned
+#   owner           -- which downstream agent owns ongoing measurement
+#   reviewed_by     -- which agent validates the measurement methodology
+
+changelog:
+  - date: "2026-05-22"
+    schema_version: 1
+    feature: wumpus
+    change: |
+      Bootstrap of kpi-contracts.yaml. Translated the 8 KPIs (K-1 through K-8)
+      from docs/feature/wumpus/feature-delta.md § [REF] Outcome KPIs into
+      machine-readable contracts. All KPIs are CI-surfaced (no production
+      telemetry; wumpus is a library). Owner field follows the DESIGN-wave
+      ownership table.
+
+contracts:
+
+  - id: K-1
+    feature: wumpus
+    job: play-classic-wumpus
+    metric: Yob byte-fidelity (10/10 captured BASIC fixtures byte-identical with engine output)
+    baseline: n/a (greenfield)
+    target: 10 of 10 fixtures pass byte-comparison
+    threshold_alert: any single fixture diverges
+    measurement_method: |
+      Per fixture F_i (seed s_i, input script I_i, expected stdout F_i.stdout):
+      `wumpus --seed s_i` driven with I_i must produce stdout equal to F_i.stdout
+      byte-for-byte. CI fails the build on any divergence; the failure message
+      points at the first diverging byte.
+    ci_job: ci/byte-fidelity
+    first_measurable_at: end of R1 (R1-S10 slice)
+    status: pending
+    owner: nw-solution-architect at DESIGN handoff; nw-functional-software-crafter at DELIVER
+    reviewed_by: nw-product-owner at DISCUSS handoff
+
+  - id: K-2
+    feature: wumpus
+    job: replay-wumpus-deterministically
+    metric: Determinism reliability (100% paired-process equality across 100 random (seed, action_sequence) × 3 platforms)
+    baseline: n/a (greenfield)
+    target: 100 of 100 trials × 3 platforms produce equal event sequences
+    threshold_alert: any trial with non-identical event sequences across processes
+    measurement_method: |
+      Property test (R2-S03 paired-sink determinism): generate 100 random
+      (seed, action_sequence) pairs; run each in two independent Python
+      processes with no sinks, then with JsonlSink, then with InMemorySink,
+      then with both. All four runs MUST produce identical in-engine event
+      sequences. CI matrix runs the property test on Python 3.11 × Linux + Python 3.11 × Windows in PR-gate; full 3×3 matrix nightly.
+    ci_job: ci/determinism
+    first_measurable_at: end of R2 (R2-S03 slice)
+    status: pending
+    owner: nw-platform-architect (CI matrix); engineer at DELIVER
+    reviewed_by: nw-product-owner
+
+  - id: K-3
+    feature: wumpus
+    job: probe-llm-obfuscation-gap
+    metric: Mystery seam structurality (100% turn-level internal_state_hash equality across 100 seeds × 50 turns × Yob-vs-Mystery paired runs)
+    baseline: n/a (greenfield)
+    target: 100% of (seed, turn) pairs have equal internal_state_hash across surface variants
+    threshold_alert: any (seed, turn) pair with diverging hash
+    measurement_method: |
+      R4-S05 paired property test: for each of 100 random seeds, generate a
+      50-action canonical-verb sequence A. Run `Game(seed=k, surface=Yob()).run(A)`
+      and `Game(seed=k, surface=Mystery()).run(translate(A, mystery))`. For
+      every turn t, the events' internal_state_hash MUST be equal. Mystery
+      surface MUST NOT consume engine RNG (verified by paired rng_cursor sequence equality).
+    ci_job: ci/mystery-seam
+    first_measurable_at: end of R4 (R4-S05 slice)
+    status: pending
+    owner: nw-solution-architect (Surface interface design); engineer at DELIVER
+    reviewed_by: nw-product-owner
+
+  - id: K-4
+    feature: wumpus
+    job: drive-engine-from-host-import
+    metric: Snapshot round-trip reliability (100% byte-identical round-trip across 6 fixture states × in-memory + JSON encodings + 1000 random property-test trials)
+    baseline: n/a (greenfield)
+    target: 6 fixtures × 2 encodings + 1000 property trials all pass
+    threshold_alert: any fixture or property trial fails byte-equality
+    measurement_method: |
+      R3-S01: 1000-trial property test (100 seeds × 10 action sequences × 10
+      random split points). At each split, snapshot the game, restore from
+      snapshot, continue; final snapshot MUST equal the single-process
+      snapshot.
+      R3-S02: 6 fixture snapshots (turn 0, mid-arrow-path, post-bat-teleport,
+      post-startle, terminal-win, terminal-lose) round-trip through JSON
+      encode/decode; result MUST equal original (deep equality including
+      rng_cursor).
+    ci_job: ci/snapshot
+    first_measurable_at: end of R3 (R3-S01 + R3-S02 slices)
+    status: pending
+    owner: nw-ddd-architect (Snapshot dataclass design); engineer at DELIVER
+    reviewed_by: nw-system-designer (for serialization)
+
+  - id: K-5
+    feature: wumpus
+    job: engine-substrate
+    metric: Audit-gate cleanliness (0 hits across all 4 static audits on every PR)
+    baseline: n/a (greenfield)
+    target: 0 hits per audit per PR
+    threshold_alert: any audit finds any violation
+    measurement_method: |
+      Four CI jobs in audits.yml (run in parallel, collect-all):
+      - ci/audit-surface-leak: AST walk for Yob-string literals outside wumpus.surfaces.*
+      - ci/audit-determinism: AST walk for time.time/os.urandom/top-level random in engine
+      - ci/audit-module-state: AST walk for module-level mutable containers written by engine code
+      - ci/audit-snapshot: pytest fixture suite running 6-state round-trip
+      Each audit has a paired self-test that injects a synthetic violation
+      and verifies the audit flags it (protects against silent no-ops).
+      The composite ci/audits job aggregates all four and fails if any fail.
+    ci_job: ci/audits
+    first_measurable_at: end of R3 (3 of 4 audits) + end of R4 (surface-leak audit added)
+    status: pending
+    owner: nw-platform-architect (CI gates); engineer at DELIVER
+    reviewed_by: nw-software-crafter-reviewer
+
+  - id: K-6
+    feature: wumpus
+    job: instrument-wumpus-play
+    metric: Schema-evolution discipline (100% of past-N-version ledgers replay under current engine; additive evolution holds)
+    baseline: n/a (greenfield)
+    target: replay-cross-version test passes for every prior schema version since the engine's first release
+    threshold_alert: any prior-version ledger fails to replay
+    measurement_method: |
+      Implicit until engine ships v2.x.x. At each major-version bump, a
+      regression test loads a captured ledger from the prior major version
+      and asserts `replay(ledger).advance_to(turn=last).world_state()`
+      reconstructs without error. Schema validator (per CC-AC-2 + ADR-002)
+      rejects any non-additive change at PR-time.
+    ci_job: (implicit via schema validator step in pr.yml + per-version JSON Schema doc review)
+    first_measurable_at: end of R2 (R2-S02 slice; substrate enabled)
+    status: pending
+    owner: nw-solution-architect (ADR-002); engineer at DELIVER
+    reviewed_by: nw-product-owner
+
+  - id: K-7
+    feature: wumpus
+    job: play-classic-wumpus
+    metric: Subprocess-driveability (pexpect + wexpect smoke tests pass on Linux + macOS + Windows)
+    baseline: n/a (greenfield)
+    target: both smoke tests pass on their respective platforms
+    threshold_alert: any smoke test hangs or fails
+    measurement_method: |
+      R1-S09 acceptance criteria: a pexpect/wexpect script wrapping `wumpus`
+      writes a fixed action sequence leading to a forced loss; reads "HA HA HA - YOU LOSE!"
+      before exiting; the wumpus process exits with status 0; no deadlock
+      occurs at any prompt. CI runs pexpect smoke on Linux + macOS;
+      wexpect smoke on Windows (with continue-on-error on PR per L4 risk, hard-blocking nightly).
+    ci_job: ci/subprocess-pexpect + ci/subprocess-wexpect
+    first_measurable_at: end of R1-S09
+    status: pending
+    owner: nw-platform-architect (CI matrix); engineer at DELIVER
+    reviewed_by: nw-software-crafter-reviewer
+
+  - id: K-8
+    feature: wumpus
+    job: engine-substrate
+    metric: Engine independence from frameworks (0 imports of LangChain, LangGraph, MPL, or any AI/ML framework in wumpus.engine.* and wumpus.surfaces.*)
+    baseline: n/a (greenfield)
+    target: 0 hits in static import-graph scan
+    threshold_alert: any forbidden import discovered
+    measurement_method: |
+      Static import-graph audit: grep / ast walk over wumpus.engine.* and
+      wumpus.surfaces.* looking for imports of: langchain, langgraph, mpl,
+      anthropic, openai, transformers, torch, tensorflow, scikit-learn.
+      Expected zero hits. Runs continuously from R0 (the moment the package
+      is bootstrapped).
+    ci_job: (implicit via ruff config + pyproject.toml review on every PR)
+    first_measurable_at: R0 (greenfield import-graph established)
+    status: pending
+    owner: nw-solution-architect; engineer
+    reviewed_by: nw-platform-architect-reviewer

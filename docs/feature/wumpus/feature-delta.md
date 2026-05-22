@@ -4098,3 +4098,680 @@ When DEVOPS accepts handoff:
 - Flip `[REF] Phase Tracker` row 8 status (DESIGN dispatch) — note that peer review was deferred (harebrain convention); user may invoke `/nw-review nw-solution-architect-reviewer` as a separate trigger if desired.
 - DESIGN wave artifacts in this file become read-only for DEVOPS/DISTILL/DELIVER purposes (any change requires re-opening DESIGN).
 - The 10 ADRs (ADR-001 through ADR-010) become the immutable decision record for the wumpus engine architecture.
+
+---
+
+## Wave: DEVOPS / [REF] Phase Tracker
+
+| # | Phase | Status | Output |
+|---|---|---|---|
+| 1 | Read DESIGN handoff + locked decisions | **done** | [REF] Inputs Consulted |
+| 2 | Deployment posture pinned | **done** | [REF] Deployment Posture |
+| 3 | CI workflow design (5 workflows) | **done** | [REF] CI Workflows |
+| 4 | Audit scripts pinned (4 audits + self-test) | **done** | [REF] Audit Scripts |
+| 5 | KPI instrumentation (CI badges + thresholds) | **done** | [REF] KPI Instrumentation |
+| 6 | Pre-commit + branch protection + coverage + mutation testing | **done** | sections 7–10 |
+| 7 | Open decisions handed to downstream waves | **done** | [REF] Open Decisions for Downstream Waves |
+| 8 | Wave decisions summary + handoff package | **done** | sections 12–13 |
+| 9 | SSOT updates (kpi-contracts.yaml; CLAUDE.md paradigm + mutation strategy) | **done** | docs/product/kpi-contracts.yaml + CLAUDE.md (orchestrator task) |
+
+---
+
+## Wave: DEVOPS / [REF] Inputs Consulted
+
+- ✓ `## Wave: DESIGN / [REF] ADRs` § ADR-009 (CI matrix — foundation for this wave)
+- ✓ `## Wave: DESIGN / [REF] CI matrix recommendation for DEVOPS`
+- ✓ `## Wave: DESIGN / [REF] Tech Stack`
+- ✓ `## Wave: DISCUSS / [REF] Outcome KPIs` (K-1 through K-8)
+- ✓ `## Wave: DISCUSS / [REF] System Constraints` SC1–SC12 (audit requirements)
+- ✓ `## Wave: DESIGN / [REF] Open Decisions for Downstream Waves`
+- ✓ `docs/product/architecture/brief.md` (SSOT pointer; confirms convention)
+- ⊘ `docs/product/kpi-contracts.yaml` — did not exist; **this wave bootstraps it**
+- ⊘ `.github/workflows/` — did not exist; **this wave specifies the workflows inline (materialized via separate orchestrator commit if approved)**
+
+**No contradictions with DESIGN.** DEVOPS only closes decisions DESIGN explicitly deferred.
+
+---
+
+## Wave: DEVOPS / [REF] Deployment Posture
+
+The wumpus engine is a **pip-installable Python library**. Scope explicitly excluded:
+
+- ⊘ No service deployment (no Kubernetes, no Docker images, no container orchestration, no edge nodes)
+- ⊘ No production telemetry (no Datadog, Prometheus, ELK, CloudWatch, OpenTelemetry)
+- ⊘ No deployment strategy (blue/green, canary, rolling — n/a; library is not deployed)
+- ⊘ No A/B testing, no feature flags, no canary analysis, no continuous learning (n/a)
+- ⊘ No PyPI publish (deferred to post-R5; tip of `main` is the canonical version)
+
+In scope:
+
+- ✓ GitHub Actions CI (PR-gate + nightly cron + audits + subprocess + mutation)
+- ✓ Branch protection on `main` (trunk-based; status checks required)
+- ✓ Pre-commit hooks (ruff format + ruff check + mypy strict + determinism-source audit)
+- ✓ Coverage tracking (coverage.py + pytest-cov; PR-comment integration)
+- ✓ Mutation testing (mutmut; per-feature; ≥ 80% kill rate gate; post-merge to main)
+- ✓ README badges for K-1, K-2, K-3, K-4, K-5
+
+**Release model:** main-is-the-release. Downstream consumers within the harebrain workspace install via uv workspace dependency (`wumpus = { workspace = true }`). External consumers install via `pip install git+https://github.com/pmvanev/harebrain.git#subdirectory=python/packages/wumpus`. No tagged releases for R0–R4; consider GitHub Releases at the end of R5 or post-feature.
+
+---
+
+## Wave: DEVOPS / [REF] CI Workflows
+
+Five GitHub Actions workflow files. All live in `.github/workflows/`. Versions pinned to mid-2025 stable. Each workflow is self-contained; jobs that need the package installed do `uv sync` from the repo root to pull workspace deps.
+
+### `.github/workflows/pr.yml` — PR-gate (every PR + every push to main)
+
+```yaml
+name: PR Gate
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    name: ci/byte-fidelity + ci/determinism + ci/mystery-seam + ci/snapshot
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+      - name: Install workspace dependencies
+        run: uv sync --all-extras
+      - name: Run unit + integration tests
+        run: uv run pytest python/packages/wumpus/tests -v --tb=short
+      - name: Run R1-S10 BASIC fixture suite (K-1 byte-fidelity)
+        run: uv run pytest python/packages/wumpus/tests/regression/test_basic_fixtures.py -v
+      - name: Run R2-S03 paired-sink determinism property (K-2)
+        run: uv run pytest python/packages/wumpus/tests/property/test_determinism.py -v
+      - name: Run R4-S05 paired-Mystery hash equality (K-3)
+        run: uv run pytest python/packages/wumpus/tests/property/test_mystery_seam.py -v
+      - name: Run R3-S01/R3-S02 snapshot round-trip (K-4)
+        run: uv run pytest python/packages/wumpus/tests/property/test_snapshot.py -v
+      - name: Coverage
+        run: uv run pytest python/packages/wumpus/tests --cov=python/packages/wumpus/src/wumpus --cov-report=xml --cov-report=term --cov-fail-under=85
+      - name: Upload coverage as PR comment
+        if: github.event_name == 'pull_request' && matrix.os == 'ubuntu-latest'
+        uses: py-cov-action/python-coverage-comment-action@v3
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MINIMUM_GREEN: 90
+          MINIMUM_ORANGE: 85
+```
+
+**Expected runtime:** ~5 minutes on Linux, ~8 minutes on Windows (wexpect slower).
+
+### `.github/workflows/audits.yml` — K-5 audits (4 parallel jobs, collect-all)
+
+```yaml
+name: Audits
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  surface-leak:
+    name: ci/audit-surface-leak (R4-S04, SC8)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync
+      - name: Surface-leak audit
+        run: uv run python -m wumpus.audits.surface_leak python/packages/wumpus/src/wumpus/engine python/packages/wumpus/src/wumpus/types
+      - name: Self-test (synthetic violation must be flagged)
+        run: uv run pytest python/packages/wumpus/tests/audits/test_surface_leak_self.py -v
+
+  determinism-source:
+    name: ci/audit-determinism (R3-S03, SC1)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync
+      - name: Determinism-source audit (grep for time.time, os.urandom, top-level random)
+        run: uv run python -m wumpus.audits.determinism_source python/packages/wumpus/src/wumpus/engine python/packages/wumpus/src/wumpus/surfaces
+      - name: Self-test
+        run: uv run pytest python/packages/wumpus/tests/audits/test_determinism_source_self.py -v
+
+  module-state:
+    name: ci/audit-module-state (R3-S03, SC7)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync
+      - name: Module-level mutable state audit (AST scan)
+        run: uv run python -m wumpus.audits.module_state python/packages/wumpus/src/wumpus
+      - name: Self-test
+        run: uv run pytest python/packages/wumpus/tests/audits/test_module_state_self.py -v
+
+  snapshot-serializability:
+    name: ci/audit-snapshot (R3-S02, SC6)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync
+      - name: 6-fixture snapshot JSON round-trip
+        run: uv run pytest python/packages/wumpus/tests/audits/test_snapshot_serializability.py -v
+
+  audits-summary:
+    name: ci/audits (composite K-5)
+    needs: [surface-leak, determinism-source, module-state, snapshot-serializability]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Verify all audits passed
+        run: |
+          if [[ "${{ needs.surface-leak.result }}" != "success" || \
+                "${{ needs.determinism-source.result }}" != "success" || \
+                "${{ needs.module-state.result }}" != "success" || \
+                "${{ needs.snapshot-serializability.result }}" != "success" ]]; then
+            echo "One or more audits failed."
+            exit 1
+          fi
+```
+
+**Collect-all behavior:** `fail-fast: false` is implicit (jobs are parallel, not matrix). Each audit runs independently; a PR sees all four results regardless of which fail.
+
+### `.github/workflows/subprocess.yml` — R1-S09 (K-7)
+
+```yaml
+name: Subprocess Smoke
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  pexpect:
+    name: ci/subprocess-pexpect (Linux + macOS)
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync
+      - name: pexpect smoke test (forced-loss CLI run)
+        run: uv run pytest python/packages/wumpus/tests/subprocess/test_pexpect_smoke.py -v
+
+  wexpect:
+    name: ci/subprocess-wexpect (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync
+      - name: wexpect smoke test (forced-loss CLI run)
+        run: uv run pytest python/packages/wumpus/tests/subprocess/test_wexpect_smoke.py -v
+        continue-on-error: ${{ github.event_name == 'pull_request' }}  # L4: wexpect flakiness tolerated on PRs, hard-blocking on nightly
+```
+
+### `.github/workflows/nightly.yml` — full sweep (cron)
+
+```yaml
+name: Nightly Full Sweep
+on:
+  schedule:
+    - cron: "0 0 * * *"  # 00:00 UTC daily
+  workflow_dispatch: {}  # manual trigger
+
+jobs:
+  full-matrix:
+    name: ci/nightly-full
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.11", "3.12", "3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv python install ${{ matrix.python-version }}
+      - run: uv sync --all-extras
+      - name: Full test suite
+        run: uv run pytest python/packages/wumpus/tests -v
+      - name: R3-S01 1000-trial snapshot property
+        run: uv run pytest python/packages/wumpus/tests/property/test_snapshot_property.py --hypothesis-profile=ci-nightly -v
+      - name: R5-S02 500-config variant sweep
+        run: uv run pytest python/packages/wumpus/tests/property/test_variant_sweep.py --hypothesis-profile=ci-nightly -v
+      - name: random.Random stability regression (L7)
+        run: uv run python -c "import random; assert random.Random(42).randrange(20) == 0, 'random.Random drift detected'"
+      - name: All audits (no continue-on-error nightly)
+        run: |
+          uv run python -m wumpus.audits.surface_leak python/packages/wumpus/src/wumpus/engine python/packages/wumpus/src/wumpus/types
+          uv run python -m wumpus.audits.determinism_source python/packages/wumpus/src/wumpus/engine python/packages/wumpus/src/wumpus/surfaces
+          uv run python -m wumpus.audits.module_state python/packages/wumpus/src/wumpus
+          uv run pytest python/packages/wumpus/tests/audits/test_snapshot_serializability.py
+```
+
+**Expected runtime:** ~25–35 minutes per cell; ~5 hours wall-clock for all 9 cells in parallel.
+
+### `.github/workflows/mutation.yml` — per-feature mutation testing
+
+```yaml
+name: Mutation Testing
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  mutate-modified:
+    name: ci/mutation-per-feature
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 50  # Need history to diff against prior main
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --all-extras
+      - name: Determine modified files
+        id: changed
+        run: |
+          MODIFIED=$(git diff --name-only HEAD~1 HEAD -- 'python/packages/wumpus/src/wumpus/**/*.py' | grep -v '/tests/' || true)
+          echo "files=$MODIFIED" >> $GITHUB_OUTPUT
+          if [ -z "$MODIFIED" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+          fi
+      - name: Run mutmut on modified files
+        if: steps.changed.outputs.skip != 'true'
+        run: |
+          uv run mutmut run --paths-to-mutate "${{ steps.changed.outputs.files }}"
+          KILL_RATE=$(uv run mutmut results | grep -oP 'killed:\s*\K\d+\.\d+')
+          echo "Kill rate: ${KILL_RATE}%"
+          if (( $(echo "$KILL_RATE < 80" | bc -l) )); then
+            echo "Kill rate ${KILL_RATE}% is below 80% threshold — feature delivery blocked."
+            exit 1
+          fi
+      - name: Upload mutmut report
+        if: always() && steps.changed.outputs.skip != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutmut-report
+          path: .mutmut-cache/
+```
+
+**Per-feature scope:** the workflow scopes mutmut to files modified in the most recent merge to main. Kill rate < 80% fails the workflow, which is reported on the merge commit. The crafter agent (DELIVER wave) is responsible for either bringing the score up before the next slice begins or marking the slice as known-low-coverage with explicit rationale.
+
+---
+
+## Wave: DEVOPS / [REF] Audit Scripts
+
+Four audit scripts. Each lives at `python/packages/wumpus/src/wumpus/audits/<audit>.py` and is invokable via `python -m wumpus.audits.<audit>`. Each has a paired self-test fixture at `python/packages/wumpus/tests/audits/test_<audit>_self.py` that injects a synthetic violation and asserts the audit script flags it.
+
+### Surface-leak audit (R4-S04 / SC8)
+
+**Tool:** Python stdlib `ast` + `pathlib`. Optionally `ripgrep` if installed for speed.
+
+**Command:**
+```bash
+python -m wumpus.audits.surface_leak <engine-source-roots>
+```
+
+**What it checks:**
+- For each `.py` file under the named roots (typically `wumpus/engine/`, `wumpus/types/`), recursively walk the AST looking for string literals (`ast.Constant` with `str` value).
+- Compare each found literal against the canonical Yob string set (loaded from `wumpus.surfaces.yob.MESSAGES` + `wumpus.surfaces.yob.PROMPTS`).
+- Any match outside `wumpus/surfaces/` is a violation.
+
+**Expected output:** `Surface-leak audit: 0 hits across N files scanned. PASS.`
+
+**Failure output:** `Surface-leak audit: FAIL. Found "I SMELL A WUMPUS!" at python/packages/wumpus/src/wumpus/engine/sense.py:42. Engine code must not reference Yob string literals; lift to wumpus.surfaces.yob.` Exit code 1.
+
+### Determinism-source audit (R3-S03 / SC1)
+
+**Tool:** Python stdlib `ast`.
+
+**Command:**
+```bash
+python -m wumpus.audits.determinism_source <engine-source-roots>
+```
+
+**What it checks:**
+- AST walk looking for: `time.time()`, `time.monotonic()`, `os.urandom`, `secrets.*`, top-level `random.X()` calls (must use a `Random` instance method like `self._random.X()` instead).
+- Allowed exception: `datetime.now()` is permitted only in files matching `**/sinks/*.py` (for ledger wall-clock metadata; this is the SC1 carve-out).
+- Allowed exception: `random.Random` class access (`random.Random(seed)`) is fine — only module-level *bare* `random.X` calls are flagged.
+
+**Failure output:** `Determinism-source audit: FAIL. Found 'time.time()' at python/packages/wumpus/src/wumpus/engine/game.py:88. SC1 forbids non-seed entropy in engine code.` Exit code 1.
+
+### Module-state audit (R3-S03 / SC7)
+
+**Tool:** Python stdlib `ast`.
+
+**Command:**
+```bash
+python -m wumpus.audits.module_state <engine-source-roots>
+```
+
+**What it checks:**
+- AST walk for module-level `ast.Assign` nodes where the value is a mutable container literal (`ast.List`, `ast.Dict`, `ast.Set`).
+- For each match, walk all functions/methods in the same file looking for write access to that name (mutations: `.append()`, `.extend()`, `[k] = v`, `.clear()`, etc.).
+- Module-level *immutable* values (`tuple`, `frozenset`, `int`, `str`, `Final[...]` types) are explicitly allowed.
+- Module-level `Random()` instances are flagged separately (this is the "no singleton-cached RNG" rule).
+
+**Failure output:** `Module-state audit: FAIL. Module-level mutable state at python/packages/wumpus/src/wumpus/engine/cache.py:12 (_CACHE: dict[int, World] = {}) is written by load_world() at line 28.`
+
+### Snapshot-serializability audit (R3-S02 / SC6)
+
+**Tool:** pytest fixture suite, not a standalone script.
+
+**Command:**
+```bash
+pytest python/packages/wumpus/tests/audits/test_snapshot_serializability.py -v
+```
+
+**What it checks:**
+- 6 fixture snapshots: turn 0, mid-arrow-path, post-bat-teleport, post-startle, terminal-win, terminal-lose.
+- For each: `Snapshot.from_json(snap.to_json()) == snap` (deep equality including `rng_cursor`).
+- Cross-process variant: write JSON to temp file in test setup; read in test body; compare a step's output against in-memory baseline.
+- Property test: assert no `Snapshot` field holds a `random.Random` instance (introspect dataclass fields recursively).
+
+**Failure output:** standard pytest failure with diff between original and round-tripped snapshot.
+
+### Self-test pattern (all four audits)
+
+Each audit ships with `tests/audits/test_<audit>_self.py`. The self-test:
+1. Creates a temp directory with a synthetic violating Python file (e.g., a file that imports `time.time()` for the determinism audit, or contains `"I SMELL A WUMPUS!"` for the surface-leak audit).
+2. Invokes the audit script against that temp directory.
+3. Asserts the audit exits non-zero AND the error message contains the violation's file path.
+
+This protects against "the audit silently no-ops" (an audit that never finds anything is indistinguishable from a passing audit). Each audit MUST detect its synthetic violation, or the audit itself is broken.
+
+---
+
+## Wave: DEVOPS / [REF] KPI Instrumentation
+
+Each KPI maps to a CI job; passing/failing the job is the KPI's signal. README badges surface the state for K-1 through K-5 (the most visible KPIs); K-6 through K-8 are implicit in passing builds.
+
+| KPI | What it measures | CI job | Workflow | README badge | Failure threshold |
+|---|---|---|---|---|---|
+| **K-1** | Yob byte-fidelity (10/10 BASIC fixtures) | `ci/byte-fidelity` | pr.yml — R1-S10 step | `[![byte-fidelity](https://github.com/.../actions/workflows/pr.yml/badge.svg?branch=main&job=byte-fidelity)]` | Any single fixture diverging |
+| **K-2** | Determinism (100% paired-process equality) | `ci/determinism` | pr.yml — R2-S03 step | `[![determinism](...badge.svg?...&job=determinism)]` | Any seed producing different event sequences across runs |
+| **K-3** | Mystery seam structurality (100% paired-hash equality) | `ci/mystery-seam` | pr.yml — R4-S05 step | `[![mystery-seam](...)]` | Any (seed, turn) pair with different `internal_state_hash` between Yob/Mystery |
+| **K-4** | Snapshot round-trip (6/6 fixtures + property tests) | `ci/snapshot` | pr.yml — R3-S01/R3-S02 step | `[![snapshot](...)]` | Any snapshot failing JSON round-trip |
+| **K-5** | All 4 audits pass | `ci/audits` (composite) | audits.yml — audits-summary job | `[![audits](...)]` | Any single audit failing |
+| **K-6** | Schema additivity holds | (implicit) — every PR's schema validator step | pr.yml | (no badge) | Schema validator catches any field rename / semantic change |
+| **K-7** | Subprocess-driveability | `ci/subprocess-pexpect` + `ci/subprocess-wexpect` | subprocess.yml | (no badge — covered by pr.yml passing) | pexpect/wexpect harness hangs or fails |
+| **K-8** | No framework deps in engine | (implicit) — `pyproject.toml` review on every PR; static import-graph check | pr.yml — lint step (ruff has rules for this) or a custom audit | (no badge) | `import langchain`, `import langgraph`, `import mpl` anywhere in `wumpus.engine.*` or `wumpus.surfaces.*` |
+
+**README badges block** (to land in `python/packages/wumpus/README.md` once the package is bootstrapped at R0):
+
+```markdown
+[![byte-fidelity](https://github.com/pmvanev/harebrain/actions/workflows/pr.yml/badge.svg?branch=main)](https://github.com/pmvanev/harebrain/actions/workflows/pr.yml)
+[![audits](https://github.com/pmvanev/harebrain/actions/workflows/audits.yml/badge.svg?branch=main)](https://github.com/pmvanev/harebrain/actions/workflows/audits.yml)
+[![nightly](https://github.com/pmvanev/harebrain/actions/workflows/nightly.yml/badge.svg?branch=main)](https://github.com/pmvanev/harebrain/actions/workflows/nightly.yml)
+[![mutation](https://github.com/pmvanev/harebrain/actions/workflows/mutation.yml/badge.svg?branch=main)](https://github.com/pmvanev/harebrain/actions/workflows/mutation.yml)
+```
+
+Per-job badges (K-1/K-2/K-3/K-4 individually) require either job-level workflow runs (separate workflow files per KPI — heavier) or a third-party badge service. The single-workflow-with-multiple-steps approach above keeps the workflow count low; individual KPI status surfaces through the PR-checks list rather than badges. Acceptable trade-off; can split if needed.
+
+---
+
+## Wave: DEVOPS / [REF] Pre-commit configuration
+
+`.pre-commit-config.yaml` at the repo root (workspace-wide; affects all packages):
+
+```yaml
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.0  # pin a specific version; bump deliberately
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.11.0
+    hooks:
+      - id: mypy
+        args: [--strict, --explicit-package-bases]
+        files: ^python/packages/wumpus/src/wumpus/(engine|types|events|surfaces|sinks|taxonomy|constants)/
+        # Only strict-mypy on engine modules; CLI / __main__ / host_import is permissive
+
+  - repo: local
+    hooks:
+      - id: determinism-source-audit
+        name: Determinism-source audit (SC1)
+        entry: python -m wumpus.audits.determinism_source
+        args: [python/packages/wumpus/src/wumpus/engine, python/packages/wumpus/src/wumpus/surfaces]
+        language: system
+        files: ^python/packages/wumpus/src/wumpus/(engine|surfaces)/.*\.py$
+        pass_filenames: false  # the audit script picks up roots from args
+```
+
+**Installation:** developers run `pre-commit install` once after cloning; hooks fire automatically on `git commit`. CI has a separate verification job that runs `pre-commit run --all-files` to catch any local skips:
+
+```yaml
+# Add to pr.yml as a job:
+  pre-commit:
+    name: ci/pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install pre-commit
+      - run: pre-commit run --all-files
+```
+
+**Why the determinism-source audit runs in pre-commit too:** it's cheap (one AST walk) and catches the most common SC1 violation (someone adds `time.time()` in engine code) before the commit reaches CI. The other three audits (surface-leak, module-state, snapshot-serializability) are CI-only because they need the full test environment.
+
+---
+
+## Wave: DEVOPS / [REF] Branch Protection
+
+GitHub repository settings for `main` branch:
+
+- **Require status checks to pass before merging**: enabled
+  - Required checks (PR-gate):
+    - `ci/byte-fidelity + ci/determinism + ci/mystery-seam + ci/snapshot` (the matrixed `test` job from `pr.yml`)
+    - `ci/audits` (the composite `audits-summary` job from `audits.yml`)
+    - `ci/subprocess-pexpect` (from `subprocess.yml`)
+    - `ci/subprocess-wexpect` (from `subprocess.yml`)
+    - `ci/pre-commit` (from `pr.yml`)
+- **Require branches to be up to date before merging**: enabled (forces rebase before merge to catch interaction issues)
+- **Require linear history**: enabled (no merge commits on main — matches trunk-based aesthetic)
+- **Require pull request reviews before merging**: 0 reviewers required currently (solo project); flip to 1 when collaborators join
+- **Dismiss stale PR approvals when new commits are pushed**: enabled
+- **Require conversation resolution before merging**: enabled
+- **Restrict pushes that create files larger than 100MB**: enabled (default; protects against PDF/binary accidents like the unreferenced root-level paper)
+- **Include administrators**: enabled (admins are also bound by the rules)
+- **Allow force pushes**: disabled
+- **Allow deletions**: disabled
+
+Mutation testing (`ci/mutation-per-feature`) runs *post-merge* on main; it does NOT gate PR merges (mutation testing is too slow for PR latency). A failing mutation job becomes a follow-up task for the engineer working the next slice.
+
+---
+
+## Wave: DEVOPS / [REF] Mutation Testing Configuration
+
+**Tool:** `mutmut` (Python's most ecosystem-common mutation tester; faster than `cosmic-ray` for typical projects; configurable via `setup.cfg` or `pyproject.toml`).
+
+**Configuration in `python/packages/wumpus/pyproject.toml`:**
+
+```toml
+[tool.mutmut]
+paths_to_mutate = ["src/wumpus/engine", "src/wumpus/types", "src/wumpus/events", "src/wumpus/surfaces", "src/wumpus/sinks", "src/wumpus/taxonomy"]
+backup = false
+runner = "uv run pytest python/packages/wumpus/tests -x --ff -q"
+tests_dir = "tests"
+dict_synonyms = ["Struct", "NamedTuple"]
+```
+
+**Per-feature workflow** (already in `mutation.yml` above):
+- Triggered on push to main (i.e., after a PR merge)
+- Scopes mutation to files changed in the most recent merge (`git diff --name-only HEAD~1 HEAD`)
+- Excludes test files (`/tests/`) and dunder files (`__init__.py`, `__main__.py`)
+- Computes kill rate as `killed / (killed + survived)` excluding timeouts and skipped mutations
+- Fails the workflow if kill rate < 80%
+
+**What happens when mutation fails:**
+- The workflow leaves a comment on the merge commit with the survived-mutation report
+- The engineer working the next slice MUST either (a) add tests to kill the survivors, OR (b) document explicit rationale (e.g., "mutation X is equivalent — the engine produces the same observable output") in a `MUTATION_EXEMPTIONS.md` file
+- The exemption file is itself subject to review
+
+**Sub-80% kill-rate exceptions:**
+- CLI / `__main__.py` — I/O-dominated; mutation testing has high false-positive rate for argparse paths. Excluded from mutation scope.
+- Pure-rendering code (surfaces) — string formatting; mutations on punctuation are noise. Lower threshold (60%) or excluded.
+
+---
+
+## Wave: DEVOPS / [REF] Coverage Configuration
+
+**Tool:** `coverage.py` via `pytest-cov`.
+
+**`python/packages/wumpus/pyproject.toml`:**
+
+```toml
+[tool.coverage.run]
+source = ["src/wumpus"]
+branch = true
+omit = [
+  "*/tests/*",
+  "*/__main__.py",   # CLI entry point; covered by subprocess smoke tests, not unit tests
+  "*/host_import.py", # R5-S01 blocked; covered when spike completes
+]
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "raise NotImplementedError",
+  "if TYPE_CHECKING:",
+  "if __name__ == .__main__.:",
+]
+precision = 1
+show_missing = true
+skip_empty = true
+
+[tool.coverage.html]
+directory = ".coverage_html_report"
+```
+
+**Thresholds (enforced in pr.yml via `--cov-fail-under=85`):**
+
+| Module | Line coverage target | Branch coverage target |
+|---|---:|---:|
+| `wumpus.engine.*` | 90% | 85% |
+| `wumpus.types`, `wumpus.events`, `wumpus.taxonomy` | 95% | 90% |
+| `wumpus.surfaces.*` | 80% | 70% |
+| `wumpus.sinks.*` | 75% | 65% (I/O-heavy) |
+| `wumpus.cli`, `wumpus.__main__` | 70% (integration-tested via subprocess) | n/a |
+| Feature-wide minimum | **85%** | **75%** |
+
+**PR-comment integration:** `py-cov-action/python-coverage-comment-action@v3` posts coverage delta as a PR comment on every Linux PR run (matrix already covers this).
+
+---
+
+## Wave: DEVOPS / [REF] Open Decisions for Downstream Waves
+
+DEVOPS closed the platform-readiness decisions; the following items belong to DISTILL / DELIVER:
+
+### For DISTILL (nw-acceptance-designer)
+- **Acceptance-test file layout.** Where do the pytest-bdd / Gherkin scenarios from `[REF] User Stories` live? Recommendation: `python/packages/wumpus/tests/acceptance/` with one file per release (R0, R1, R2, R3, R4, R5) or one file per journey (J1-J4). DISTILL picks.
+- **BDD framework choice.** pytest-bdd vs behave vs plain pytest with Gherkin-flavored test names. DISTILL chooses.
+- **Fixture sharing between acceptance and unit tests.** Where do `Game(seed=42)` fixtures live? `conftest.py` at what level?
+
+### For DELIVER (nw-software-crafter)
+- **`Game.peek()` candidate enhancement.** Per Known Limitations L17, speculative execution via discard-sink works; a first-class `peek()` is deferred. DELIVER may file this as a follow-up story if implementing R3-S01 reveals friction.
+- **MUTATION_EXEMPTIONS.md format.** When per-feature mutation testing surfaces equivalent mutations, the engineer documents rationale. DELIVER establishes the exemption-doc format on the first exemption.
+- **The `EscalationRule` ABC vs Protocol decision was made (Protocol; ADR-005)** — but the *RuleContext* passed to rules wasn't fully specified. DELIVER may need to flesh out `RuleContext` when implementing R4-S02.
+- **Sink ordering for multiple subscribers.** The contract says "engine emits in subscription order"; ADR-008 didn't pin whether `Game.subscribe()` returns an "unsubscribe handle." DELIVER decides; default is "subscribe takes the sink, returns None; unsubscribe takes the same sink reference."
+
+### For the harness wave (downstream feature, not this engine)
+- All L9–L12 from `[REF] Known Limitations` — statistical significance, baseline reporting, LLM-as-judge validation, no-substring-matching contract — belong to the harness DISCUSS/DESIGN/DEVOPS.
+- The `wumpus.taxonomy.project_for_agent()` helper exists in the engine substrate (ADR-004); the harness must USE it to honor ABC T.5.
+
+---
+
+## Wave: DEVOPS / [REF] Wave Decisions Summary
+
+### Key Decisions
+
+- [DV-D1] **Release model: main-is-the-release.** No PyPI publish for R0–R4; uv workspace integration is sufficient for in-workspace consumers; external consumers use git+https install. Defer PyPI to post-R5.
+- [DV-D2] **Branching: trunk-based.** Feature branches ≤ 1 day matching carpaccio slice cadence; aggressive PR gates; main always releasable.
+- [DV-D3] **CI: 5 workflows (pr.yml, audits.yml, subprocess.yml, nightly.yml, mutation.yml).** PR-gate is fast (~5 min) on Linux + Windows × Python 3.11. Nightly is full 9-cell matrix (3.11/3.12/3.13 × Linux/macOS/Windows). Audits run in parallel collect-all.
+- [DV-D4] **Mutation: per-feature, post-merge, mutmut, ≥80% kill rate.** Surviving mutations either get killing tests or a documented exemption.
+- [DV-D5] **Coverage: 85% feature-wide minimum, 90%/85% line/branch on engine modules.** coverage.py + pytest-cov; PR comments via py-cov-action.
+- [DV-D6] **Pre-commit: ruff format/check + mypy strict + determinism-source audit.** Local hook + CI verification job.
+- [DV-D7] **Branch protection: status checks required, 0 reviewers (solo), admin enforcement, no force-push, linear history.**
+- [DV-D8] **KPI surfacing: README badges (K-1 through K-5) + CI status checks; no dashboards.** K-6/K-7/K-8 implicit in passing builds.
+
+### Infrastructure Summary
+
+- **Deployment**: Python library only; no service deployment, no containers, no production telemetry
+- **CI/CD**: GitHub Actions; 5 workflows; trunk-based triggers
+- **Observability**: CI green/red + README badges; no dashboards
+- **Mutation testing**: per-feature post-merge, mutmut, 80% kill rate
+
+### Constraints Established
+
+- ADR-009 CI matrix is binding; PR-gate is the 2-cell subset, nightly is the 9-cell full sweep
+- All four SC audit gates (SC1, SC6, SC7, SC8) have dedicated CI jobs and self-tests
+- Schema-additivity (SC5, CC-AC-2) is enforced by a validator step in pr.yml AND the `wumpus/schemas/v<N>.json` review process from ADR-002
+- Determinism (SC1) is double-enforced: pre-commit AST audit + CI AST audit + R2-S03 property test
+- Surface seam (SC8) is enforced by surface-leak audit in audits.yml + R4-S04's self-test fixture
+
+### Upstream Changes
+
+None. DEVOPS-wave decisions did not require any DISCUSS or DESIGN updates.
+
+---
+
+## Wave: DEVOPS / [REF] Handoff Package
+
+### Handoff destinations
+
+- **Primary (DISTILL wave):** `nw-acceptance-designer` — translates the 25-slice user stories + CC-ACs from DISCUSS into executable BDD acceptance tests. Reads the locked type definitions from DESIGN (Tier A1–A8) + the CI integration spec from this wave (where the tests live, how they're invoked, how they tie to KPIs).
+- **Secondary (DELIVER wave):** `nw-software-crafter` — implements R0 through R5 using the locked type designs + the CI infrastructure as the gating contract. Needs to know which CI jobs gate which slices.
+
+### What DISTILL reads first
+
+1. `## Wave: DISCUSS / [REF] User Stories` § R0 through R5 (the 25 stories with full Given-When-Then ACs)
+2. `## Wave: DISCUSS / [REF] Acceptance Criteria` § CC-AC-1 through CC-AC-6 (cross-cutting)
+3. `## Wave: DESIGN / [REF] Tier A type definitions` (Snapshot, Observation, Event family, VariantConfig, Surface, EscalationRule, Sink shapes — the test fixtures must match these)
+4. `## Wave: DEVOPS / [REF] CI Workflows` § `pr.yml` (the test invocation contract — where do acceptance tests live, how are they discovered?)
+5. `## Wave: DEVOPS / [REF] Open Decisions for Downstream Waves` § For DISTILL (the file-layout + framework-choice decisions DISTILL owns)
+
+### What DELIVER reads first
+
+1. `## Wave: DISCUSS / [REF] Story Map` § R0 walking skeleton (the first slice to land)
+2. `## Wave: DESIGN / [REF] Tier A type definitions` (the type shapes to implement)
+3. `## Wave: DESIGN / [REF] Engine module layout` (the file plan: which modules to create, what each contains, dependency rules)
+4. `## Wave: DEVOPS / [REF] CI Workflows` (which gates the slice must pass)
+5. `## Wave: DEVOPS / [REF] Mutation Testing Configuration` (the post-feature gate)
+
+### Out-of-scope for handoff
+
+- Implementation details (DELIVER owns)
+- Acceptance-test framework choice (DISTILL owns)
+- The harness wave (downstream feature; separate DISCUSS/DESIGN/DEVOPS cycle)
+- PyPI publication setup (deferred to post-R5; not in this engine wave's scope)
+
+### Materialization step (orchestrator follow-up)
+
+The 5 GitHub Actions workflow files inlined in `[REF] CI Workflows` exist *as documentation* in feature-delta.md. To make them executable, the orchestrator (main session) materializes them as actual files under `.github/workflows/` in a follow-up commit. Same for `.pre-commit-config.yaml` (workspace root). These materializations are deferred to give the user a chance to review the YAML before it goes live.
+
+### Handoff acceptance signal
+
+When DISTILL accepts handoff:
+- Flip `[REF] Phase Tracker` row 8 (handoff package) status
+- DEVOPS wave artifacts become read-only for DISTILL/DELIVER purposes
+- The DV-D1 through DV-D8 decisions become the immutable platform record for the wumpus engine
