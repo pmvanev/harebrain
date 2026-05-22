@@ -762,9 +762,33 @@ Observation = {
 | `internal_state_hash` | seam-leak detection | J2 |
 | `rng_cursor` | per-event seeded-replay verification | J3, J4 |
 | `schema_version` | additive evolution; notebooks survive engine upgrades | J3 |
-| `actor_node` (optional) | scaffolding-leak tagging (LangGraph harness — `goals.md` § Goal 4 / `wumpus_idea.md:64-78`) | J3 (downstream consumer; engine accepts as optional input field, not engine-emitted) |
-| `back_prompted` (optional) | back-prompt convergence metric | J3 (downstream consumer; engine accepts as optional input field) |
-| `tokens_in` / `tokens_out` (optional) | tokens-per-turn metric | J3 (downstream consumer; engine reserves the field shape, harness fills it) |
+| `wall_clock_ts` (ledger-only metadata) | per-event timestamps (`goals.md` § Goal 4 "Timestamps — wall-clock per event"). **Ledger-side only**: emitted by the sink, NOT by the engine; exempt from SC1's determinism contract per SC1's "datetime.now() for ledger-only wall-clock metadata" carve-out. Replay does not consult this field. | J3 |
+| `monotonic_turn` | monotonic turn counter (`goals.md` § Goal 4 "monotonic turn counter") | J3 |
+| `cause` (on `PlayerTeleported`) | enum: `bat \| <other>`. `goals.md` § Goal 4 "bat teleports emit a `cause = 'bat'` move event"; pins post-bat-recovery metric. | J3 |
+| `sense_history_at_decision` (on `ArrowFired`) | list of `SenseEmitted` events the player had observed up to the moment they committed to the shot. `goals.md` § Goal 4 "every shot logs the full sense history available to the player at decision time"; pins arrow-shoot-accuracy metric. | J3 |
+| `raw_input_bytes` (on input-side events: `ActionChosen`, `MoveAttempted`, `ArrowFired`, etc.) | the literal bytes received before parsing — `goals.md` § Goal 4 "Player input — the raw stdin bytes received, the parsed command, validation result". `None` for programmatic API calls (where there are no stdin bytes); populated for CLI sessions. | J3 |
+| `actor_node` (optional, harness-supplied) | scaffolding-leak tagging (LangGraph harness — `goals.md` § Goal 4 / `wumpus_idea.md:64-78`) | J3 (downstream consumer; engine accepts as optional input field, not engine-emitted) |
+| `back_prompted` (optional, harness-supplied) | back-prompt convergence metric | J3 (downstream consumer; engine accepts as optional input field) |
+| `actor_scratchpad` (optional, harness-supplied) | the agent's claimed working memory at decision time. `goals.md` § Goal 4 "Scratchpad accuracy — the harness logs the agent's claimed working memory; the diff is computed against the ledger's post-state." Engine reserves the field; harness fills it. | J3 |
+| `tokens_in` / `tokens_out` (optional, harness-supplied) | tokens-per-turn metric | J3 (downstream consumer; engine reserves the field shape, harness fills it) |
+
+**Reserved event types (harness-emitted, not engine-emitted, but ledger-schema-recognized):**
+
+| Event type | Purpose | Journey |
+|---|---|---|
+| `Verification` (harness-supplied) | out-of-band Q&A logged as `event_type = "verification"` with question, answer, and oracle-ledger-row matched. `goals.md` § Goal 4 "Verification accuracy — out-of-band Q&A is logged as event_type = 'verification'". Engine schema-validates this event type when it appears in the ledger; engine itself never emits it. | J3 (substrate); LLM-cell-consumers fill |
+
+**Pre-state / post-state framing (per `goals.md` § Goal 4 "What gets logged" pre-state + post-state requirement):**
+
+Goals doc says each per-turn structured event has both a pre-state and a post-state. This wave **does not pin a single event-per-turn carrying both fields**. Instead:
+
+- The engine emits **per-effect** events (one or more per turn — e.g., `MoveAttempted`, `SenseEmitted`, `MoveResolved`, `HazardTriggered`).
+- `internal_state_hash` on each event captures the full world state hash *after* that event applies.
+- Pre-state for turn `t` = post-state at the last event of turn `t-1` (the prior `internal_state_hash` + cumulative state).
+- Post-state for turn `t` = `internal_state_hash` on the last event of turn `t`.
+- Each turn is delimited by either a `PromptIssued` (start) and a follow-on `ActionChosen` (end of input phase) or a `GameEnded` (terminal).
+
+**DESIGN must close one open decision here:** either (a) accept the per-effect framing above and document that analysis derives pre/post-state from cumulative events + state hashes, OR (b) add a once-per-turn `TurnBoundary(pre_state_snapshot, post_state_snapshot)` event that explicitly frames each turn (heavier ledgers; simpler analysis). Recommended: (a), with (b) reserved as an opt-in verbose-mode for difficult-to-debug sessions.
 
 **Consumers:**
 - CLI renderer (J1) — translates events to Yob-faithful text under default surface
@@ -1330,6 +1354,14 @@ Scenario: In-memory sink does not change emission
   When the run is performed once with no sinks and once with an in-memory sink
   Then the event sequences observable inside Game are identical
   And the in-memory sink's recorded events equal Game's internal emission order
+
+Scenario: Game.world_state() exposes full internal state without mutation
+  Given Game(seed=42) is in any state
+  When Game.world_state() is called
+  Then it returns a structured object containing the full internal world: player_room, hazard rooms, arrow count, alive/dead, turn counter, pending_prompt, pending_arrow_path
+  And Game.world_state() does not mutate any field on Game (calling it twice returns equal structures with no side effects between calls)
+  And calling Game.world_state() does not advance the rng_cursor or emit any event
+  # goals.md § Goal 5.2: "The API is inspectable. A Game.world_state() method returns the full internal state as a structured object — for cells A, B, C that need ground truth, and for the divergence-events oracle in E and F."
 ```
 
 ---
@@ -1565,6 +1597,24 @@ Scenario: Out of arrows ends the game
   Then ArrowMissed fires
   And ArrowCountChanged(new_count=0) fires
   And GameEnded(outcome=out_of_arrows) fires
+
+Scenario: ArrowFired captures sense history available at decision time
+  Given the player has been in rooms 1, 5, 8 over prior turns
+  And SenseEmitted events fired for those rooms ([draft in 5], [smell + draft in 8])
+  When the player chooses S and completes path collection
+  Then the ArrowFired event carries sense_history_at_decision = [the SenseEmitted events visible to the player up to this turn]
+  # goals.md § Goal 4: "every shot logs the full sense history available to the player at decision time"; pins arrow-shoot-accuracy metric.
+
+Scenario: ArrowFired captures raw_input_bytes from CLI sessions
+  Given a CLI session in progress
+  When the player types "S\n2\n7\n14\n" through stdin
+  Then the ArrowFired event carries raw_input_bytes = b"S\n2\n7\n14\n" (or the per-input split equivalent)
+  # goals.md § Goal 4: "Player input — the raw stdin bytes received, the parsed command, validation result."
+
+Scenario: ArrowFired raw_input_bytes is None for programmatic API calls
+  Given a programmatic Game(seed=42).step("S 2 7 14") call (no stdin)
+  Then the ArrowFired event carries raw_input_bytes = None
+  # raw_input_bytes is populated only when there are literal stdin bytes; programmatic calls bypass stdin.
 ```
 
 ---
@@ -2175,6 +2225,18 @@ Scenario: Failed parametric runs surface as new slices
   Given a parametric test run finds a crash at VariantConfig(X)
   Then the failure is logged as a candidate slice for follow-up
   # This is meta-AC: bugs found here become their own stories, they don't silently get patched.
+
+Scenario: Non-dodecahedron topology variants run without crash
+  Given the variant topology fixtures:
+    - 5-room ring (each room adjacent to its 2 neighbors; not 3-regular — relaxed for the smoke test)
+    - 6-room cube (3-regular, 6 rooms — alternative 3-regular graph)
+    - 30-room random 3-regular graph (deterministic from variant seed)
+  When Game(seed=42, variant=VariantConfig(topology=fixture)) runs 50 random actions
+  Then no run crashes
+  And snapshot round-trip holds at every turn
+  And sense, move, and arrow mechanics work correctly under the alternate adjacency
+  # goals.md § Goal 2: "Topology: Dodecahedron (Yob default); Any 3-regular graph; arbitrary adjacency for n != 20"
+  # L4 escalation ("bigger or non-dodecahedron graph") drops into this slot — engine must handle it without rewrites.
 ```
 
 ---
@@ -2297,6 +2359,33 @@ Scenario: All four static audits pass at every PR
 ```
 
 Spans: every release after R3 / R4 introduces the respective audits. **Concretely enforced by:** R3-S03 + R4-S04 audit scripts being CI gates, not optional checks.
+
+### CC-AC-6 — Ledger is the source of truth for analysis
+
+```gherkin
+Scenario: Every metric named in goals.md § Goal 4 is computable from the ledger alone
+  Given a complete ledger from a session
+  When the analysis notebook is run against the ledger WITHOUT a live engine
+  Then the notebook can compute every metric named in goals.md § Goal 4 "What the schema must support, by name":
+    - divergence events, scaffolding leaks, obfuscation gap, back-prompt convergence,
+      scratchpad accuracy, verification accuracy, post-bat recovery, arrow-shoot accuracy, tokens per turn
+  And no metric requires access to engine state not captured in the ledger
+
+Scenario: Engine state and ledger state never disagree
+  Given a session in progress with a JsonlSink attached
+  When game.world_state() is compared against the cumulative state derivable from the ledger (replay-up-to-now)
+  Then the two are equal at every point
+  # goals.md § Goal 4: "The ledger is the source of truth for analysis. Notebooks read JSONL, not the live engine."
+  # If the live engine and the ledger ever disagree, the ledger wins; this AC pins that the disagreement-window is zero by construction.
+
+Scenario: Schema is sufficient for downstream cells A-G analysis without special-casing
+  Given ledgers from cells A (scripted), B (random-legal), C (heuristic), D (harebrain), E (LangGraph), F (LangChain), G (wild-baseline)
+  When the analysis notebook reads each ledger
+  Then the same notebook code handles all seven cell-types without per-cell branching
+  # goals.md "What earns done" criterion #5: "The analysis notebook consumes JSONL ledgers from cells A, B, C, D, E, F, and G — without special-casing any of them."
+```
+
+Spans: every story that emits or consumes events. **Concretely enforced by:** Tier A4's schema completeness + CC-AC-2 (additive evolution) + the fact that the same JSONL format is produced by CLI / programmatic / host-import alike.
 
 ---
 
