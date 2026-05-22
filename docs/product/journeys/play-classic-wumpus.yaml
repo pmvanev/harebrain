@@ -1,4 +1,33 @@
-# SSOT mirror of docs/feature/wumpus-classic/discuss/journey-play-classic-wumpus.yaml
-# Updated as the feature evolves. Do not edit one without the other (or use a sync check).
+# SSOT pointer for the play-classic-wumpus journey.
+#
+# The harebrain `wumpus` feature uses a single-file convention: all wave
+# artifacts (JTBD, journeys, story map, user stories, etc.) live in
+# docs/feature/wumpus/feature-delta.md. This file is a pointer to the journey
+# section of that document, NOT a structured YAML representation.
+#
+# When the wumpus feature ships and the journey stabilizes, replace this
+# pointer with the schema_version-stamped YAML extract per the standard
+# nWave SSOT convention.
 
-$ref: ../../feature/wumpus-classic/discuss/journey-play-classic-wumpus.yaml
+schema_version: 2
+status: pointer
+points_to: ../../feature/wumpus/feature-delta.md
+points_to_section: "## Wave: DISCUSS / [REF] Journeys / ### J1 — play-classic-wumpus"
+
+# Prior version: schema_version 1 was a $ref to
+# ../../feature/wumpus-classic/discuss/journey-play-classic-wumpus.yaml, which
+# became a broken pointer when wumpus-classic was archived to
+# docs/feature/.archive/wumpus-classic-2026-05-20/. The new wumpus feature
+# supersedes wumpus-classic; see the archived feature for the prior
+# journey shape.
+prior_archived_at: ../../feature/.archive/wumpus-classic-2026-05-20/discuss/journey-play-classic-wumpus.yaml
+
+changelog:
+  - date: "2026-05-22"
+    schema_version: 2
+    feature: wumpus
+    change: "Replaced broken $ref to wumpus-classic archive path with a pointer to the harebrain single-file SSOT (docs/feature/wumpus/feature-delta.md § [REF] Journeys / J1)."
+  - date: "2026-05-20"
+    schema_version: 1
+    feature: wumpus-classic
+    change: "Initial $ref mirror of docs/feature/wumpus-classic/discuss/journey-play-classic-wumpus.yaml."

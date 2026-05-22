@@ -16,9 +16,9 @@ Workflow status (live during DISCUSS execution). Mark each phase as it completes
 | 1.5 | Scope Assessment (Elephant Carpaccio gate) | **done** — user confirmed PASS (one feature) | `[REF] Scope Assessment` |
 | 2 | Journey Design (mental model → emotional arc → shared artifacts → error paths → Gherkin) | **done** | `[REF] Journeys`, `[REF] Shared Artifacts Registry` |
 | 2.5 | Story Mapping + Slice Carpaccio (≤1 day slices, learning hypotheses, taste tests) | **done** | `[REF] Story Map` (inline; harebrain single-file convention) |
-| 3 | Requirements & Stories (LeanUX + Elevator Pitch + AC + DoR + outcome KPIs) | pending | `[REF] User Stories`, `[REF] Acceptance Criteria`, `[REF] Outcome KPIs`, `[REF] DoR Validation` |
-| 4 | Optional per-wave review (only on trigger) | pending | invoked via `/nw-review nw-product-owner-reviewer` |
-| 5 | Handoff (DESIGN + DEVOPS-KPI) + SSOT back-propagation | pending — **blocked: `docs/product/vision.md` deleted in working tree; Changes 1–3 target a missing file** | `[REF] Wave Decisions`, `[REF] Changed Assumptions`, `docs/product/` updates |
+| 3 | Requirements & Stories (LeanUX + Elevator Pitch + AC + DoR + outcome KPIs) | **done** | `[REF] System Constraints`, `[REF] User Stories`, `[REF] Acceptance Criteria`, `[REF] Outcome KPIs`, `[REF] DoR Validation` |
+| 4 | Optional per-wave review (only on trigger) | **skipped** (not triggered; user directed proceed straight to handoff) | invoked via `/nw-review nw-product-owner-reviewer` |
+| 5 | Handoff (DESIGN + DEVOPS-KPI) + SSOT back-propagation | **done** (vision.md changes deferred per user direction; jobs.yaml + journey-pointer updates applied) | `[REF] Wave Decisions`, `[REF] Changed Assumptions`, `[REF] Handoff Package`, `docs/product/` updates |
 
 ---
 
@@ -1224,27 +1224,1263 @@ The five demos line up with the goals-doc's five done-criteria.
 
 ---
 
+## Wave: DISCUSS / [REF] System Constraints
+
+Cross-cutting non-functional constraints. Every story below inherits these; stories MAY add more but cannot weaken these. Sourced from `wumpus_python_goals.md` § 5 cross-cutting constraints and `[REF] Shared Artifacts Registry` audit gates.
+
+### SC1 — Determinism
+
+The engine's only entropy source is the integer `seed` passed to (or drawn at) `Game(seed=...)`. The contract: given the same `(seed, variant_config, action_sequence)`, the engine produces a byte-identical event sequence, byte-identical rendered lines under a given surface, and a byte-identical final snapshot — across processes, across operating systems, and across CI runs.
+
+**Forbidden in engine code:** `time.time()`, `time.monotonic()`, `os.urandom`, `secrets`, top-level `random.X(...)` calls (only `Game._random = random.Random(seed)` instance access is permitted), `datetime.now()` for any purpose other than ledger-only wall-clock metadata. **Enforced by:** static grep audit at every CI run (audit script lives in CI; see `[REF] Audit Gates`).
+
+### SC2 — Faithful surface defaults (Yob fidelity)
+
+The default `Surface` is `YobSurface`; the default `VariantConfig` is Yob 1973. With both defaults active, the engine MUST produce stdout byte-identical to a captured `wumpus.gwbasic.bas` transcript driven by the same `(seed, action_sequence)`. **Enforced by:** R1-S10 fixture suite (10 captured BASIC transcripts, byte-compared in CI).
+
+### SC3 — Subprocess-safe CLI
+
+The CLI MUST run cleanly under `pexpect` (Linux/macOS) and `wexpect` (Windows). Concretely:
+- Line-buffered stdout (`flush=True` after every print OR `sys.stdout.reconfigure(line_buffering=True)`).
+- No `curses`, no `SDL`, no `readline` mode that changes stdin handling for non-TTY input.
+- Prompts (`SHOOT OR MOVE (S-M)?`, `WHERE TO?`, etc.) MUST be observable at the harness before the engine awaits input — i.e., the prompt text is flushed before `input()` is called.
+
+**Enforced by:** R1-S09 pexpect/wexpect smoke test in CI.
+
+### SC4 — Observability is on by default
+
+Logging is **complete by default**. The harness may turn verbosity *down*, never *up from off*. Every game session (CLI, programmatic, host-import) emits a full event stream. Events are emitted **synchronously, in order, before `step()` returns**. No background threads, no async queues, no buffering across turn boundaries. **Enforced by:** R2-S03 paired-sink property test + a static audit for `threading`, `asyncio.create_task`, `concurrent.futures.submit` in engine modules.
+
+### SC5 — Schema versioning is additive
+
+Every event carries `schema_version: int`. Once a `schema_version` ships, the engine MUST NOT rename a field, MUST NOT rename an enum value, MUST NOT change the semantic of an existing field. New fields are additive. A schema mismatch between engine and sink fails fast at session start, not three notebooks later. **Enforced by:** R2-S01 schema validation on write + a Phase 3 ADR (in DESIGN) on schema-evolution policy.
+
+### SC6 — Snapshot is fully serializable
+
+`Snapshot` (Tier A1) is JSON-serializable end-to-end. No `random.Random` object as a field; the RNG state is encoded as bytes/int via `random.Random.getstate()` → tuple → base64-bytes. No closures, no tuples-as-dict-keys, no `Enum` instances without explicit string serialization. **Enforced by:** R3-S02 fixture suite (6 snapshot states, round-trip through JSON).
+
+### SC7 — No module-level mutable state
+
+The engine package contains no module-level mutable containers (list, dict, set) that engine code subsequently writes to. No singleton-cached `random.Random`. No registry-pattern globals. `Game()` construction has no side effects on import-time state. **Enforced by:** R3-S03 static audit.
+
+### SC8 — Surface is the only string boundary
+
+Engine code (`wumpus.engine.*`) MUST NOT reference a surface-form string literal (e.g., `"I SMELL A WUMPUS!"`, `"HA HA HA - YOU LOSE!"`). The engine operates on internal IDs (`int` for rooms, enums for senses/hazards/commands). All surface-form strings live in `wumpus.surfaces.*`. **Enforced by:** R4-S04 static grep audit.
+
+### SC9 — Paired-run internal-state-hash equality (surface seam structurality)
+
+For any `(seed, variant_config)` and any action sequence `A`, `Game(seed, variant, surface=YobSurface()).run(A)` and `Game(seed, variant, surface=MysterySurface()).run(translate(A))` MUST produce the same `internal_state_hash` at every turn. The Mystery surface's symbol map MUST NOT draw from the engine's RNG. **Enforced by:** R4-S05 paired property test (100 seeds × 50 turns).
+
+### SC10 — No framework dependencies in the engine
+
+The engine package (`wumpus.engine.*`) MUST NOT import LangChain, LangGraph, MPL, or any AI/ML framework. The engine is plain Python (stdlib + minimal dependencies — `pydantic` or `attrs` for typed dataclasses is acceptable; nothing larger). **Enforced by:** `pyproject.toml` review + a static-import audit.
+
+### SC11 — Engine ↔ experiments imports are clean (DEFERRED to DESIGN)
+
+Cross-package imports between `python/packages/wumpus/` and `python/packages/harebrain/`, the `experiments/` directory, and the MPL host-import surface are constrained per Decision 5: no source modifications, no hand-rolled `sys.path` injection. The exact mechanism (workspace package vs. editable install vs. namespace package) is a DESIGN-wave decision. **Enforced by:** DESIGN's import-graph review.
+
+### SC12 — Snapshot is the host-import contract floor
+
+For J4, the engine MUST allow:
+- `snap = game.snapshot()` (serializable)
+- `game' = Game.from_snapshot(snap)` (fresh instance)
+- `obs, snap' = game'.step(action)` (one turn)
+- Parallel `Game` instances with no shared state (`game_a` and `game_b` do not influence each other's snapshots)
+
+The exact host-import *signature* is blocked-on-MPL-spike (R2), but the underlying capability above is testable and required today. **Enforced by:** R3-S01, R3-S02, R3-S03.
+
+---
+
 ## Wave: DISCUSS / [REF] User Stories
 
-**Pending — Phase 3. Slice briefs land in `slices/slice-NN-*.md`; each story carries an Elevator Pitch + AC.**
+Twenty-five LeanUX stories, one per slice from `[REF] Story Map`. Each story carries: elevator pitch, As-a/I-want/So-that, full AC (Given-When-Then), job traceability, persona, depends-on. AC text expands the AC sketches from the story map.
+
+Story IDs use `<release>-S<NN>` to match the slice IDs. Where a slice in the map is named `R1-S03`, the story ID is `R1-S03`. Stories not in a release (the lone walking-skeleton slice) are `R0`.
+
+Cross-cutting note: every story inherits all System Constraints from `[REF] System Constraints` above (SC1–SC12). Where a story is the one that *first* makes a specific SC enforceable, the constraint is noted as `enforces:` in that story.
+
+---
+
+### Story R0 — Toy-cave engine, deterministic, event-emitting
+
+**Elevator pitch.** Build the smallest possible `Game` that round-trips a deterministic step on a 3-room toy cave. Programmatic-only, in-memory sink, placeholder strings, no Yob fidelity yet. The point is to lock the Observation/Event/Snapshot abstractions before any 1973 mechanics layer on top.
+
+**As-a / I-want / So-that.**
+- **As** a wumpus-engine maintainer
+- **I want** the engine's core abstractions (`Game`, `Observation`, `Event`, deterministic-from-seed) to exist end-to-end on the cheapest possible substrate
+- **So that** R1's Yob-fidelity work has a known-good architectural foundation to build on, and any architecture surprise surfaces here when refactor cost is minimal.
+
+**Persona:** harness-harriet (only the engineer; player-pat enters at R1-S07).
+**Job traceability:** indirectly serves `instrument-wumpus-play` and `replay-wumpus-deterministically` (the substrate, not the journey).
+**Enforces:** SC1 (determinism), SC4 (synchronous emit), SC7 (no module-level state).
+**Depends on:** nothing.
+
+**AC.**
+```gherkin
+Scenario: Deterministic-from-seed event sequence
+  Given a 3-room linear cave with one wumpus
+  And a sequence of actions A = ["move 2", "move 3"]
+  When two independent Game(seed=42) instances run A
+  Then both produce equal event sequences (==, deep)
+  And both produce equal final Snapshots
+  And neither instance has any module-level side effect
+
+Scenario: In-memory sink does not change emission
+  Given Game(seed=42) running A
+  When the run is performed once with no sinks and once with an in-memory sink
+  Then the event sequences observable inside Game are identical
+  And the in-memory sink's recorded events equal Game's internal emission order
+```
+
+---
+
+### Release 1 — Yob fidelity
+
+### Story R1-S01 — Dodecahedron + cave gen from seed
+
+**Elevator pitch.** Replace R0's hardcoded toy cave with the audited 20-room dodecahedron and Yob's `FNB` rejection-loop entity placement. From this slice forward, `Game(seed=k).world_state()` exposes a real Yob layout.
+
+**As / Want / So.**
+- **As** a researcher driving harness experiments
+- **I want** `Game(seed=k)` to produce a deterministic dodecahedron layout with 1 wumpus, 2 pits, 2 bats, 1 player in distinct rooms
+- **So that** seeded replays and cross-cell comparisons share a known geometry without any per-run regeneration drift.
+
+**Persona:** harness-harriet. **Job:** `play-classic-wumpus`, `replay-wumpus-deterministically`. **Depends on:** R0.
+
+**AC.**
+```gherkin
+Scenario: Layout is determined by seed
+  Given seed = 42
+  When Game(seed=42) is constructed twice in separate Python processes
+  Then both constructions produce identical _initial_layout (wumpus room, pit rooms, bat rooms, player start)
+
+Scenario: All entity rooms are distinct
+  Given Game(seed=k) for any integer k
+  Then the wumpus room, both pit rooms, both bat rooms, and the player start are all distinct rooms
+
+Scenario: Adjacency is the audited 20×3 dodecahedron
+  Given the wumpus.constants.DODECAHEDRON table
+  Then it matches the 20×3 table in the archived shared-artifacts-registry (rooms 1–20 with their three tunnels each)
+
+Scenario: random.Random stability regression
+  Given a Python 3.11+ interpreter
+  When random.Random(42).randrange(20) is invoked
+  Then the result equals a pinned constant (catches Python-stdlib drift at CI time)
+```
+
+---
+
+### Story R1-S02 — Sense emit on entry (Yob L-array order)
+
+**Pitch.** On entering a room, emit `SenseEmitted` events for each adjacent wumpus/pit/bat in Yob's `L`-array order. Multiple adjacent same-kind hazards emit the event once per match.
+
+**As / Want / So.**
+- **As** player-pat
+- **I want** the sense lines to appear in the same order Yob's BASIC source prints them
+- **So that** the recognition-signal of the 1973 game is preserved and I can triangulate from senses the way the original game intended.
+
+**Persona:** player-pat (primary), harness-harriet (event-stream consumer). **Job:** `play-classic-wumpus`. **Depends on:** R1-S01.
+
+**AC.**
+```gherkin
+Scenario: Senses fire in L-array order
+  Given the player enters a room adjacent to the wumpus AND adjacent to a pit
+  Then a SenseEmitted(WUMPUS_SMELL) event fires
+  And then a SenseEmitted(PIT_DRAFT) event fires
+  And then a LocationReported event fires
+
+Scenario: Repeated same-kind hazards repeat the sense
+  Given the player enters a room adjacent to two pits
+  Then two SenseEmitted(PIT_DRAFT) events fire (one per adjacency match)
+
+Scenario: No sense fires for a non-adjacent hazard
+  Given the player enters a room with no adjacent hazards
+  Then no SenseEmitted event fires before LocationReported
+```
+
+---
+
+### Story R1-S03 — Move + wumpus bump + startle
+
+**Pitch.** `step("M <room>")` validates adjacency, advances player; on entry to the wumpus's room, emit `HazardTriggered(WUMPUS)` and run the `FNC` startle distribution (75% move to adjacent, 25% stay). If startled wumpus lands on player → `GameEnded(eaten_after_bump)`.
+
+**As / Want / So.**
+- **As** player-pat
+- **I want** the wumpus startle rule to behave exactly as Yob's `FNC(0)` distribution
+- **So that** the 25% stay-put rule (the "I shot, I missed but I have no information" feel) is preserved.
+
+**Persona:** player-pat. **Job:** `play-classic-wumpus`. **Depends on:** R1-S01.
+
+**AC.**
+```gherkin
+Scenario: Bumping the wumpus triggers startle to an adjacent room
+  Given the wumpus is in room 7 and the player is in room 8 (adjacent to 7)
+  And the engine's next startle draw will be 1 (move to first adjacent room)
+  When the player moves to room 7
+  Then a HazardTriggered(WUMPUS) event fires
+  And a WumpusStartled(from=7, to=<first-adjacent-of-7>, ate_player=False) event fires
+  And the game continues
+
+Scenario: Bumping the wumpus and being eaten
+  Given the wumpus is in room 7 and the player is in room 8
+  And the engine's next startle draw will leave the wumpus on room 8 (the player's room)
+  When the player moves to room 7
+  Then a HazardTriggered(WUMPUS) event fires
+  And a WumpusStartled(ate_player=True) event fires
+  And a GameEnded(outcome=eaten_after_bump) event fires
+
+Scenario: 25% stay-put rule
+  Given the wumpus is in room 7 and the player is in room 8
+  And the engine's next startle draw will be 4 (stay)
+  When the player moves to room 7
+  Then WumpusStartled(from=7, to=7, ate_player=True) fires (the wumpus stays in 7, which is now the player's room)
+```
+
+---
+
+### Story R1-S04 — Move + pit + bat teleport (recursive)
+
+**Pitch.** Move into a pit → `GameEnded(fell_in_pit)`. Move into a bat room → `PlayerTeleported` to a random adjacent room → recursive re-entry that re-emits sense + location and may trigger another hazard.
+
+**As / Want / So.**
+- **As** player-pat
+- **I want** bat teleports to recurse into chained hazards exactly as Yob does (line 4130 GOTO)
+- **So that** the cascading bat→pit and bat→bat patterns of the 1973 game are preserved.
+
+**Persona:** player-pat. **Job:** `play-classic-wumpus`. **Depends on:** R1-S03.
+
+**AC.**
+```gherkin
+Scenario: Falling into a pit ends the game
+  Given a pit is in room 4 and the player is in room 3 (adjacent to 4)
+  When the player moves to room 4
+  Then HazardTriggered(PIT) fires
+  And GameEnded(outcome=fell_in_pit) fires
+
+Scenario: Bat teleport to a safe room re-emits senses for the new room
+  Given a bat is in room 5 and the engine's next bat-teleport target is room 17
+  And room 17 is adjacent to no hazards
+  When the player moves to room 5
+  Then PlayerTeleported(from=5, to=17) fires
+  And LocationReported(room=17) fires
+  And no SenseEmitted event fires for the new room
+
+Scenario: Bat teleport into a pit ends the game (recursive hazard)
+  Given a bat is in room 5 and a pit is in room 17
+  And the engine's next bat-teleport target is room 17
+  When the player moves to room 5
+  Then PlayerTeleported(from=5, to=17) fires
+  And HazardTriggered(PIT) fires
+  And GameEnded(outcome=fell_in_pit) fires
+```
+
+---
+
+### Story R1-S05 — Shoot path collection + crooked-path rejection
+
+**Pitch.** `step("S")` starts a shoot sub-state-machine: prompt path length, then per-slot room. Reject path entries where `P(K) == P(K-2)` (Yob crooked-arrow rule, K>2). Emit `ArrowFired` when path collection completes.
+
+**As / Want / So.**
+- **As** player-pat
+- **I want** the engine to reject crooked arrow paths with Yob's exact `ARROWS AREN'T THAT CROOKED - TRY ANOTHER ROOM` re-prompt for that slot only
+- **So that** the multi-room arrow path mechanic feels exactly like 1973.
+
+**Persona:** player-pat (primary), harness-harriet (event-stream consumer for J3's sub-prompt state coverage). **Job:** `play-classic-wumpus`. **Enforces:** Tier A1 mid-prompt snapshot fields (`pending_prompt`, `pending_arrow_path`) shape — first slice to exercise them. **Depends on:** R1-S01.
+
+**AC.**
+```gherkin
+Scenario: Path-length out of range re-prompts
+  Given the player has chosen S
+  When the player enters 0 for NO. OF ROOMS(1-5)?
+  Then NO. OF ROOMS(1-5)? is re-prompted
+  And no turn counter advance has occurred
+
+Scenario: Crooked path triggers slot-specific re-prompt
+  Given the player has entered path entries [7, 14] for a 3-room shoot
+  When the player enters 7 for the third slot
+  Then a CrookedPathRejected(slot=3, attempted_room=7) event fires
+  And ROOM #? is re-prompted ONLY for slot 3
+  And the previously-entered rooms 7 and 14 remain unchanged
+
+Scenario: Mid-shoot snapshot round-trips
+  Given the player is mid-shoot, has entered NO. OF ROOMS=3 and ROOM #=7 for slot 1
+  When game.snapshot() is taken and Game.from_snapshot(snap) is constructed
+  Then the resurrected game prompts for ROOM #? at slot 2
+  And the pending_arrow_path is [7]
+```
+
+---
+
+### Story R1-S06 — Arrow walk + hit + miss + self-shot + out-of-arrows
+
+**Pitch.** Walk the collected arrow path through the dodecahedron; on a non-connecting hop, take a random adjacent room (`FNB(1)`) and stop checking remaining path. If FINAL room matches the player → self-shot (Yob's bug-for-bug rule — *not* mid-path). If lands on wumpus → kill. Otherwise → miss + wumpus startle + decrement arrow + check out-of-arrows.
+
+**As / Want / So.**
+- **As** player-pat
+- **I want** the arrow-walk mechanics to preserve Yob's "crooked arrow passing through me does NOT kill me mid-path" rule
+- **So that** the bug-for-bug fidelity claim holds even for the most subtle Yob bugs.
+
+**Persona:** player-pat. **Job:** `play-classic-wumpus`. **Depends on:** R1-S05.
+
+**AC.**
+```gherkin
+Scenario: Successful shot kills the wumpus
+  Given the player is in room 8 with 5 arrows
+  And the wumpus is in room 14 and rooms 8-7, 7-14 are connected
+  When the player shoots a 2-room path through rooms 7, 14
+  Then ArrowFired(path=[7, 14]) fires
+  And ArrowPathStep(room=7, deflected=False) fires
+  And ArrowPathStep(room=14, deflected=False) fires
+  And ArrowHitWumpus(room=14) fires
+  And GameEnded(outcome=wumpus_shot) fires
+
+Scenario: Crooked arrow passing through player's room mid-path does NOT kill
+  Given the player is in room 8 with 5 arrows
+  And the arrow path walks rooms 7, then 8 (mid-path, passing through player), then 9
+  When the arrow walks the path
+  Then ArrowPathStep(room=8, deflected=False) fires (no ArrowHitPlayer)
+  And ArrowPathStep(room=9, ...) fires
+  And the player is unharmed at this step
+
+Scenario: Arrow's FINAL room matches player → self-shot
+  Given the player is in room 8 and the arrow's final room is room 8
+  Then ArrowHitPlayer(room=8) fires
+  And ArrowCountChanged(new_count=4) fires (decrement-as-if-missed)
+  And the game continues unless arrow count is now 0
+
+Scenario: Arrow takes random tunnel on missing connection
+  Given the player is in room 8 and shoots a path beginning with room 14 (not adjacent to 8)
+  When the arrow is walked
+  Then ArrowPathStep(room=<random-adjacent-of-8>, deflected=True) fires
+  And no further path rooms are consulted (remaining slots discarded)
+
+Scenario: Missing the wumpus startles it and decrements the arrow
+  Given the player misses and the next startle draw will leave the wumpus in place
+  Then ArrowMissed fires
+  And WumpusStartled(moved=False) fires
+  And ArrowCountChanged(new_count=<prev-1>) fires
+
+Scenario: Out of arrows ends the game
+  Given the player has 1 arrow remaining and misses
+  Then ArrowMissed fires
+  And ArrowCountChanged(new_count=0) fires
+  And GameEnded(outcome=out_of_arrows) fires
+```
+
+---
+
+### Story R1-S07 — Terminal state + Yob win/lose message swap + SAME SET-UP
+
+**Pitch.** On any terminal state, emit `GameEnded(outcome, message_kind)`. The CLI renderer (and YobSurface) prints `HA HA HA - YOU LOSE!` on lose, `HEE HEE HEE - THE WUMPUS'LL GETCHA NEXT TIME!!` on win — Yob's swap. `SAME SET-UP (Y-N)?` Y restores `Game._initial_layout` exactly.
+
+**As / Want / So.**
+- **As** player-pat (specifically the "knows the game" sub-shape)
+- **I want** the win/lose message swap preserved exactly
+- **So that** the recognition signal of the 1973 game is intact — the swap is the tell.
+
+**Persona:** player-pat. **Job:** `play-classic-wumpus`. **Enforces:** SC2 partially (the famous swap row). **Depends on:** R1-S03, R1-S04, R1-S06.
+
+**AC.**
+```gherkin
+Scenario: Win message is Yob's swapped HEE HEE HEE text
+  Given the player has just shot the wumpus
+  Then GameEnded(outcome=wumpus_shot, message_kind=win) fires
+  And the CLI renderer prints "AHA! YOU GOT THE WUMPUS!"
+  And the CLI renderer prints "HEE HEE HEE - THE WUMPUS'LL GETCHA NEXT TIME!!"
+
+Scenario: Loss message is Yob's swapped HA HA HA text
+  Given the player has just fallen in a pit
+  Then GameEnded(outcome=fell_in_pit, message_kind=lose) fires
+  And the CLI renderer prints "YYYIIIIEEEE . . . FELL IN PIT"
+  And the CLI renderer prints "HA HA HA - YOU LOSE!"
+
+Scenario: SAME SET-UP=Y restores the initial layout exactly
+  Given the player has just finished a game with wumpus in 14, pits in 4 and 17, bats in 5 and 9, start 8
+  When the player answers Y to SAME SET-UP (Y-N)?
+  Then a new GameStarted event fires
+  And the new game's _initial_layout equals the just-finished game's _initial_layout
+  And the new game's layout_hash equals the just-finished game's layout_hash
+```
+
+---
+
+### Story R1-S08 — Instructions block (incl. RAMDOM typo)
+
+**Pitch.** On `INSTRUCTIONS (Y-N)?` Y, print Yob's verbatim instruction block — including the typo `RAMDOM` in the arrow-deflection sentence.
+
+**As / Want / So.**
+- **As** player-pat (the "learning the game" sub-shape)
+- **I want** the on-disk INSTRUCTIONS prompt to do its job exactly as Yob wrote it — typos and all
+- **So that** bug-for-bug fidelity holds for fixed-text content too, not just dynamic gameplay.
+
+**Persona:** player-pat. **Job:** `play-classic-wumpus`. **Depends on:** R0 (CLI shell).
+
+**AC.**
+```gherkin
+Scenario: Instructions block contains Yob's RAMDOM typo
+  Given the user answers Y to "INSTRUCTIONS (Y-N)?"
+  Then the printed output contains the exact substring "RAMDOM" exactly once
+  And the full instruction block matches a captured Yob transcript byte-for-byte through the end of the instructions
+
+Scenario: Answering N skips the instructions
+  Given the user answers N to "INSTRUCTIONS (Y-N)?"
+  Then the next printed output is the "HUNT THE WUMPUS" banner
+  And the captured "RAMDOM" string is not in the output
+```
+
+---
+
+### Story R1-S09 — CLI subprocess-safe (pexpect/wexpect)
+
+**Pitch.** Wire the engine to a CLI that `pexpect`/`wexpect` can drive without deadlock. Line-buffered stdout, no curses, no SDL, no readline mode that confuses non-TTY stdin.
+
+**As / Want / So.**
+- **As** harness-harriet (specifically the wild-baseline `G` cell operator wrapping the CLI with pexpect)
+- **I want** the CLI to be drivable from a non-TTY pipe without deadlock
+- **So that** subprocess-based harnesses (cell G, oracle replay tools) work out of the box.
+
+**Persona:** harness-harriet. **Job:** `play-classic-wumpus` (Pat's surface, Harriet's reach into it). **Enforces:** SC3. **Depends on:** R1-S07.
+
+**AC.**
+```gherkin
+Scenario: Pexpect can drive the CLI to a known terminal state
+  Given a pexpect/wexpect script wrapping `wumpus`
+  When the script writes a fixed action sequence leading to a forced loss
+  Then the script reads "HA HA HA - YOU LOSE!" before exiting
+  And the wumpus process exits with status 0
+  And no deadlock occurs at any prompt
+
+Scenario: Prompt is observable before input is awaited
+  Given a pexpect harness reading up to "INSTRUCTIONS (Y-N)?"
+  When the harness reads
+  Then the prompt text is observable WITHOUT the harness having to write anything first
+  # This is the line-buffering / flush=True requirement.
+```
+
+---
+
+### Story R1-S10 — Byte-identical BASIC transcript regression fixture suite
+
+**Pitch.** Capture 10 PC-BASIC / GW-BASIC transcripts for `wumpus.gwbasic.bas` driven by deterministic input scripts and fixed seeds. Engine output for the same `(seed, input)` MUST match byte-for-byte. **This slice realizes goals-doc done-criterion #1.**
+
+**As / Want / So.**
+- **As** harness-harriet (the oracle role)
+- **I want** every Yob mechanic from R1-S01 through R1-S08 verified by byte-comparison against the BASIC source running in PC-BASIC
+- **So that** "this is the 1973 game" is a *testable* claim with N=10 evidence points, not a hand-wave.
+
+**Persona:** harness-harriet, player-pat (downstream beneficiary). **Job:** `play-classic-wumpus`, `replay-wumpus-deterministically`. **Enforces:** SC2. **Depends on:** R1-S01 through R1-S09 + a one-time PC-BASIC capture session (pre-requisite; see `[REF] Pre-requisites`).
+
+**AC.**
+```gherkin
+Scenario: All 10 BASIC fixtures pass byte-comparison
+  Given 10 captured PC-BASIC transcripts F1..F10, each with a seed s_i and input script I_i
+  When `wumpus --seed s_i` is run with input I_i for each i
+  Then the engine's stdout equals F_i.stdout byte-for-byte
+  # Acceptance threshold: 10/10. Anything less is a fidelity break.
+
+Scenario: Fixture suite runs in CI on every PR
+  Given a PR touching engine code
+  When CI runs
+  Then the fixture suite executes and the PR fails if any fixture diverges
+  And the failure message points at the first diverging byte
+
+Scenario: Capturing a new fixture requires a deterministic input script + seed
+  Given a maintainer wants to add fixture F11
+  When the maintainer captures a PC-BASIC session
+  Then the session's `5 RANDOMIZE <seed>` patch line is recorded
+  And the input script is recorded as a separate file
+  And the seed value is stored in F11's metadata header
+```
+
+---
+
+### Release 2 — Ledger
+
+### Story R2-S01 — Schema v1 event types + JSONL sink + schema validation on write
+
+**Pitch.** Define all event dataclasses per Tier A4 with `schema_version=1`. JSONL sink writes one event per line, synchronously. Schema validation rejects malformed events at emission time.
+
+**As / Want / So.**
+- **As** harness-harriet
+- **I want** every game session to produce a typed, schema-validated, append-only JSONL ledger
+- **So that** divergence-event metrics and post-hoc analysis can be computed without re-running games.
+
+**Persona:** harness-harriet. **Job:** `instrument-wumpus-play`. **Enforces:** SC4, SC5. **Depends on:** R1-S07.
+
+**AC.**
+```gherkin
+Scenario: Every event type is emittable + JSON-serializable
+  Given the wumpus.events module
+  When each event type is instantiated with valid payload and emitted
+  Then it serializes to a valid JSON line on the JsonlSink
+  And the line conforms to the schema_version=1 contract for that event type
+
+Scenario: Schema-drift events fail fast
+  Given a session is in progress
+  When the engine attempts to emit an event with a payload that does not match the schema (extra field, wrong type, missing required field)
+  Then a SchemaValidationError is raised synchronously
+  And the session aborts (does not silently corrupt the ledger)
+
+Scenario: JSONL ledger is append-only and one-event-per-line
+  Given a 50-turn session is run with --ledger=session.jsonl
+  When session.jsonl is read
+  Then it contains N lines where N equals the number of emitted events
+  And each line parses as a single JSON object
+  And no line is rewritten after being written (append-only)
+
+Scenario: No background-thread emission
+  Given a static audit of wumpus.events and wumpus.sinks modules
+  Then no `threading.Thread`, no `asyncio.create_task`, no `concurrent.futures.submit` is invoked for event emission
+```
+
+---
+
+### Story R2-S02 — Ledger header (GameStarted with full context) + replay from ledger
+
+**Pitch.** First event is `GameStarted` carrying `schema_version`, `engine_version`, `seed`, `layout_hash`, `variant_config`, `surface_id`. `replay(ledger_path)` reconstructs world at any turn from the header.
+
+**As / Want / So.**
+- **As** harness-harriet
+- **I want** the first line of any ledger to be sufficient to replay the game from scratch
+- **So that** "ledger" and "savefile" are the same thing — one source of truth, no parallel persistence.
+
+**Persona:** harness-harriet. **Job:** `replay-wumpus-deterministically`. **Depends on:** R2-S01.
+
+**AC.**
+```gherkin
+Scenario: GameStarted carries everything needed to replay
+  Given Game(seed=42, variant=VariantConfig(arrow_count=5), surface=YobSurface()) is constructed with a JsonlSink
+  When the first line of the ledger is read
+  Then it parses as GameStarted with fields: schema_version, engine_version, seed=42, layout_hash, variant_config (full), surface_id="yob"
+
+Scenario: replay(ledger_path) reconstructs world at turn k
+  Given a 30-turn session was logged to session.jsonl
+  When replay("session.jsonl").advance_to(turn=15).world_state() is called
+  Then the returned world_state equals the original Game.world_state() at turn 15
+
+Scenario: Replay refuses on engine-version mismatch
+  Given a ledger logged by engine_version=1.0.0 and the current engine is 2.0.0
+  When replay() is called
+  Then a VersionCompatibilityError is raised with both versions named
+  # additive schema means most version mismatches are recoverable; this AC is for genuine break-compat changes
+```
+
+---
+
+### Story R2-S03 — Per-event rng_cursor + internal_state_hash + observer-effect property
+
+**Pitch.** Every emitted event carries `rng_cursor` (state of `Game._random` after this event's draws) and `internal_state_hash` (hash of full world state). Property test: sink attachment does not alter event sequence.
+
+**As / Want / So.**
+- **As** harness-harriet running paired classic/mystery probes (J2) and snapshot/restore validations (J3)
+- **I want** every event tagged with a state hash and an RNG cursor
+- **So that** any divergence between runs is locatable to a specific event boundary, and seam-leak detection (SC9) is computable.
+
+**Persona:** harness-harriet. **Job:** `instrument-wumpus-play`, `replay-wumpus-deterministically`, `probe-llm-obfuscation-gap` (substrate). **Enforces:** SC4 paired-sink property. **Depends on:** R2-S02.
+
+**AC.**
+```gherkin
+Scenario: Sink attachment does not change event emission
+  Given Game(seed=42) running action sequence A
+  When the run is performed with [no sinks], then with [JsonlSink], then with [InMemorySink], then with [both]
+  Then the in-engine event sequence emitted is identical across all four runs
+  And the recorded sinks' contents (when applicable) equal the engine's emission order
+
+Scenario: internal_state_hash is deterministic given (seed, action_sequence, variant, surface)
+  Given Game(seed=42, variant=YobVariant(), surface=YobSurface())
+  When the same action sequence A is run in two independent processes
+  Then for every turn t, the events at turn t have equal internal_state_hash
+
+Scenario: rng_cursor advances monotonically
+  Given a session in progress
+  When event e_t is emitted, then event e_{t+1} is emitted
+  Then e_{t+1}.rng_cursor reflects at least as many RNG draws as e_t.rng_cursor
+  # Some events (PromptIssued, ActionChosen on a non-RNG path) may not advance the cursor; never decreases.
+
+Scenario: 100-seed property test passes
+  Given 100 random seeds k_1..k_100
+  When each is run with a 50-action random script under three sink configurations (none, jsonl, in-memory)
+  Then for every seed, the three runs produce identical event sequences
+```
+
+---
+
+### Release 3 — Snapshot
+
+### Story R3-S01 — Snapshot dataclass + in-memory round-trip
+
+**Pitch.** `Game.snapshot()` returns a `Snapshot` dataclass (Tier A1 shape). `Game.from_snapshot(snap)` reconstructs. Property: snapshot-at-turn-k → restore → step matches single-process step at turn k+1.
+
+**As / Want / So.**
+- **As** mpl-cell-consumer
+- **I want** the engine's full state to be capturable as a serializable dataclass and resurrectable from it
+- **So that** chart-owned world state (Manifest) can round-trip the engine across decide-leaf calls without a long-lived Python process.
+
+**Persona:** mpl-cell-consumer (primary), harness-harriet (secondary — replay/inspection). **Job:** `drive-engine-from-host-import`, `replay-wumpus-deterministically`. **Enforces:** SC12 (in-memory floor). **Depends on:** R2-S03 (needs rng_cursor field).
+
+**AC.**
+```gherkin
+Scenario: Snapshot round-trip preserves next event byte-identically
+  Given Game(seed=42) is stepped through actions A[0..9] with events captured as E_full
+  And snap_10 = game.snapshot() is taken
+  When Game.from_snapshot(snap_10) is constructed and stepped through actions A[10..19]
+  And the events from this run are captured as E_resurrected
+  Then E_resurrected equals E_full[10..19] byte-for-byte
+
+Scenario: Snapshot covers mid-prompt state (pending_arrow_path)
+  Given a session in mid-shoot with pending_arrow_path = [7, 14] and pending_prompt = "shoot_path_room slot 3"
+  When game.snapshot() is taken and Game.from_snapshot(snap) is constructed
+  Then the resurrected game prompts for ROOM #? at slot 3
+  And the resurrected game's pending_arrow_path is [7, 14]
+
+Scenario: Property test across 1000 random split points
+  Given 100 seeds × 10 action sequences × 10 random split points (1000 trials total)
+  When each trial runs (a) single-process and (b) split-via-snapshot
+  Then all 1000 trials produce equal final snapshots
+```
+
+---
+
+### Story R3-S02 — Snapshot JSON round-trip
+
+**Pitch.** `Snapshot.to_json() / from_json()` preserves byte-identical state. RNG cursor encodes via `random.Random.getstate()` → tuple → base64-bytes. Fixture suite covers turn 0, mid-arrow-path, post-bat-teleport, post-startle, terminal-win, terminal-lose.
+
+**As / Want / So.**
+- **As** mpl-cell-consumer
+- **I want** every snapshot to be JSON-serializable end-to-end
+- **So that** the MPL Manifest can persist engine state as plain data, not as a Python pickle.
+
+**Persona:** mpl-cell-consumer. **Job:** `drive-engine-from-host-import`. **Enforces:** SC6. **Depends on:** R3-S01.
+
+**AC.**
+```gherkin
+Scenario: Six fixture snapshots round-trip through JSON
+  Given six snapshot fixtures: turn-0, mid-arrow-path, post-bat-teleport, post-startle, terminal-win, terminal-lose
+  When each is serialized via Snapshot.to_json() and deserialized via Snapshot.from_json()
+  Then the round-tripped snapshot equals the original (deep equality, including rng_cursor)
+  And a step against the round-tripped snapshot produces the same event the in-memory snapshot would produce
+
+Scenario: No random.Random object as a field
+  Given any Snapshot instance
+  When the snapshot is introspected
+  Then no field holds a random.Random instance
+  And the rng_cursor field is one of: bytes, int, or a base64-encoded str (DESIGN-locked choice)
+
+Scenario: Cross-process JSON round-trip
+  Given Game(seed=42) has run 15 turns
+  When the snapshot is written to /tmp/snap.json in process P1
+  And the snapshot is read in process P2 and Game.from_snapshot is called
+  Then P2's resurrected game produces the same event sequence as P1 would have, for the next action
+```
+
+---
+
+### Story R3-S03 — Module-state audit + parallel-instance isolation property
+
+**Pitch.** Static grep audit for module-level mutable state, `time.time`, `os.urandom`, top-level `random.`, background-thread event emission. Plus a property test: 100 parallel `Game(seed=k_i)` instances stepping concurrently never observe each other's state.
+
+**As / Want / So.**
+- **As** mpl-cell-consumer
+- **I want** the engine source genuinely free of shared mutable state, with a property test that catches accidental sharing
+- **So that** every host-import call can assume the engine "starts fresh from snapshot" without surprises from a co-resident sibling.
+
+**Persona:** mpl-cell-consumer. **Job:** `drive-engine-from-host-import`. **Enforces:** SC1, SC7. **Depends on:** R3-S02.
+
+**AC.**
+```gherkin
+Scenario: Static audit finds zero violations
+  Given a CI run of the audit script over wumpus.engine.* and wumpus.surfaces.*
+  Then the script exits 0 with no hits for: time.time, time.monotonic, os.urandom, secrets.*, top-level random.X, threading.Thread (for event emission), asyncio.create_task, concurrent.futures (for emission)
+  # Audit-permitted: random.Random instance methods (game._random.X), datetime in ledger header only.
+
+Scenario: Module-level mutable state audit
+  Given the audit script
+  Then no module-level mutable container (list, dict, set) is written to by engine code at any code path
+
+Scenario: 100 parallel instances do not share state
+  Given 100 Game(seed=k_i) instances constructed with distinct seeds in the same process
+  When all 100 are stepped concurrently (via threading or asyncio) through 50 random actions each
+  Then for every i, Game_i's snapshot at the end equals what a serial-only Game_i would have produced
+  And no Game_i observes a snapshot field belonging to any Game_j (i != j)
+```
+
+---
+
+### Release 4 — Variant + surface
+
+### Story R4-S01 — VariantConfig type + Yob default + non-Yob smoke
+
+**Pitch.** `VariantConfig` dataclass holds the dimensions from `goals.md` § Goal 2. `VariantConfig()` is Yob defaults. `VariantConfig(arrow_count=3)` is a non-Yob variant. `GameStarted` records the active VariantConfig.
+
+**As / Want / So.**
+- **As** harness-harriet
+- **I want** to vary Yob's parameters (arrow count, wumpus count, etc.) via configuration without touching engine code
+- **So that** the escalation ladder (parent note's L2/L3/L4) and variant experiments can ship as configs, not forks.
+
+**Persona:** harness-harriet. **Job:** `play-classic-wumpus` (under variants), substrate for downstream features. **Depends on:** R1-S06, R3-S01.
+
+**AC.**
+```gherkin
+Scenario: VariantConfig() is Yob defaults
+  Given VariantConfig() with no arguments
+  Then room_count=20, wumpus_count=1, pit_count=2, bat_count=2, arrow_count=5, arrow_max_range=5, wumpus_move_prob=0.75, escalation_rules=[]
+
+Scenario: arrow_count variant changes out-of-arrows triggering
+  Given Game(seed=42, variant=VariantConfig(arrow_count=3)) is in a forced 3-miss scenario
+  When the player misses three times
+  Then GameEnded(outcome=out_of_arrows) fires after the third miss
+
+Scenario: VariantConfig is recorded in GameStarted
+  Given Game(seed=42, variant=VariantConfig(arrow_count=3))
+  When the first ledger line is read
+  Then it contains variant_config = {room_count: 20, ..., arrow_count: 3, ...}
+
+Scenario: Variants do not change internal state schema
+  Given Game(seed=42, variant=VariantConfig(wumpus_count=2))
+  When game.snapshot() is taken
+  Then snap.world.wumpus_rooms has length 2 (a list, not a new field)
+  And no other snapshot field shape changes
+```
+
+---
+
+### Story R4-S02 — escalation_rules slot (extension point)
+
+**Pitch.** `VariantConfig.escalation_rules: list[EscalationRule]` is a public extension slot. `EscalationRule` is a Protocol; engine consults it at specific decision points (TBD in DESIGN). For this slice: define the protocol + a no-op `IdentityRule()` and verify a Yob run with `escalation_rules=[IdentityRule()]` is byte-identical to a Yob run with `[]`.
+
+**As / Want / So.**
+- **As** a downstream-feature author (L3 "partial observability" feature, etc.)
+- **I want** a public extension point in `VariantConfig` to plug in escalation rules
+- **So that** L2/L3/L4 features can ship without forking the engine.
+
+**Persona:** harness-harriet (substrate). **Job:** substrate for downstream features (parent note `wumpus_idea.md:160-164`). **Depends on:** R4-S01.
+
+**AC.**
+```gherkin
+Scenario: IdentityRule is byte-identical to no-rules
+  Given the R1-S10 BASIC fixture suite
+  When all 10 fixtures are re-run with VariantConfig(escalation_rules=[IdentityRule()])
+  Then all 10 still pass byte-comparison against captured BASIC transcripts
+
+Scenario: EscalationRule is a Protocol (or ABC)
+  Given the wumpus.types.EscalationRule type
+  Then it is a typing.Protocol (or abc.ABC) with named hook methods
+  # Exact hook method names are DESIGN-locked; this AC pins the SHAPE not the methods.
+
+Scenario: Multiple rules can be ordered
+  Given VariantConfig(escalation_rules=[RuleA(), RuleB()])
+  When the engine consults rules at a decision point
+  Then RuleA is consulted before RuleB
+  And the order is preserved across snapshot round-trip
+```
+
+---
+
+### Story R4-S03 — Surface interface + YobSurface (strings moved out of engine constants)
+
+**Pitch.** Define the `Surface` interface (Tier A5 shape). Implement `YobSurface` with all the Yob strings (lifted from `wumpus.constants.PROMPTS` and `MESSAGES`). Refactor engine code to use `surface.prompt_text(...)`, `surface.sense_string(...)`, etc.
+
+**As / Want / So.**
+- **As** harness-harriet running Mystery probes (and as the engine maintainer)
+- **I want** all surface-form strings consolidated behind a clean interface
+- **So that** the seam claim (SC8) is achievable and a non-Yob surface is implementable.
+
+**Persona:** harness-harriet. **Job:** `probe-llm-obfuscation-gap` (substrate). **Enforces:** prerequisite for SC8. **Depends on:** R1-S10.
+
+**AC.**
+```gherkin
+Scenario: R1-S10 fixture suite still passes after the refactor
+  Given the surface-refactor lands
+  When the 10 BASIC fixtures are re-run with surface=YobSurface()
+  Then all 10 still pass byte-comparison
+
+Scenario: Surface interface covers all string surfaces
+  Given the Surface interface
+  Then it has methods (or properties) for: room_label, sense_string, hazard_name, command_token, command_parse, prompt_text, instructions_block
+
+Scenario: Surface contract round-trip for commands
+  Given any Surface instance
+  When command_parse(command_token(verb)) is invoked for every verb
+  Then the result equals the original verb
+  # Inverse-translation completeness.
+```
+
+---
+
+### Story R4-S04 — Surface-leak audit (CI gate)
+
+**Pitch.** Static grep of engine modules (`wumpus.engine.*`) for any reference to a Yob-surface string literal. Expected: zero hits outside `wumpus.surfaces.yob`. CI gate.
+
+**As / Want / So.**
+- **As** harness-harriet (Mystery probe runner)
+- **I want** an automated audit that catches accidental surface-string leaks into engine code
+- **So that** the obfuscation-gap measurement claim (SC9) can't silently rot.
+
+**Persona:** harness-harriet. **Job:** `probe-llm-obfuscation-gap`. **Enforces:** SC8. **Depends on:** R4-S03.
+
+**AC.**
+```gherkin
+Scenario: Audit finds zero Yob-string hits in engine
+  Given a CI run of the audit script over wumpus.engine.*
+  Then the script reports zero hits for the canonical Yob strings ("I SMELL A WUMPUS!", "HA HA HA - YOU LOSE!", "HEE HEE HEE - THE WUMPUS'LL GETCHA NEXT TIME!!", "AHA! YOU GOT THE WUMPUS!", "NO. OF ROOMS(1-5)?", etc.)
+  And the script exits 0
+
+Scenario: Audit fails fast on regression
+  Given a PR introduces an inline "I SMELL A WUMPUS!" string in wumpus.engine.move
+  When CI runs
+  Then the audit script exits non-zero and the PR fails
+  And the failure message points at the file + line of the violation
+
+Scenario: Audit script itself is tested with a synthetic violation
+  Given a tests/audit_self_test.py fixture that injects a synthetic violation
+  Then the audit script correctly flags it
+  # Tests-the-tester pattern; without it the audit could silently no-op.
+```
+
+---
+
+### Story R4-S05 — MysterySurface + paired-run hash equality
+
+**Pitch.** Implement `MysterySurface` with a fixed-but-arbitrary symbol map (no surface-level RNG). Paired property test: `Game(seed=k, surface=Yob())` and `Game(seed=k, surface=Mystery())` driven with translation-equivalent actions produce equal `internal_state_hash` at every turn.
+
+**As / Want / So.**
+- **As** harness-harriet (the LLM-obfuscation-gap researcher)
+- **I want** Mystery and Yob runs on the same seed to produce byte-identical *internal* trajectories — only the bytes the LLM reads differ
+- **So that** the obfuscation gap (Mystery win-rate minus Classic win-rate) is a structurally clean measurement.
+
+**Persona:** harness-harriet. **Job:** `probe-llm-obfuscation-gap`. **Enforces:** SC9. **Depends on:** R4-S04, R2-S03 (internal_state_hash field).
+
+**AC.**
+```gherkin
+Scenario: 100-seed × 50-turn paired hash equality
+  Given 100 random seeds k_1..k_100
+  And for each seed, a 50-action sequence A in canonical command verbs
+  When Game(seed=k, surface=Yob()).run(A) and Game(seed=k, surface=Mystery()).run(translate(A, mystery)) are paired
+  Then for every (seed, turn), the events' internal_state_hash values are equal
+
+Scenario: Mystery surface does not consume engine RNG
+  Given Game(seed=42, surface=Mystery()) running A
+  And Game(seed=42, surface=Yob()) running A
+  When the engine's rng_cursor sequences are compared at each turn
+  Then the two cursor sequences are identical
+  # Surface-internal symbol maps must NOT touch Game._random.
+
+Scenario: ledger records surface_variant correctly
+  Given Game(seed=42, surface=Mystery()) with a JsonlSink
+  When the ledger is read
+  Then every event carries surface_variant = "mystery"
+
+Scenario: Mystery surface translation is invertible for commands
+  Given MysterySurface
+  When command_parse(command_token(verb)) is invoked for every CommandVerb
+  Then the result equals the original verb
+  # Same contract as YobSurface (R4-S03 AC); pinned here as a Mystery-specific check.
+```
+
+---
+
+### Story R4-S06 — FrenchSurface smoke (surface generality)
+
+**Pitch.** Implement a second non-Mystery surface (`FrenchSurface`) as a generality smoke test. Paired Yob-vs-French run produces equal `internal_state_hash`.
+
+**As / Want / So.**
+- **As** harness-harriet (and any future surface-author)
+- **I want** to know the surface system is general, not Mystery-shaped
+- **So that** localizations and future probes (Spanish, Japanese, abstract-symbol, etc.) drop into the same seam without engine changes.
+
+**Persona:** harness-harriet. **Job:** `probe-llm-obfuscation-gap` (generality). **Depends on:** R4-S05.
+
+**AC.**
+```gherkin
+Scenario: French paired-run hash equality
+  Given 10 random seeds, 50-action sequences
+  When Yob/French paired runs are executed
+  Then internal_state_hash equality holds at every turn
+
+Scenario: surface_variant = "french" in ledger
+  Given Game(seed=42, surface=French()) with a JsonlSink
+  Then every event carries surface_variant = "french"
+
+Scenario: Engine code did not change between R4-S05 (Mystery) and R4-S06 (French)
+  Given a diff of wumpus.engine.* between R4-S05's head and R4-S06's head
+  Then the diff contains zero engine-module changes (only new files under wumpus.surfaces.french and tests)
+  # The generality claim is structural; adding a surface should require no engine touch.
+```
+
+---
+
+### Release 5 — Tail (blocked + optional)
+
+### Story R5-S01 — Host-import adapter (BLOCKED-ON-MPL-SPIKE)
+
+**Pitch.** Once the MPL spike pins the host-import signature, implement a thin adapter `wumpus.host_import` exposing the engine's `from_snapshot/step/snapshot` capability in the spike-pinned shape.
+
+**Status:** **BLOCKED-ON-MPL-SPIKE** (R2 risk). DoR is NOT met until the spike completes. This story does NOT block R1–R4 from shipping.
+
+**As / Want / So.**
+- **As** mpl-cell-consumer
+- **I want** a thin adapter exposing the engine via the MPL host-import contract
+- **So that** the harebrain agent (cell D) can drive the engine from a chart's decide-leaf.
+
+**Persona:** mpl-cell-consumer. **Job:** `drive-engine-from-host-import`. **Depends on:** R3-S03, **external: MPL spike**.
+
+**AC (commented placeholder until spike lands):**
+```gherkin
+# Scenario: Host-import contract round-trip
+#   Given the MPL spike has pinned the host-import contract as `f(snap, action) -> (snap', obs, events[])`
+#   When the chart wires the wumpus engine into a decide-leaf via that contract
+#   Then a Manifest with a captured snapshot can call f, write the returned snap back, and progress the game one turn
+#   And the chart's process can exit between turns without affecting the next call
+#
+# Scenario: Adapter is thin (no engine refactor required)
+#   Given the spike-pinned signature
+#   Then the adapter implementation is < 100 lines AND does not modify wumpus.engine.* files
+#   # If the adapter requires engine modifications, the spike has revealed a DESIGN-level issue.
+```
+
+---
+
+### Story R5-S02 — Variant parametric property tests (broader sweep)
+
+**Pitch.** Property tests sweep `VariantConfig` dimensions beyond R4-S01's smoke. Engine MUST not crash and snapshot round-trip MUST hold for all combinations.
+
+**As / Want / So.**
+- **As** the engine maintainer
+- **I want** broad property-test coverage across the variant parameter space
+- **So that** non-Yob variants are robust enough to ship as a configurable, not just-Yob-with-knobs.
+
+**Persona:** harness-harriet (downstream consumer). **Job:** substrate for downstream variant features. **Depends on:** R3-S01, R4-S01.
+
+**AC.**
+```gherkin
+Scenario: 500-config property test passes
+  Given the variant parameter space:
+    room_count ∈ {10, 20, 30}
+    wumpus_count ∈ {1, 2, 3}
+    pit_count ∈ {0, 1, 2, 3}
+    bat_count ∈ {0, 1, 2, 3}
+    arrow_count ∈ {1, 3, 5, 10}
+    arrow_max_range ∈ {1, 3, 5, 10}
+    wumpus_move_prob ∈ {0.0, 0.25, 0.5, 0.75, 1.0}
+  When 500 random samples are drawn from this space and run with 100 random actions each
+  Then no run crashes
+  And snapshot round-trip holds at every random split point
+  And the final ledger schema-validates
+
+Scenario: Cave-gen handles edge variants
+  Given VariantConfig(room_count=10, pit_count=3, bat_count=3, wumpus_count=2)
+  Then cave generation succeeds (all entities placed in distinct rooms; rejection loop terminates)
+
+Scenario: Failed parametric runs surface as new slices
+  Given a parametric test run finds a crash at VariantConfig(X)
+  Then the failure is logged as a candidate slice for follow-up
+  # This is meta-AC: bugs found here become their own stories, they don't silently get patched.
+```
+
+---
+
+### Story coverage matrix
+
+Cross-check: every job from `[REF] JTBD` is served by ≥1 story; every story traces to ≥1 job.
+
+| Job | Stories that serve it |
+|---|---|
+| `play-classic-wumpus` | R0 (substrate), R1-S01 through R1-S10 |
+| `instrument-wumpus-play` | R0 (substrate), R2-S01, R2-S02, R2-S03 |
+| `replay-wumpus-deterministically` | R1-S01, R2-S02, R2-S03, R3-S01 |
+| `probe-llm-obfuscation-gap` | R2-S03 (substrate), R4-S03, R4-S04, R4-S05, R4-S06 |
+| `drive-engine-from-host-import` | R3-S01, R3-S02, R3-S03, R5-S01 (blocked) |
+
+Persona coverage:
+
+| Persona | Stories where they are primary |
+|---|---|
+| player-pat | R1-S02, R1-S03, R1-S04, R1-S05, R1-S06, R1-S07, R1-S08 |
+| harness-harriet | R0, R1-S01, R1-S09, R1-S10, R2-S01, R2-S02, R2-S03, R4-S01, R4-S02, R4-S03, R4-S04, R4-S05, R4-S06, R5-S02 |
+| mpl-cell-consumer | R3-S01, R3-S02, R3-S03, R5-S01 |
 
 ---
 
 ## Wave: DISCUSS / [REF] Acceptance Criteria
 
-**Pending — Phase 3. Embedded per story.**
+Per-story AC is **embedded in each story** in `[REF] User Stories` above (LeanUX convention). This section captures the **cross-cutting AC** — claims that span multiple stories, or that are properties of the engine as a whole rather than of any one slice.
+
+### CC-AC-1 — Determinism contract (cross-cutting; SC1)
+
+```gherkin
+Scenario: Same (seed, variant, action_sequence, surface) produces equal artifacts across processes
+  Given two independent Python processes
+  And both run Game(seed=k, variant=V, surface=S) with identical action sequence A
+  Then both produce equal event sequences (==, deep)
+  And both produce equal final Snapshots
+  And both produce equal stdout (when run as CLI)
+  And both produce equal layout_hash and rng_cursor at every turn
+
+Scenario: Determinism holds across operating systems
+  Given the same engine_version, same Python version (>=3.11), same Python implementation (CPython)
+  When the determinism contract scenario above is run on Linux, macOS, and Windows
+  Then all three OSes produce equal artifacts
+```
+
+Spans: every story. **Concretely enforced by:** R2-S03 (paired-sink property test), R3-S01 (snapshot round-trip property test), R1-S10 (BASIC-fixture byte-comparison in CI matrix).
+
+### CC-AC-2 — Schema evolution contract (cross-cutting; SC5)
+
+```gherkin
+Scenario: Engine N+1 reads ledger from engine N (additive schema evolution)
+  Given a ledger written by engine_version=N
+  And the current engine_version=N+1 introduces only additive schema changes (new fields, new event types, no renames, no semantic changes)
+  When replay(ledger) is called by engine N+1
+  Then replay succeeds without VersionCompatibilityError
+  And events from engine N's ledger parse cleanly into engine N+1's event types
+  And new fields in engine N+1 default to None / empty when reading old-format events
+
+Scenario: Engine MUST fail-fast on breaking schema change
+  Given engine_version transitions from N to N+1 with a breaking change (field rename, enum-value rename, semantic change)
+  Then engine N+1 raises a SchemaCompatibilityError at the first event of a session that would silently corrupt
+  AND the error message names the breaking field and recommends manual migration
+```
+
+Spans: R2-S01, R2-S02, R3-S01. **Concretely enforced by:** R2-S01 schema validation + an ADR in DESIGN about schema-evolution policy.
+
+### CC-AC-3 — Snapshot is the host-import contract floor (cross-cutting; SC12)
+
+```gherkin
+Scenario: Three-call host-import cycle is supported today (signature-agnostic)
+  Given Game(seed=42).run(A[0..k]).snapshot() = snap
+  When Process P2 calls Game.from_snapshot(snap).step(A[k+1]) = (obs, snap_next, events)
+  And Process P3 calls Game.from_snapshot(snap_next).step(A[k+2]) = (obs', snap_next2, events')
+  Then the (events + events') sequence equals the events at turns k+1, k+2 of a single-process run
+  And neither P2 nor P3 holds any state outside the snapshot
+
+Scenario: Host-import contract gap is bounded
+  Given the MPL spike has not yet pinned the exact signature
+  Then the engine MUST expose: from_snapshot, snapshot, step, parallel-safe execution
+  And these are sufficient to implement ANY pure-function host-import shape via a thin adapter
+  # The spike risk is bounded to "shape the adapter," not to "refactor the engine."
+```
+
+Spans: R3-S01, R3-S02, R3-S03, R5-S01. **Concretely enforced by:** R3 stories + R5-S01's "adapter is thin (no engine refactor)" AC.
+
+### CC-AC-4 — No regression on goals-doc done-criteria across the lifecycle
+
+```gherkin
+Scenario: Done-criterion #1 holds across all subsequent releases
+  Given R1-S10 BASIC fixture suite passes at end of R1
+  When R2, R3, R4 releases land
+  Then R1-S10 fixtures STILL pass byte-for-byte at every release boundary
+  # No release may break Yob fidelity; CI runs the fixtures on every PR.
+
+Scenario: Done-criterion #2 (Mystery) does not break done-criterion #1 (Yob)
+  Given the surface refactor lands (R4-S03)
+  Then R1-S10 fixtures pass with surface=YobSurface() (the default)
+  # SC2 says Yob is the default; the refactor must not change defaults.
+
+Scenario: Done-criterion #3 (host-import) does not break done-criteria #1 + #2
+  Given R5-S01 lands (whenever the spike completes)
+  Then R1-S10 fixtures still pass
+  And R4-S05 paired-hash equality still passes
+```
+
+Spans: every release boundary. **Concretely enforced by:** CI matrix that runs R1-S10 + R4-S05 + R3 property tests on every PR.
+
+### CC-AC-5 — Audit gates pass at every release
+
+```gherkin
+Scenario: All four static audits pass at every PR
+  Given a PR touching any file under wumpus.* or its tests
+  When CI runs
+  Then the surface-leak audit (R4-S04) passes with zero hits
+  And the determinism-source audit (R3-S03) passes with zero hits
+  And the module-state audit (R3-S03) passes with zero hits
+  And the snapshot-serializability audit (R3-S02 fixture suite) passes for all six fixture states
+```
+
+Spans: every release after R3 / R4 introduces the respective audits. **Concretely enforced by:** R3-S03 + R4-S04 audit scripts being CI gates, not optional checks.
 
 ---
 
 ## Wave: DISCUSS / [REF] Outcome KPIs
 
-**Pending — Phase 3.**
+Measurable targets aligned with the goals-doc's five done-criteria. Each KPI has: target value, measurement method, the release that first makes it measurable. KPIs are *outcome-level* — the engine "works" or "doesn't" by these numbers; user-story-level acceptance is in `[REF] User Stories`.
+
+### Feature-level KPIs
+
+| KPI | Target | Measured by | First measurable at |
+|---|---|---|---|
+| **K-1 — Yob byte-fidelity** | 10/10 BASIC fixtures byte-identical | R1-S10 fixture suite in CI | end of R1 |
+| **K-2 — Determinism reliability** | 100% paired-process equality across 100 random `(seed, action_sequence)` × 3 platforms (Linux/macOS/Windows) | CI matrix + property test in R2-S03 | end of R2 |
+| **K-3 — Mystery seam structurality** | 100% turn-level internal_state_hash equality across 100 seeds × 50 turns × Yob-vs-Mystery paired runs | R4-S05 property test | end of R4 |
+| **K-4 — Snapshot round-trip reliability** | 100% byte-identical round-trip across 6 fixture states × in-memory + JSON encodings | R3-S01 + R3-S02 fixture suites | end of R3 |
+| **K-5 — Audit-gate cleanliness** | 0 hits across all 4 static audits (surface-leak, determinism-source, module-state, snapshot-serializability) on every PR | CI audit scripts | end of R3 (3 of 4) + end of R4 (all 4) |
+| **K-6 — Schema-evolution discipline** | 100% of past-N-version ledgers replay under current engine (additive evolution holds) | replay-cross-version test (introduced in R2-S02, exercised on every release) | end of R2 |
+| **K-7 — Subprocess-driveability** | Pexpect + wexpect smoke tests pass on Linux/macOS/Windows | CI matrix | end of R1-S09 |
+| **K-8 — Engine independence from frameworks** | 0 imports of LangChain, LangGraph, MPL, or any AI/ML framework in `wumpus.engine.*` and `wumpus.surfaces.*` | static import-graph audit | continuously, from R0 |
+
+### Goals-doc done-criteria mapping
+
+Each goals-doc done-criterion has a corresponding KPI + the release that completes it:
+
+| goals-doc done-criterion | KPI(s) | Release |
+|---|---|---|
+| #1 — Cell A scripted plays Yob from seed, ledger byte-identical to BASIC transcript | K-1 + K-2 | end of R1 + R2 |
+| #2 — Config switch produces Mystery Wumpus on same engine, same seed, only surface changed | K-3 + K-5 (surface-leak audit) | end of R4 |
+| #3 — MPL spike imports engine and round-trips a turn through host import | K-4 + (R5-S01 acceptance) | R5 (blocked-on-spike) |
+| #4 — L2/L3 drop in as configuration, not rewrites | K-5 (snapshot-serializability holds for variants) + R4-S02 escalation_rules slot | end of R4 |
+| #5 — Analysis notebook consumes JSONL from cells A, B, C, D, E, F, G without special-casing | K-6 + K-2 (same surface_variant, same schema_version, same fields across all cells) | end of R2 (substrate); validated downstream when cells ship |
+
+### Per-release KPI snapshots
+
+The release-boundary check at the end of each release. If any of these regresses, the release MUST NOT ship.
+
+**End of R0 — Walking skeleton complete**
+
+- 1 toy-cave smoke test passes: `Game(seed=42).step("move 2").step("move 3")` produces ≥4 deterministic events.
+- 1 paired-process equality test passes.
+- 0 module-level mutable state in the engine package.
+
+**End of R1 — Yob fidelity (CLI playable)**
+
+- **K-1 = 10/10** BASIC fixtures pass byte-identical.
+- 1 pexpect smoke test passes on the primary CI platform.
+- All R1-S01 through R1-S08 unit tests pass.
+- The CLI completes a forced-loss scenario with `HA HA HA - YOU LOSE!` and a forced-win scenario with `HEE HEE HEE`.
+
+**End of R2 — Ledger usable**
+
+- **K-2 = 100/100** paired-sink property test trials pass.
+- **K-6** baseline: a 30-turn fixture ledger replays cleanly via `replay()`.
+- Schema validation rejects 3 synthetic schema-drift events at synthesis time.
+
+**End of R3 — Snapshot ready**
+
+- **K-4 = 1000/1000** snapshot-round-trip property test trials pass (in-memory).
+- **K-4 = 6/6** JSON-round-trip fixtures pass.
+- **K-5 = 3/4 audits pass** (surface-leak audit lands in R4).
+
+**End of R4 — Variant + surface seam**
+
+- **K-3 = 100/100 × 50/50** Mystery-vs-Yob paired-hash equality trials pass.
+- **K-5 = 4/4 audits pass** on every PR.
+- French surface smoke test passes (10 paired-hash trials).
+- VariantConfig sweep (500 random samples) does not crash the engine; all 500 round-trip via snapshot.
+
+**End of R5 (when spike completes)**
+
+- Host-import adapter < 100 lines AND does not modify `wumpus.engine.*` files.
+- A test chart in the harebrain package round-trips a wumpus turn through the host-import contract.
+- All earlier KPIs (K-1 through K-7) still hold.
+
+### KPI ownership
+
+| KPI | Owned by | Reviewed by |
+|---|---|---|
+| K-1 (Yob fidelity) | nw-solution-architect at DESIGN; nw-functional-software-crafter at DELIVER | nw-product-owner at DISCUSS handoff |
+| K-2 (determinism) | nw-platform-architect at DEVOPS (CI matrix); engineer at DELIVER | nw-product-owner |
+| K-3 (Mystery seam) | nw-solution-architect (Surface interface design); engineer at DELIVER | nw-product-owner |
+| K-4 (snapshot) | nw-ddd-architect (Snapshot dataclass design); engineer at DELIVER | nw-system-designer (for serialization) |
+| K-5 (audits) | nw-platform-architect (CI gates); engineer at DELIVER | nw-software-crafter-reviewer |
+| K-6 (schema evolution) | nw-solution-architect (ADR); engineer at DELIVER | nw-product-owner |
+| K-7 (subprocess-drive) | nw-platform-architect (CI matrix); engineer at DELIVER | — |
+| K-8 (no framework deps) | nw-solution-architect; engineer | nw-platform-architect-reviewer |
 
 ---
 
 ## Wave: DISCUSS / [REF] DoR Validation
 
-**Pending — Phase 3. 9-item gate per story.**
+Definition of Ready — 9 items, applied across all 25 stories. A story is **Ready** when all 9 items pass. R5-S01 is the lone story where DoR does NOT pass (blocked-on-spike); the rest are Ready.
+
+### The 9 DoR items
+
+1. **D1 — Job traceability.** Story links to ≥1 job from `[REF] JTBD`.
+2. **D2 — Persona named.** Story names ≥1 primary persona from `[REF] Personas`.
+3. **D3 — User value articulated.** Elevator pitch + As-a/I-want/So-that are written, non-vacuous, and pass smell test.
+4. **D4 — AC testable.** AC is in Given-When-Then form, fully specified, with no `TBD` / `TODO` markers.
+5. **D5 — Dependencies named.** Prior stories (slices) this depends on are listed. No circular deps.
+6. **D6 — Estimable.** Effort is bounded (≤1 day per slice per Phase 2.5; if a story can't be done in a day, it's split).
+7. **D7 — External dependencies resolved.** No story blocked on work outside this feature's control (e.g., third-party APIs, external spikes). When blocked, the blocker is named.
+8. **D8 — Test fixtures available.** If the story's AC requires fixtures (BASIC transcripts, paired-run pairs, snapshot fixtures), those fixtures are identified and the path to acquiring them is clear.
+9. **D9 — No contradiction with prior waves.** AC does not contradict `[REF] Wave Decisions`, `[REF] System Constraints`, or any prior-wave SSOT artifact.
+
+### Per-story DoR matrix
+
+`✓` = pass, `✗` = fail, `~` = pass with caveat (caveat noted below table).
+
+| Story | D1 job | D2 pers | D3 value | D4 AC | D5 deps | D6 est | D7 ext | D8 fix | D9 prior | **Ready?** |
+|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| R0 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **Yes** |
+| R1-S01 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **Yes** |
+| R1-S02 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **Yes** |
+| R1-S03 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **Yes** |
+| R1-S04 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **Yes** |
+| R1-S05 | ✓ | ✓ | ✓ | ✓ | ✓ | ~ | ✓ | ✓ | ✓ | **Yes** (caveat: snapshot-shape risk; see C-R1-S05) |
+| R1-S06 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **Yes** |
+| R1-S07 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **Yes** |
+| R1-S08 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ~ | ✓ | **Yes** (caveat: needs a captured Yob instructions byte-fixture; see C-R1-S08) |
+| R1-S09 | ✓ | ✓ | ✓ | ✓ | ✓ | ~ | ~ | ✓ | ✓ | **Yes** (caveat: wexpect on Windows is finicky; see C-R1-S09) |
+| R1-S10 | ✓ | ✓ | ✓ | ✓ | ✓ | ~ | ~ | ✗ | ✓ | **No → Yes after C-R1-S10 resolved** |
+| R2-S01 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **Yes** |
+| R2-S02 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **Yes** |
+| R2-S03 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **Yes** |
+| R3-S01 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **Yes** |
+| R3-S02 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **Yes** |
+| R3-S03 | ✓ | ✓ | ✓ | ✓ | ✓ | ~ | ✓ | ✓ | ✓ | **Yes** (caveat: audit-finding overflow; see C-R3-S03) |
+| R4-S01 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **Yes** |
+| R4-S02 | ✓ | ✓ | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | **Yes** (caveat: EscalationRule hook methods deferred to DESIGN; see C-R4-S02) |
+| R4-S03 | ✓ | ✓ | ✓ | ✓ | ✓ | ~ | ✓ | ✓ | ✓ | **Yes** (caveat: refactor scope; see C-R4-S03) |
+| R4-S04 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **Yes** |
+| R4-S05 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **Yes** |
+| R4-S06 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **Yes** |
+| **R5-S01** | ✓ | ✓ | ✓ | ✗ | ✓ | ✗ | **✗** | ✗ | ✓ | **No (blocked-on-MPL-spike)** |
+| R5-S02 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **Yes** |
+
+**Summary:**
+- **24 of 25 stories are Ready** (or Ready-with-caveat).
+- **1 story (R5-S01) is genuinely Blocked** — does not block any other story.
+- **1 story (R1-S10) needs a one-time pre-requisite resolved** before it becomes Ready (BASIC transcript capture).
+
+### DoR caveats and resolutions
+
+**C-R1-S05 — Snapshot shape risk on mid-prompt state.** D6 caveat: the story's effort may stretch beyond 1 day if Snapshot's `pending_prompt` + `pending_arrow_path` fields need redesign. Mitigation: design Snapshot (Tier A1) explicitly to support mid-prompt capture from R3-S01 onward; pin the shape during DESIGN before R1-S05 starts. Effort estimate stays ≤1 day if shape is pre-locked.
+
+**C-R1-S08 — Captured Yob instructions byte-fixture.** D8 caveat: the BASIC instructions block (Yob lines 1000-1410 per goals.md line 50) needs to be captured as a byte-exact fixture against PC-BASIC output. This is a one-time capture, part of the broader R1-S10 BASIC-capture pre-requisite. Resolution: bundle this fixture capture with R1-S10's pre-requisite work (see C-R1-S10).
+
+**C-R1-S09 — Wexpect on Windows.** D6 + D7 caveat: `wexpect` is known finicky on Windows. Effort may stretch to >1 day if Windows-specific stdio quirks surface. Mitigation: get pexpect (Linux/macOS) working first; document Windows status separately. If Windows blocks, the story is split into R1-S09a (pexpect, linux+mac) and R1-S09b (wexpect, windows) — neither blocks the other.
+
+**C-R1-S10 — BASIC transcript capture pre-requisite.** D8 = ✗ today: the 10 captured BASIC transcripts do NOT exist yet as byte-pinned files. **This must be resolved before R1-S10 can start.** Resolution: pre-R1-S10 task — capture 10 PC-BASIC sessions with `5 RANDOMIZE <seed>` patch (per `wumpus/experiments/g_wild_baseline/README.md` caveat) for 10 deterministic input scripts. Each capture stores: `(seed_i, input_script_i, expected_stdout_i)`. Estimate: 0.5–1 day for the capture session itself. **Action**: surface this as a pre-requisite slice (R1-S00 or as a one-time setup task in `[REF] Pre-requisites`); do NOT start R1-S10 until done.
+
+**C-R3-S03 — Audit-finding overflow.** D6 caveat: if the audit finds >2 violations in existing engine code, fixing them in-place would stretch the slice >1 day. Mitigation: time-box. If audit finds 0–2 violations, fix in-place; if 3+, split the cleanup into a follow-up slice (R3-S03b) and ship R3-S03 with the audit script + tracking issues.
+
+**C-R4-S02 — EscalationRule hook methods deferred to DESIGN.** D4 caveat: AC pins the *shape* of `EscalationRule` (it's a Protocol/ABC) but not the *hook methods* — those are DESIGN-wave decisions. Mitigation: R4-S02 ships with a no-op `IdentityRule()` + the byte-identical-to-no-rules test; the actual hook methods land at the start of the first L3/L4 downstream feature, not this feature.
+
+**C-R4-S03 — Surface-refactor scope.** D6 caveat: the refactor's scope may exceed 1 day if engine code has more inline string references than expected. Mitigation: do an R4-S03 grep-and-count *before* starting; if count > 10 sites, split into R4-S03a (the easy half) and R4-S03b (the harder half). R4-S04's audit then catches whatever leaked through both halves.
+
+**R5-S01 — Blocked-on-MPL-spike.** D4 = ✗ (AC is commented placeholder), D6 = ✗ (cannot estimate without signature), D7 = ✗ (external dependency: MPL spike, `wumpus_idea.md:147`), D8 = ✗ (no fixtures until contract pinned). **Resolution: do not start R5-S01 until the MPL spike completes.** R3-S01 / R3-S02 / R3-S03 cover the underlying constraints today; R5-S01 is the thin-adapter slice that lands when the contract is pinned. The feature CAN ship without R5-S01 (goals-doc done #3 deferred to a downstream feature if necessary). Recorded as R2 risk; PO accepts.
+
+### Pre-requisite slice (NEW — surfaced by DoR validation)
+
+**Pre-R1-S10 — Capture 10 BASIC transcripts** (0.5–1 day)
+
+Not in the original story map; surfaced here as a DoR-required pre-requisite for R1-S10.
+
+- Set up PC-BASIC + `wumpus.gwbasic.bas` patched with `5 RANDOMIZE <seed>`.
+- Author 10 deterministic input scripts covering: forced wumpus-shot win, forced pit loss, forced wumpus-eats loss, forced out-of-arrows loss, forced self-shot, forced bat-into-pit, forced bat-into-bat-into-safe, crooked-arrow rejection, SAME SET-UP=Y, INSTRUCTIONS=Y.
+- For each script, capture stdout to a byte-exact fixture file with metadata (seed, input script, captured-at-date).
+- Verify each fixture is reproducible by re-running the BASIC session.
+
+**Land before:** R1-S10. **Owner:** harness-harriet at engineering time; the engineer takes 0.5–1 day with PC-BASIC.
+
+### DoR summary
+
+| Status | Count | Stories |
+|---|---:|---|
+| Ready (no caveat) | 17 | R0, R1-S01–S04, R1-S06, R1-S07, R2-S01–S03, R3-S01, R3-S02, R4-S01, R4-S04, R4-S05, R4-S06, R5-S02 |
+| Ready with caveat | 6 | R1-S05, R1-S08, R1-S09, R3-S03, R4-S02, R4-S03 |
+| Not Ready — needs pre-req | 1 | R1-S10 (needs Pre-R1-S10 capture session) |
+| Not Ready — blocked | 1 | R5-S01 (blocked-on-MPL-spike) |
+| **Total** | **25** | |
+
+**DISCUSS handoff readiness:** the feature is ready to hand off to DESIGN with 24 of 25 stories Ready. R5-S01 stays in the backlog as a blocked story; R1-S10's pre-requisite slice is added to `[REF] Pre-requisites` and tracked by the engineer.
 
 ---
 
@@ -1278,7 +2514,11 @@ Locked decisions overriding the archived prior wave (`docs/feature/.archive/wump
 
 Per back-propagation contract. SSOT files are updated in-place at handoff; quotes preserved here.
 
+**Phase 5 status (2026-05-22):** Changes 1–3 target `docs/product/vision.md`, which is **deleted in the working tree**. Per user direction at Phase 3 review ("ignore vision.md and proceed as you normally would"), Changes 1–3 are **DEFERRED**. The originally-proposed new text below is preserved verbatim as a queued change set; whenever a future wave restores or rewrites vision.md, it should pick these up. Changes 4 (journeys/play-classic-wumpus.yaml broken `$ref`) and 5 (jobs.yaml) **are applied** at Phase 5.
+
 ### Change 1 — vision.md OUT-OF-SCOPE list
+
+**Status:** DEFERRED — target file does not exist in working tree.
 
 **Source**: `docs/product/vision.md` § "Out of scope for this feature"
 
@@ -1301,6 +2541,8 @@ Per back-propagation contract. SSOT files are updated in-place at handoff; quote
 
 ### Change 2 — vision.md package name
 
+**Status:** DEFERRED — target file does not exist in working tree.
+
 **Source**: `docs/product/vision.md` § "This repository delivers, in dependency order:" → item 1
 
 **Original text (verbatim)**:
@@ -1314,6 +2556,8 @@ Per back-propagation contract. SSOT files are updated in-place at handoff; quote
 **Rationale**: Package name change per Decision 1 (this wave) supersedes archived Decision 1 (`wumpus_classic/`). The "classic" framing was misleading once Mystery and variant-config landed on the same engine.
 
 ### Change 3 — vision.md role table
+
+**Status:** DEFERRED — target file does not exist in working tree.
 
 **Source**: `docs/product/vision.md` § "wumpus_classic plays three concurrent roles, by design:"
 
@@ -1332,6 +2576,8 @@ Per back-propagation contract. SSOT files are updated in-place at handoff; quote
 
 ### Change 4 — journeys/play-classic-wumpus.yaml
 
+**Status:** APPLIED at Phase 5. See `docs/product/journeys/play-classic-wumpus.yaml` + `play-classic-wumpus-visual.md` — both now point to the harebrain single-file SSOT (`docs/feature/wumpus/feature-delta.md` § `[REF] Journeys` § J1) rather than the archived path.
+
 **Source**: `docs/product/journeys/play-classic-wumpus.yaml`
 
 **Original text (verbatim)**:
@@ -1348,6 +2594,8 @@ $ref: ../../feature/wumpus-classic/discuss/journey-play-classic-wumpus.yaml
 **Rationale**: The archived feature path no longer exists; the `$ref` was broken on the day the archive moved. Splitting by journey (per persona/surface) is more honest than widening a single classic-only journey.
 
 ### Change 5 — jobs.yaml job statements
+
+**Status:** APPLIED at Phase 5. See `docs/product/jobs.yaml` — 2 new jobs added (`probe-llm-obfuscation-gap`, `drive-engine-from-host-import`), 1 new persona added (`mpl-cell-consumer`), 3 existing job statements refined per Phase 1 JTBD work. Changelog entry recorded in jobs.yaml header.
 
 **Source**: `docs/product/jobs.yaml`
 
@@ -1373,9 +2621,12 @@ Reaffirmed by this wave (handed to DESIGN; downstream features handle these):
 
 ## Wave: DISCUSS / [REF] Pre-requisites
 
-- **Greenfield package** — `python/packages/wumpus/` does not yet exist. The walking skeleton creates it. No `pyproject.toml` to migrate.
-- **BASIC reference present** — `wumpus/experiments/g_wild_baseline/wumpus.gwbasic.bas` exists and is byte-audited; it's the spec when this package disagrees with it. Test fixtures (captured BASIC transcripts) are a pre-requisite for the bug-for-bug fidelity AC; if they don't exist as pinned files yet, generating them is a Phase 2 slice precursor.
+- **Greenfield package** — `python/packages/wumpus/` does not yet exist. The walking skeleton (R0) creates it. No `pyproject.toml` to migrate.
+- **BASIC reference present** — `wumpus/experiments/g_wild_baseline/wumpus.gwbasic.bas` exists and is byte-audited; it's the spec when this package disagrees with it.
 - **No DIVERGE wave** — every story carries `validation: synthesized-from-goals-doc`. The wave doesn't block on a missing DIVERGE; the validation flag is the trail to follow when interviews happen later.
+- **Pre-R1-S10 — BASIC transcript capture session** (surfaced by Phase 3 DoR validation; not in the original story map). 10 deterministic input scripts, each captured against PC-BASIC + patched `wumpus.gwbasic.bas` with `5 RANDOMIZE <seed>`. Each fixture stores `(seed, input_script, expected_stdout)` as byte-exact files. Owner: engineer at R1-S10 start. Estimate: 0.5–1 day. Must land before R1-S10 starts. See `[REF] DoR Validation` § Pre-requisite slice for the full scope.
+- **`docs/product/vision.md` deletion — DEFERRED per user direction (2026-05-22).** vision.md is deleted in the working tree. The user directed at Phase 3 review to "ignore vision.md and proceed as you normally would". Changes 1, 2, 3 in `[REF] Changed Assumptions` remain queued as proposed-but-deferred text; whenever vision.md is restored or rewritten, those changes should be picked up. DESIGN inherits this decision; not blocking handoff.
+- **MPL spike (`wumpus_idea.md:147`) not done.** R5-S01 is blocked on this; the spike is an external prerequisite. The rest of the feature (R0–R4) can ship without it; goals-doc done-criterion #3 deferred to whenever the spike lands.
 
 ---
 
@@ -1404,3 +2655,124 @@ Three inbound surfaces, one bounded context:
 3. **MPL host-import** — snapshot-step-snapshot pure function. Signature pinned by the MPL spike (R2); constraints knowable now.
 
 The ledger is observability, not a driving port. Files under `docs/product/journeys/` cover one journey per surface.
+
+---
+
+## Wave: DISCUSS / [REF] Handoff Package
+
+End of DISCUSS. Phase 5 output. Structured to match the `/nw-discuss` command's Wave Decisions Summary template + the explicit handoff destinations.
+
+### Handoff destinations
+
+- **Primary:** `nw-solution-architect` (DESIGN wave) — for `[REF] Journeys`, `[REF] Shared Artifacts Registry`, `[REF] System Constraints`, `[REF] User Stories`, `[REF] Acceptance Criteria`, `[REF] Wave Decisions`, `[REF] Story Map`.
+- **Secondary:** `nw-platform-architect` (DEVOPS wave, KPIs only) — for `[REF] Outcome KPIs`. The eight feature-level KPIs (K-1 through K-8) are the DevOps wave's measurement contract.
+- **Tertiary (if invoked):** `nw-ddd-architect` for the `Snapshot` / `Observation` / `Event` / `VariantConfig` / `Surface` type designs (Tier A1–A5) — they have cross-cutting domain implications.
+
+### Wave Decisions Summary (per the `/nw-discuss` template)
+
+#### Key Decisions
+
+- **[D1] Package location:** `python/packages/wumpus/` — matches goals doc; supersedes archived `wumpus_classic/` name. See `[REF] Wave Decisions`.
+- **[D2] Three first-class surfaces:** CLI, programmatic `Game.step()` API, MPL host-import — none secondary. See `[REF] Wave Decisions`, `[REF] Driving Ports`.
+- **[D3] Variant config + Mystery surface seam + escalation_rules slot IN-SCOPE.** Supersedes the older `vision.md` OUT-OF-SCOPE list (vision.md back-prop deferred per user). See `[REF] Wave Decisions` D3.
+- **[D4] L2 (wumpus moves when startled) is part of Yob baseline.** L3 / L4 ship as downstream features through the `escalation_rules` slot. See `[REF] Wave Decisions` D4.
+- **[D5] Cross-package engine ↔ experiments imports DEFERRED to DESIGN.** DISCUSS states constraint only (no source mods, no hand-rolled `sys.path`); DESIGN picks the mechanism. See `[REF] Wave Decisions` D5, `[REF] System Constraints` SC11.
+- **[D6] Host-import surface IN-SCOPE with `blocked-on-mpl-spike`** for the exact function signature; underlying constraints (snapshot/restore round-trip, no module-level state, no singleton RNG) testable now. See `[REF] Wave Decisions` D6, story R5-S01 status.
+- **[D7] Engine has no framework dependencies.** See `[REF] System Constraints` SC10.
+- **[D8] Determinism contract: seed is the only entropy source.** See `[REF] System Constraints` SC1, `[REF] Acceptance Criteria` CC-AC-1.
+- **[D9] Subprocess-safe CLI** — line-buffered, no SDL, no curses, no readline. See SC3, story R1-S09.
+- **[D10] Synchronous + ordered + schema-validated JSONL logging.** Complete by default; harness turns verbosity down, never up from off. See SC4, SC5.
+- **[D11] Bug-for-bug fidelity** — `RAMDOM` typo, crooked-arrow-passes-through-player, GW-BASIC RND semantic, win/lose message swap all preserved. See SC2, story R1-S07, R1-S08.
+
+#### Requirements Summary
+
+- **Primary user needs:** Pat plays Yob 1973 faithfully at a terminal (J1). Harriet runs ground-truth-oracle experiments via Python API + JSONL ledger (J3). Harriet runs Mystery-Wumpus obfuscation-gap probes (J2). MPL cell-D consumer drives the engine through a host-import contract (J4, signature blocked-on-spike).
+- **Walking-skeleton scope:** Slice R0 — a 3-room toy cave, programmatic-only, deterministic from seed, in-memory event sink, no Yob fidelity yet (1 day). Purpose: force the abstractions into existence on the cheapest substrate before R1's Yob mechanics layer on top.
+- **Feature type:** **Cross-cutting** — the engine is one bounded context but spans three driving ports (CLI + programmatic API + MPL host-import) and serves three personas (player-pat + harness-harriet + mpl-cell-consumer). The single-bounded-context determination was the basis for the Phase 1.5 PASS-as-one-feature verdict.
+
+#### Constraints Established
+
+Twelve cross-cutting non-functional constraints (SC1–SC12 in `[REF] System Constraints`):
+- SC1 — Determinism (single entropy source: seed)
+- SC2 — Faithful Yob defaults (byte-identical BASIC transcript regression)
+- SC3 — Subprocess-safe CLI
+- SC4 — Observability by default (synchronous, ordered)
+- SC5 — Schema evolution is additive
+- SC6 — Snapshot is fully serializable (JSON end-to-end)
+- SC7 — No module-level mutable state
+- SC8 — Surface is the only string boundary
+- SC9 — Paired-run internal-state-hash equality (Mystery seam structurality)
+- SC10 — No framework dependencies in engine
+- SC11 — Engine ↔ experiments imports clean (mechanism deferred to DESIGN)
+- SC12 — Snapshot is the host-import contract floor (signature-agnostic constraints testable today)
+
+Plus 5 cross-cutting acceptance criteria (CC-AC-1 through CC-AC-5) that span multiple stories.
+
+Plus 4 static audit gates (surface-leak, determinism-source, module-state, snapshot-serializability) that DESIGN must wire into CI.
+
+#### Upstream Changes
+
+Five back-propagation changes proposed at Phase 1; three deferred, two applied at Phase 5:
+
+| Change | Target | Status |
+|---|---|---|
+| Change 1 — vision.md OUT-OF-SCOPE list | `docs/product/vision.md` | **DEFERRED** — vision.md deleted in working tree; user directed "ignore" |
+| Change 2 — vision.md package name | `docs/product/vision.md` | **DEFERRED** — ditto |
+| Change 3 — vision.md role table | `docs/product/vision.md` | **DEFERRED** — ditto |
+| Change 4 — journeys/play-classic-wumpus.yaml broken `$ref` | `docs/product/journeys/play-classic-wumpus.yaml` + visual mirror | **APPLIED** — now points to feature-delta.md § J1 |
+| Change 5 — jobs.yaml additions + refinements | `docs/product/jobs.yaml` | **APPLIED** — 2 new jobs, 1 new persona, 3 existing job statements sharpened, schema bumped 1 → 2, changelog entry recorded |
+
+#### DISCUSS handoff readiness (per [REF] DoR Validation)
+
+- **24 of 25 stories Ready** (some with documented caveats and mitigations).
+- **1 story (R5-S01) BLOCKED** on the MPL spike (`wumpus_idea.md:147`) — does not block any other story; R5-S01 stays in the backlog until the spike lands.
+- **1 pre-requisite slice surfaced** (Pre-R1-S10: BASIC transcript capture session, 0.5–1 day) — added to `[REF] Pre-requisites`; must land before R1-S10 starts.
+- **vision.md deferred** (per user direction) — DESIGN inherits this decision; not blocking handoff.
+
+### Deliverables for DESIGN
+
+The full feature-delta.md is the deliverable per the harebrain single-file convention. The DESIGN agent reads:
+
+1. **Architecture-shaping content** (primary):
+   - `[REF] Journeys` (J1–J4) — what each surface-persona pair needs
+   - `[REF] Shared Artifacts Registry` (Tier A1–A5 + Tier B) — the type designs DESIGN must lock
+   - `[REF] System Constraints` (SC1–SC12) — non-functional contract DESIGN must respect
+   - `[REF] Driving Ports` — the three inbound surfaces
+
+2. **Implementation-shaping content** (secondary):
+   - `[REF] Story Map` (R0 + R1–R5) — the slice carpaccio DELIVER will execute
+   - `[REF] User Stories` — full AC per slice; DESIGN reviews for technical feasibility
+   - `[REF] Acceptance Criteria` (CC-AC-1 through CC-AC-5) — cross-cutting
+
+3. **Open decisions DESIGN must close:**
+   - The exact shape of `Snapshot`, `Observation`, `Event`, `VariantConfig`, `Surface` dataclasses (Tier A skeletons land in DISCUSS; locked types land in DESIGN)
+   - Schema-evolution ADR (CC-AC-2)
+   - Cross-package import mechanism (SC11, D5)
+   - The `EscalationRule` Protocol hook methods (R4-S02 caveat C-R4-S02)
+   - Choice of dataclass library (`dataclasses` vs `attrs` vs `pydantic` for the typed events)
+   - JSONL sink design (whether `JsonlSink` is in `wumpus.sinks` or `wumpus.io`; whether sinks are protocols or ABCs)
+   - CI matrix design (which platforms × which Python versions for the determinism KPI K-2)
+
+### Deliverables for DEVOPS (KPIs only)
+
+- `[REF] Outcome KPIs` — 8 feature-level KPIs (K-1 through K-8) with measurement methods and release-boundary checks
+- Per-release KPI snapshots (release-gate checks for R0 through R5)
+- KPI ownership table (which downstream agent owns each KPI)
+
+### What DISCUSS does NOT hand off
+
+These are explicitly NOT in scope for DISCUSS-to-DESIGN handoff:
+
+- **Code.** No source files, no `pyproject.toml`, no test fixtures.
+- **Architecture diagrams.** No C4 diagrams, no sequence diagrams — those are DESIGN deliverables.
+- **Database schemas / persistence design.** Not applicable (no DB; JSONL is the only persistence).
+- **Deployment topology.** Not applicable yet (pip-installable Python package; DEVOPS picks the release strategy).
+- **The MPL spike itself.** External to the engine feature; tracked in the parent harebrain note.
+- **Decisions superseded or deferred to DESIGN** — SC11 (cross-package import mechanism), R4-S02 hook methods, R5-S01 adapter (blocked-on-spike).
+
+### Closing the wave
+
+When DESIGN accepts handoff:
+- Flip `[REF] Phase Tracker` row 5 from `in-progress` to `done`.
+- DISCUSS wave artifacts in this file become read-only for DESIGN purposes (any change requires re-opening DISCUSS).
+- The 25 stories become the input to DESIGN's component decomposition.

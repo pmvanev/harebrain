@@ -1,12 +1,33 @@
-schema_version: 1
+schema_version: 2
 
 # Single source of truth for jobs-to-be-done across the harebrain repo.
-# Stories in docs/feature/*/discuss/user-stories.md reference these job_id values.
+# Stories in docs/feature/*/discuss/user-stories.md (or, per the harebrain
+# single-file convention, docs/feature/*/feature-delta.md [REF] User Stories)
+# reference these job_id values.
 #
 # Validation status legend:
 #   validated                       - confirmed by ODI interview or DIVERGE wave
 #   synthesized-from-informal-notes - reverse-engineered from prose notes; needs interview confirmation later
+#   synthesized-from-goals-doc      - derived from a written goals/spec document, not from interviews
 #   infrastructure-only             - story is plumbing with no direct user job (story must carry infrastructure_rationale)
+
+changelog:
+  - date: "2026-05-22"
+    schema_version: 2
+    feature: wumpus
+    change: |
+      Wave 2026-05-22: refined the three existing job statements with
+      wumpus_python_goals.md context (no job_id changes; backward-compatible
+      for stories that reference them). Added two new jobs surfaced by the
+      broader goals doc: probe-llm-obfuscation-gap (Mystery surface seam) and
+      drive-engine-from-host-import (MPL host-import contract). Added one new
+      persona: mpl-cell-consumer (the MPL chart that owns world state for
+      cell D, structurally distinct from harness-harriet). Schema bump 1 -> 2
+      reflects additive changes (new jobs, new persona); no field renames.
+  - date: "2026-05-20"
+    schema_version: 1
+    feature: wumpus-classic
+    change: "Initial jobs.yaml. Three jobs (play-classic-wumpus, instrument-wumpus-play, replay-wumpus-deterministically) and two personas (player-pat, harness-harriet). Synthesized-from-informal-notes validation across all entries."
 
 jobs:
 
@@ -15,36 +36,40 @@ jobs:
     statement: |
       When a person who knows or wants to learn Yob's 1973 Hunt the Wumpus opens a
       terminal, they want to play the game with byte-recognizable fidelity to the
-      BASIC original, so they can experience the game that lives in the historical
-      record without an emulator detour.
+      BASIC original (typos, message swap, startle rule, crooked-arrow-passes-
+      through-player and all), so they can experience the game that lives in the
+      historical record without an emulator detour.
     primary_persona: player-pat
-    validation: synthesized-from-informal-notes
+    validation: synthesized-from-goals-doc
     evidence:
+      - "wumpus/docs/wumpus_python_goals.md § Goal 1 'Faithful to Yob 1973': verbatim messages, verbatim design, verbatim inputs/outputs, verbatim mistakes (RAMDOM, crooked-arrow rule)."
       - "wumpus/docs/wumpus_idea.md: frames classic Wumpus as the cell-A game across the experiment matrix; fidelity to Yob 1973 is the baseline."
       - "wumpus/experiments/g_wild_baseline/README.md: documents byte-audited Yob source; fidelity is the reason the BASIC reference exists."
     forces:
-      push: "Running PC-BASIC requires installing a Python 3.12 isolated tool environment and tolerating GW-BASIC dialect patches."
-      pull: "A pip-installable Python game that runs anywhere Python runs and feels like the original."
-      anxiety: "A 'modern reimplementation' that softens the original's quirks (the message swap, the startle rule) is not the game."
-      habit: "Players reach for PC-BASIC or the kingsawyer mirror; this needs to be at least as one-step as those."
+      push: "Running PC-BASIC requires installing a Python 3.12 isolated tool environment and tolerating GW-BASIC dialect patches. Reading the BASIC source for atmosphere doesn't substitute for playing."
+      pull: "A pip-installable (or uv run-able) Python game that runs anywhere Python runs and feels like the original. ALL CAPS, double-space after ROOM, the works."
+      anxiety: "A 'modern reimplementation' that softens the original's quirks (the message swap, the startle rule, the RAMDOM typo) is not the game. If the package 'fixes' Yob's bugs, it isn't faithful."
+      habit: "Players reach for PC-BASIC or the kingsawyer mirror. To displace those, this needs to be at least as one-step as `pc-basic wumpus.gwbasic.bas`."
 
   - id: instrument-wumpus-play
     title: Capture every game event from a live or programmatic session
     statement: |
       When a researcher runs an LLM agent or a human against Hunt the Wumpus and
       needs to diff what the agent claimed against what actually happened, they want
-      a structured, append-only event stream from every game session, so they can
-      compute divergence-event metrics post-hoc without re-running the game.
+      a structured, append-only, schema-validated event stream from every game
+      session, so they can compute divergence-event metrics post-hoc without
+      re-running the game.
     primary_persona: harness-harriet
-    validation: synthesized-from-informal-notes
+    validation: synthesized-from-goals-doc
     evidence:
+      - "wumpus/docs/wumpus_python_goals.md § Goal 4 'Observable by construction': JSONL ledger, synchronous + ordered + schema-validated logging, the ledger is the source of truth for analysis."
       - "wumpus/docs/wumpus_idea.md (sections 'What gets compared' and 'What \"smarter\" actually means'): divergence-events is the headline metric; requires per-turn ground-truth state."
       - "wumpus/experiments/pure_llm_trust.md: explicitly anticipates retroactive replay against the oracle once the chart exists."
     forces:
-      push: "Without instrumentation, divergence metrics require re-running the game alongside the agent, doubling compute and risking RNG drift."
-      pull: "Tee the same event stream to the CLI renderer and to a JSONL ledger; no compute doubled, no drift."
-      anxiety: "Instrumentation that mutates game behavior (observer effect) invalidates every measurement built on it."
-      habit: "Researchers reach for print-statement archaeology or stdout regex parsing; a typed event schema must be easier than either."
+      push: "Without instrumentation, divergence metrics require re-running the game alongside the agent. That doubles compute and risks RNG drift between the run and the oracle."
+      pull: "One JSONL stream, schema-validated on write, with every field the parent note's metric table (wumpus_idea.md:104-122) needs (divergence events, scaffolding leaks, obfuscation gap, back-prompt convergence, scratchpad accuracy, verification accuracy, post-bat recovery, arrow-shoot accuracy, tokens-per-turn)."
+      anxiety: "Instrumentation that mutates game behavior (observer effect) invalidates every measurement built on it. A background-thread logger that buffers across turn boundaries can lose the in-progress event on crash. Both are disqualifying."
+      habit: "Researchers reach for print-statement archaeology or stdout regex parsing. The typed schema must be easier than either or it loses."
 
   - id: replay-wumpus-deterministically
     title: Reproduce a specific game from a recorded seed
@@ -53,15 +78,59 @@ jobs:
       transcript, they want to replay the exact game from a seed value, so they
       can investigate without searching for a needle in a stochastic haystack.
     primary_persona: harness-harriet
-    validation: synthesized-from-informal-notes
+    validation: synthesized-from-goals-doc
     evidence:
+      - "wumpus/docs/wumpus_python_goals.md § Goal 5 cross-cutting 'Reproducible': seed + variant + input transcript reconstruct the game exactly. No time.time() calls, no untracked os.urandom."
       - "wumpus/docs/wumpus_idea.md (section 'The experiment matrix'): 'Same seeds across all three' is load-bearing for the comparison design."
       - "wumpus/experiments/g_wild_baseline/README.md caveat: 'For reproducible experiment runs (later), insert a 5 RANDOMIZE <seed> line at the top.'"
     forces:
-      push: "Non-seeded runs can't be replayed; bug reports become unreproducible folklore."
-      pull: "Seed value in the transcript header is sufficient to reconstruct the game byte-for-byte."
-      anxiety: "Seeded mode that differs from unseeded mode (e.g., picks different layouts) silently invalidates cross-comparisons."
-      habit: "Researchers expect `Game(seed=42)` to work like NumPy or Python's `random.Random(42)`."
+      push: "Non-seeded runs can't be replayed; bug reports become unreproducible folklore. Yob didn't seed; that's a documented controlled deviation."
+      pull: "Seed value in the transcript header is sufficient. `Game(seed=42)` works like `random.Random(42)` — the obvious mental model."
+      anxiety: "A seeded mode that differs from unseeded mode (e.g., picks layouts from a different distribution) silently invalidates cross-comparisons. Equally bad: a seed that's 'stable' in one Python version and not the next."
+      habit: "Researchers expect NumPy / random.Random(42) semantics. Anything else (string seeds, opaque tokens) loses."
+
+  - id: probe-llm-obfuscation-gap
+    title: Measure LLM pattern-completion vs reasoning via a relabeled-surface variant
+    statement: |
+      When a researcher wants to measure how much an LLM's Hunt the Wumpus
+      performance came from pattern-completing the 1973 game (on the public
+      internet since '73) versus actually reasoning from observations, they
+      want to run the same engine, same seed, same rules, but with every
+      player-facing string relabeled to unfamiliar tokens, so the obfuscation
+      gap (classic-minus-mystery win rate) is a clean measurement.
+    primary_persona: harness-harriet
+    secondary_personas: [llm-cell-consumer]  # planned; not yet first-class
+    validation: synthesized-from-goals-doc
+    evidence:
+      - "wumpus/docs/wumpus_python_goals.md § Goal 3 'Extensible to Mystery Wumpus': surface seam, default Yob, Mystery relabels strings only; engine operates on internal IDs and enum tags."
+      - "wumpus/docs/wumpus_idea.md § 'Mystery Wumpus — the obfuscation gap' (lines 134-140): structural argument that a model that reasons is invariant to surface tokens, a model that retrieves is not."
+      - "docs/research/agents/llm-modulo-benchmarks-as-supplements-deep-dive.md: the Mystery Blocksworld pattern being applied to Wumpus."
+    forces:
+      push: "Without a surface seam, you'd fork the engine for Mystery; now you maintain two copies that drift, and any measured gap is confounded by the fork."
+      pull: "One config switch, identical internals, only the bytes the LLM reads change. Localization (French Wumpus) drops into the same hook for free."
+      anxiety: "A surface seam that leaks (the engine references a room number by its surface form somewhere, or the surface object accidentally consumes an RNG draw) destroys the measurement. The seam must be provably structural."
+      habit: "Researchers reach for 'rename a few constants' — but constants embedded in print() calls are not a seam, they're a copy-paste fork waiting to happen."
+
+  - id: drive-engine-from-host-import
+    title: Drive a wumpus turn from a chart's decide-leaf via a host-import contract
+    statement: |
+      When the harebrain agent (cell D) plays Wumpus, the MPL chart owns the world
+      state and the LLM consults at the decide-leaf via a host import. The host
+      import sees an opaque snapshot, wants to step the game by one turn from that
+      snapshot, and wants a new snapshot back — with no assumption that a
+      long-lived Python process owns the world, so the chart can resurrect a Game
+      on demand from a serialized state.
+    primary_persona: mpl-cell-consumer
+    validation: synthesized-from-goals-doc
+    blocked_on: "MPL spike (wumpus_idea.md:147) for the exact function-call signature; underlying constraints (snapshot/restore round-trip, no module-level state, no singleton RNG) are testable today."
+    evidence:
+      - "wumpus/docs/wumpus_python_goals.md § Goal 5.3 'Host import (cell D)': pure functions, serializable inputs/outputs, no long-lived process assumption."
+      - "wumpus/docs/wumpus_idea.md § 'What to build first', step 1 'Spike the host import' (line 177): smallest possible MPL chart with one host import returning a stub verdict, wired into Python."
+    forces:
+      push: "A Game that assumes a long-running Python process owning the world doesn't fit a chart that may serialize state across ticks. Globals, singletons, module-cached RNGs all break this."
+      pull: "A Game.snapshot() / Game.from_snapshot() round-trip that preserves byte-identical determinism (snapshot, step, snapshot, restore, step, get same observation as if no round-trip)."
+      anxiety: "The MPL spike (wumpus_idea.md:147) hasn't been done yet. The exact function signature of the host-import surface is unknown today. Building too much around an imagined signature creates rework."
+      habit: "Python game engines default to 'long-lived process, mutable Game object, no serialization story.' This is the failure mode to avoid."
 
 personas:
 
@@ -88,13 +157,49 @@ personas:
   - id: harness-harriet
     name: Harness Harriet
     summary: |
-      A researcher or LLM agent driving the game programmatically. Needs the game
-      as a *library* with a Snapshot API, an Event stream, and a deterministic
-      `step()` method. Will run thousands of games unattended, will diff transcripts
-      across replays, will tee event streams into JSONL ledgers.
-    surface: Python API (`Game(seed).step(command) -> Snapshot, list[Event]`)
+      A researcher or LLM agent driving the game programmatically. Runs thousands
+      of games unattended, diffs transcripts across replays, tees event streams
+      into JSONL ledgers. Concrete sub-roles (same persona, different harness):
+      scripted-baseline driver (cell A); random-legal driver (cell B); heuristic
+      driver (cell C); LangChain/LangGraph trusted-narrator harness operator
+      (cells E/F); wild-baseline observer wrapping the CLI with pexpect/wexpect
+      (cell G).
+    surface: Python API (`Game(seed).step(command) -> Observation`) and the JSONL ledger. Both must serve.
     success_feel: "Deterministic, instrumented, oracular."
     emotional_arc:
       start: Skepticism ("does this really agree with PC-BASIC?")
-      middle: Trust (seeded replays come back byte-identical; event stream covers every rule from the Yob audit)
-      end: Conviction (the engine is now the ground-truth oracle; LLM divergences are measurable against it)
+      middle: Trust building (seeded replays come back byte-identical; event stream covers every rule from the Yob audit)
+      end: Conviction (the engine is the ground-truth oracle; LLM divergences are measurable against it)
+
+  - id: mpl-cell-consumer
+    name: MPL Cell Consumer (cell D — harebrain)
+    summary: |
+      The MPL chart that owns Hunt the Wumpus world state for cell D (harebrain).
+      The "user" is the chart author; the consumer of the engine API is the
+      chart's host-import call. Wires a snapshot through the engine, gets a new
+      snapshot back, has no Python process to assume across calls. Distinct from
+      harness-harriet because Harriet wants a long-lived Game object + an
+      observation stream; mpl-cell-consumer wants stateless turn-stepping from
+      opaque snapshots.
+    surface: programmatic API restricted to serializable inputs/outputs (no Game object held across ticks)
+    success_feel: "The engine fits the host-import contract without asterisks."
+    emotional_arc:
+      start: Caution (the MPL spike hasn't pinned the exact signature)
+      middle: Relief (the engine's snapshot/restore round-trip already satisfies the underlying constraints)
+      end: Confidence (when the spike lands, the engine doesn't need a refactor — just a thin adapter)
+    note_on_persona_vs_job: |
+      This consumer has *different* needs from harness-harriet. Harriet wants a
+      long-lived Game object and an observation stream. The MPL chart wants
+      stateless turn-stepping from opaque snapshots. The engine has to serve both
+      without contortions. That's why this is a separate persona, not just a
+      separate job under harness-harriet.
+
+# Note on cells A-G as personas vs. jobs:
+#
+# wumpus_idea.md:82-103 names seven distinct actors (A scripted, B random-legal,
+# C heuristic, D harebrain, E LangGraph, F LangChain, G wild-baseline). For the
+# wumpus engine feature: cells A-C and E-G are all instances of harness-harriet
+# with different harness code on top. Cell D is the mpl-cell-consumer. A human
+# player at the terminal is player-pat. Three personas, not seven, because the
+# engine's interface to each is the same surface (CLI for Pat and G;
+# programmatic API for A/B/C/E/F; host-import for D).
