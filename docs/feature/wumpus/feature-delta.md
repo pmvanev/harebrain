@@ -4775,3 +4775,258 @@ When DISTILL accepts handoff:
 - Flip `[REF] Phase Tracker` row 8 (handoff package) status
 - DEVOPS wave artifacts become read-only for DISTILL/DELIVER purposes
 - The DV-D1 through DV-D8 decisions become the immutable platform record for the wumpus engine
+
+---
+
+## Wave: DISTILL / [REF] Phase Tracker
+
+| # | Phase | Status | Output |
+|---|---|---|---|
+| 1 | Read DEVOPS handoff + open decisions | **done** | [REF] Inputs Consulted |
+| 2 | Test framework + scope decisions (user-locked) | **done** | [REF] Framework Decisions |
+| 3 | Package bootstrap (pyproject.toml + src + tests scaffolding) | **done** | `python/packages/wumpus/` files |
+| 4 | R0 walking-skeleton acceptance tests written | **done** | [REF] R0 Acceptance Test Map |
+| 5 | Per-slice DELIVER procedure documented | **done** | [REF] DELIVER Per-Slice Procedure |
+| 6 | Review gate (fast-path: 3 scenarios ≤ 3 → single reviewer) | **done — APPROVED** | [REF] Review Gate Result |
+| 7 | Behavioral smoke-test prediction validated by reviewer | **done** | [REF] Review Gate Result |
+| 8 | Wave decisions summary + handoff package | **done** | sections 9–10 |
+
+---
+
+## Wave: DISTILL / [REF] Inputs Consulted
+
+- ✓ `## Wave: DISCUSS / [REF] User Stories` § R0 (the source of acceptance criteria the 3 scenarios trace to)
+- ✓ `## Wave: DISCUSS / [REF] Acceptance Criteria` § CC-AC-1 (determinism contract) and § CC-AC-6 (ledger source-of-truth)
+- ✓ `## Wave: DESIGN / [REF] Tier A type definitions` (Snapshot, Observation, Event, VariantConfig, Surface, EscalationRule, Sink shapes — the step defs reference these)
+- ✓ `## Wave: DESIGN / [REF] Engine module layout` (where production code will live; step defs import from these modules lazily)
+- ✓ `## Wave: DEVOPS / [REF] CI Workflows` § `pr.yml` (test invocation contract — pytest invoked from `python/packages/wumpus/tests`)
+- ✓ `## Wave: DEVOPS / [REF] Open Decisions for Downstream Waves` § For DISTILL (test layout + framework decisions closed by this wave)
+- ✓ `docs/product/kpi-contracts.yaml` (K-1 through K-8; R0 doesn't satisfy any KPI yet — R1 onwards)
+- ✓ `CLAUDE.md` (paradigm + mutation strategy + harebrain conventions)
+- ✓ Sibling package convention: `python/packages/hello_world/pyproject.toml` + `python/pyproject.toml` workspace setup
+- ⊘ `.nwave/des-config.json` — no per-project rigor config; standard defaults (fast-path applies because R0 ≤ 3 scenarios)
+
+**No contradictions** between DISCUSS, DESIGN, DEVOPS decisions. Wave-decision reconciliation passes.
+
+---
+
+## Wave: DISTILL / [REF] Framework Decisions
+
+User-locked at the start of this wave:
+
+- **DT-D1 — Test framework:** **pytest-bdd**. Gherkin `.feature` files preserved verbatim from DISCUSS; step definitions in Python. Clean separation between business-readable specs and implementation. Adds `pytest-bdd>=7` to workspace root's `[dependency-groups] dev`.
+- **DT-D2 — Test scope:** **R0 walking skeleton only**. Per Outside-In TDD: DELIVER picks up R1-S01 forward, writes its own slice acceptance tests, implements, repeats. DISTILL is intentionally not writing all 25 slices upfront to avoid 25× upfront churn risk.
+- **DT-D3 — Package bootstrap:** **Yes** — DISTILL bootstraps the full `python/packages/wumpus/` structure. The acceptance tests have a real home; CI can run them (failing for business reasons, as expected for Outside-In red state).
+- **DT-D4 — File layout (DISTILL default; DELIVER may adjust per slice):**
+  - Features: `python/packages/wumpus/tests/acceptance/features/R<N>_<descriptor>.feature` — one .feature file per release (R0, R1, R2, R3, R4, R5)
+  - Step definitions: `python/packages/wumpus/tests/acceptance/step_definitions/test_R<N>_<descriptor>.py` — one per .feature
+  - Acceptance-layer fixtures: `python/packages/wumpus/tests/acceptance/conftest.py`
+  - Top-level fixtures (cross-cutting): `python/packages/wumpus/tests/conftest.py`
+  - Property tests: `python/packages/wumpus/tests/property/` (lands at R2-S03 when first property test ships)
+  - Audit self-tests: `python/packages/wumpus/tests/audits/` (lands at R3-S03 and R4-S04)
+  - Regression fixtures: `python/packages/wumpus/tests/regression/` (lands at R1-S10)
+  - Subprocess smoke: `python/packages/wumpus/tests/subprocess/` (lands at R1-S09)
+- **DT-D5 — Fixture sharing:**
+  - `tests/conftest.py` — fixtures used across unit + integration + acceptance (seeds, fixture-file paths)
+  - `tests/acceptance/conftest.py` — fixtures used only in the acceptance/BDD layer (`make_game`, `in_memory_sink_factory`)
+  - Lazy imports inside fixture bodies: imports of `wumpus.Game` / `wumpus.sinks.InMemorySink` happen inside fixture functions, not at module load. This is what makes DISTILL tests parsable today even though the production code doesn't exist yet.
+
+---
+
+## Wave: DISTILL / [REF] Package bootstrap
+
+Files created at DISTILL-wave-complete time. DELIVER's R0 slice will fill `src/wumpus/` with engine code.
+
+```
+python/packages/wumpus/
+├── pyproject.toml                                    # hatchling, src layout, mutmut + coverage config
+└── src/
+│   └── wumpus/
+│       └── __init__.py                               # version stub; exports deferred until DELIVER R0
+└── tests/
+    ├── conftest.py                                   # canonical_seed, forced_loss_seed, forced_win_seed fixtures
+    └── acceptance/
+        ├── conftest.py                               # make_game, in_memory_sink_factory (lazy imports)
+        ├── features/
+        │   └── R0_walking_skeleton.feature           # 3 scenarios
+        └── step_definitions/
+            └── test_R0_walking_skeleton.py           # step defs (pytest-bdd)
+```
+
+**Workspace root `python/pyproject.toml`** updated:
+- Added `wumpus` to `dependencies` and `[tool.uv.sources]` workspace mapping
+- Added dev dependencies: `pytest-bdd>=7`, `pytest-cov>=5`, `hypothesis>=6`, `mypy>=1.11`, `ruff>=0.6`, `mutmut>=2.5`
+- Added pytest markers: `acceptance`, `property`, `audit` (per the test-type directory layout in DT-D4)
+
+---
+
+## Wave: DISTILL / [REF] R0 Acceptance Test Map
+
+R0 has 3 scenarios. All three are written and pytest-bdd-discoverable today. All three will FAIL when run with no implementation (correctly — Outside-In TDD red state).
+
+| # | Scenario | Traces to | What it verifies | First-failure prediction |
+|---|---|---|---|---|
+| 1 | Deterministic-from-seed event sequence | R0 primary AC + CC-AC-1 + SC1 | Two `Game(seed=42)` instances run the same action sequence and produce equal event sequences + equal final Snapshots | `ImportError` at `conftest.py:59` (`from wumpus import Game`) |
+| 2 | In-memory sink does not change emission | R0 AC + CC-AC-6 + SC4 | Running with vs. without an `InMemorySink` produces identical in-engine event sequences (observer-effect absent) | `ImportError` at conftest.py (same root cause) |
+| 3 | `Game.world_state()` exposes full internal state without mutation | R0 AC + Goal 5.2 + Tier A1 World | `world_state()` is side-effect-free: calling it twice returns equal structures, doesn't advance the RNG cursor, doesn't emit events; the returned structure has the required fields | `ImportError` at conftest.py (same root cause) |
+
+**Failure-mode validation by reviewer:** the `ImportError` *is* the correct Outside-In TDD red state for this wave. DELIVER's R0 slice resolves it by creating `wumpus.Game` + `wumpus.sinks.InMemorySink`.
+
+---
+
+## Wave: DISTILL / [REF] DELIVER Per-Slice Procedure
+
+After R0 lands and the 3 acceptance tests pass, DELIVER works through R1-R5 slice-by-slice. The per-slice procedure:
+
+1. **Read the slice's AC from `## Wave: DISCUSS / [REF] User Stories` § R<N>-S<NN>.**
+2. **Write/extend the .feature file** for the slice's release. Add new scenarios (each Gherkin block from the user story becomes a `Scenario:` block). If the release's .feature already exists (from a prior slice in the same release), append; otherwise create `tests/acceptance/features/R<N>_<descriptor>.feature`.
+3. **Write/extend the step definitions** at `tests/acceptance/step_definitions/test_R<N>_<descriptor>.py`. Use `scenarios()` at module top-level to bind. Lazy-import production modules (`wumpus.engine.cave_gen` for R1-S01, `wumpus.surfaces.yob` for R4-S03, etc.) — the imports will succeed as the slice's implementation lands.
+4. **Run the tests.** They should fail at first (the new scenarios reference code that doesn't exist yet). The failure mode SHOULD be `ImportError` / `AttributeError` on the new production code — that's the right red.
+5. **Implement the production code** (DELIVER's actual work — `wumpus.engine.cave_gen`, etc.).
+6. **Run the tests again.** They should pass. Run the FULL acceptance suite (including prior slices' scenarios) to verify no regression.
+7. **Run unit + property tests** at `tests/` and `tests/property/`.
+8. **Run mutation testing** post-merge via `mutation.yml` workflow.
+9. **Mark the slice done** in `[REF] Story Map`; commit + push.
+
+**Slice → release mapping for .feature files:**
+
+| Release | .feature file (created by the first slice that lands in this release) |
+|---|---|
+| R0 | `R0_walking_skeleton.feature` (already exists) |
+| R1 | `R1_yob_fidelity.feature` (created during R1-S01) |
+| R2 | `R2_ledger.feature` (created during R2-S01) |
+| R3 | `R3_snapshot.feature` (created during R3-S01) |
+| R4 | `R4_variant_and_surface.feature` (created during R4-S01) |
+| R5 | `R5_tail.feature` (created during R5-S02; R5-S01 may not get one if blocked-on-spike continues) |
+
+DELIVER may choose to split a single release's .feature into multiple .feature files if it grows beyond ~10 scenarios. The hard rule: one step-definitions file per .feature file (pytest-bdd convention).
+
+---
+
+## Wave: DISTILL / [REF] Review Gate Result
+
+**Gate type:** fast-path (3 scenarios ≤ 3, per the `/nw-distill` skill's "≤ 3 scenarios → skip the triple review" rule).
+
+**Reviewer:** `nw-acceptance-designer-reviewer` (single review pass).
+
+**Result:** **APPROVED.** No blocking findings.
+
+**Findings (1 low-severity, accepted as-is):**
+
+| Severity | Location | Issue | Resolution |
+|---|---|---|---|
+| low | `test_R0_walking_skeleton.py:178` (`no_sink_events` step using `g._debug_events`) | Backdoor reference to a private attribute (`_debug_events`) | Explicitly deferred to DELIVER as a design decision (R0 may choose to expose this differently — e.g., implicit always-attached sink, or a different inspection API). The fixture comment at lines 172–177 records this. Acceptable for DISTILL; DELIVER will resolve when implementing R0. |
+
+**Mandate compliance (all pass):**
+
+- **CM-A (Hexagonal boundary):** all `Then` steps assert observable outcomes via the driving-port API; no internal-state assertions
+- **CM-B (Business language):** Gherkin uses domain terms from DISCUSS (deterministic, snapshot, RNG cursor, observer effect); no implementation leaks
+- **CM-C (User journey):** the 3 scenarios together validate the R0 walking-skeleton user goal (engine abstractions exist + work)
+
+**Behavioral smoke-test prediction (validated by reviewer):**
+
+- Expected failure: `ImportError` at `python/packages/wumpus/tests/acceptance/conftest.py:59` (`from wumpus import Game`)
+- Reason: `wumpus.Game` doesn't exist yet; DELIVER R0 creates it
+- This IS the correct business-logic red state for Outside-In TDD
+
+---
+
+## Wave: DISTILL / [REF] Open Decisions for Downstream Waves
+
+### For DELIVER (nw-software-crafter)
+
+- **The `_debug_events` decision (low-severity finding above).** Pick one of: (a) ship a `Game._debug_events` private attribute that holds the most-recent run's events (cheap; mildly leaky); (b) require all tests to attach an `InMemorySink` explicitly even for the "no sinks attached" scenario (cleaner; the scenario's name needs adjustment); (c) introduce an implicit "always-on minimal sink" that the engine subscribes to itself for inspection purposes (cleanest but most engine code). DELIVER picks during R0 implementation.
+- **The `forced_loss_seed` and `forced_win_seed` placeholder values** in `tests/conftest.py` (`17` and `99`). These need to be replaced with seeds actually known to produce forced terminations once R1's cave-gen lands. Pin during R1-S10 BASIC capture.
+- **R1 → R5 .feature file structure** — each release's first slice creates the file; subsequent slices append scenarios. DELIVER may split a release's .feature into multiple if it grows large.
+
+### For DEVOPS follow-up (post-DISTILL CI integration)
+
+- The `acceptance` pytest marker is now declared in `[tool.pytest.ini_options]`. The PR-gate workflow (`pr.yml` from DEVOPS) needs to be updated to invoke acceptance tests explicitly: `uv run pytest python/packages/wumpus/tests/acceptance -v`. Currently `pr.yml` runs the broader `python/packages/wumpus/tests` which catches them transitively; explicit invocation is preferable for clear CI-job naming.
+- **Materialize CI workflows** — the YAML in `## Wave: DEVOPS / [REF] CI Workflows` still lives as documentation. Recommend committing the workflow files under `.github/workflows/` so the R0 acceptance tests start running in CI immediately when DELIVER's R0 slice lands.
+
+### Downstream-feature concerns (NOT this engine wave's scope)
+
+L9–L18 from `[REF] Known Limitations` carry forward to the harness wave; nothing new added by DISTILL.
+
+---
+
+## Wave: DISTILL / [REF] Wave Decisions Summary
+
+### Key Decisions
+
+- [DT-D1] **Test framework: pytest-bdd.** Gherkin .feature files + Python step definitions. Adds `pytest-bdd>=7` to workspace dev dependencies.
+- [DT-D2] **Scope: R0 walking skeleton only.** Outside-In TDD. R1-R5 scenarios land slice-by-slice during DELIVER.
+- [DT-D3] **Package bootstrap done at DISTILL.** `python/packages/wumpus/` exists with pyproject.toml + src tree + tests scaffolding.
+- [DT-D4] **File layout: one .feature per release.** Features under `tests/acceptance/features/`; step defs under `tests/acceptance/step_definitions/`. Sister directories for property/audit/regression/subprocess tests.
+- [DT-D5] **Fixture sharing: lazy-import pattern.** Top-level conftest holds cross-cutting fixtures (seeds); acceptance conftest holds BDD-layer fixtures (`make_game`, `in_memory_sink_factory`) with lazy imports of production code.
+- [DT-D6] **Review gate: fast-path single review.** 3 scenarios ≤ 3 triggers `/nw-distill` skill's fast-path. Single reviewer pass approved.
+- [DT-D7] **R0 acceptance test failure mode: ImportError.** Confirmed by reviewer as the correct Outside-In TDD red state.
+
+### Test Coverage Summary
+
+- Total scenarios (R0 only): **3**
+- Walking skeleton scenarios: 3 (all R0 scenarios ARE the walking skeleton)
+- Per-release scenarios planned for DELIVER:
+  - R1: ~25-30 scenarios (10 slices × ~3 scenarios each)
+  - R2: ~10 scenarios (3 slices)
+  - R3: ~10 scenarios (3 slices)
+  - R4: ~20 scenarios (6 slices)
+  - R5: ~5 scenarios (2 slices; R5-S01 blocked-on-spike)
+  - **Estimated total at feature-complete: ~75–85 scenarios across 25 slices**
+- Test framework: pytest-bdd 7+
+- Integration approach: real engine, no mocks at acceptance level (engine IS what's being tested; sinks are real InMemorySink / JsonlSink)
+
+### Review Gate Result
+
+- Review type: **fast-path** (3 scenarios)
+- AD reviewer: **approved** (1 low-severity finding accepted as DELIVER-decision)
+- PO, SA, PA reviewers: not dispatched (fast-path; skill's `/nw-distill` § Step 3.2 protocol)
+- The user may invoke `/nw-review nw-product-owner-reviewer`, `/nw-review nw-solution-architect-reviewer`, `/nw-review nw-platform-architect-reviewer` as separate triggers if a triple-review is desired anyway (e.g., for confidence before DELIVER starts).
+
+### Upstream Issues
+
+**None.** No DISCUSS, DESIGN, or DEVOPS sections needed modification.
+
+---
+
+## Wave: DISTILL / [REF] Handoff Package
+
+### Handoff destination
+
+- **Primary (DELIVER wave):** `nw-software-crafter` — implements R0 first (resolves the 3 acceptance tests' ImportError → green), then R1-R5 slice-by-slice per the DELIVER procedure above.
+
+### What DELIVER reads first
+
+1. `## Wave: DISCUSS / [REF] User Stories` § R0 (the slice to implement first)
+2. `## Wave: DESIGN / [REF] Tier A type definitions` (the type shapes to implement)
+3. `## Wave: DESIGN / [REF] Engine module layout` (file plan for `src/wumpus/`)
+4. `python/packages/wumpus/tests/acceptance/features/R0_walking_skeleton.feature` (the failing tests to make pass)
+5. `python/packages/wumpus/tests/acceptance/step_definitions/test_R0_walking_skeleton.py` (the assertion details)
+6. `## Wave: DISTILL / [REF] DELIVER Per-Slice Procedure` (how to add R1+ scenarios slice-by-slice)
+7. `## Wave: DISTILL / [REF] Open Decisions for Downstream Waves` § For DELIVER (the `_debug_events` design decision and the seed-fixture placeholders)
+
+### Materialization step (orchestrator follow-up)
+
+The DISTILL artifacts are now part of the repository:
+- `python/packages/wumpus/pyproject.toml` (real file)
+- `python/packages/wumpus/src/wumpus/__init__.py` (real file; intentionally minimal)
+- `python/packages/wumpus/tests/conftest.py` (real file)
+- `python/packages/wumpus/tests/acceptance/conftest.py` (real file)
+- `python/packages/wumpus/tests/acceptance/features/R0_walking_skeleton.feature` (real file)
+- `python/packages/wumpus/tests/acceptance/step_definitions/test_R0_walking_skeleton.py` (real file)
+- `python/pyproject.toml` updated to include wumpus + dev dependencies
+
+The DEVOPS workflow YAML (`.github/workflows/*.yml`) still lives inline in feature-delta.md as documentation. To make the workflows live, the orchestrator materializes them in a separate commit — recommend before DELIVER starts so R0's first commit can trigger the CI pipeline.
+
+### Out-of-scope for handoff
+
+- R1-R5 acceptance tests (DELIVER writes these slice-by-slice; this is intentional per DT-D2)
+- Production code (DELIVER implements; this is what makes the R0 tests pass)
+- The harness wave (downstream feature; separate DISCUSS/DESIGN/DEVOPS/DISTILL/DELIVER cycle)
+
+### Handoff acceptance signal
+
+When DELIVER accepts handoff:
+- Flip `[REF] DISTILL Phase Tracker` row 8 status
+- DISTILL wave artifacts (.feature files, step defs, package bootstrap) become read-only for DELIVER purposes (DELIVER may ADD scenarios per the per-slice procedure but should not MODIFY R0's existing scenarios)
+- The DT-D1 through DT-D7 decisions become the immutable test-design record for the wumpus engine

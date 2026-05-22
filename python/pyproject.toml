@@ -5,6 +5,7 @@ description = "Workspace root for harebrain Python experiments."
 requires-python = ">=3.11"
 dependencies = [
     "hello_world",
+    "wumpus",
 ]
 
 [tool.uv.workspace]
@@ -12,14 +13,24 @@ members = ["packages/*"]
 
 [tool.uv.sources]
 hello_world = { workspace = true }
+wumpus = { workspace = true }
 
 [dependency-groups]
 dev = [
     "pytest>=8",
+    "pytest-bdd>=7",
+    "pytest-cov>=5",
+    "hypothesis>=6",
+    "mypy>=1.11",
+    "ruff>=0.6",
+    "mutmut>=2.5",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["packages"]
 markers = [
     "slow: tests that load the embedding model or run the full pipeline (~90 MB download on first run)",
+    "acceptance: BDD acceptance tests (Outside-In TDD; one .feature per release)",
+    "property: property-based tests (hypothesis-driven; expensive in nightly profile)",
+    "audit: static-analysis audits (surface-leak, determinism-source, module-state, snapshot-serializability)",
 ]

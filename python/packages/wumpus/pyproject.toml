@@ -1,0 +1,49 @@
+[project]
+name = "wumpus"
+version = "0.0.0"
+description = "Faithful Yob 1973 Hunt the Wumpus engine; substrate for the harebrain experiment matrix."
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+wumpus = "wumpus.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wumpus"]
+
+[tool.coverage.run]
+source = ["src/wumpus"]
+branch = true
+omit = [
+  "*/tests/*",
+  "*/__main__.py",
+  "*/host_import.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "raise NotImplementedError",
+  "if TYPE_CHECKING:",
+  "if __name__ == .__main__.:",
+]
+precision = 1
+show_missing = true
+skip_empty = true
+
+[tool.mutmut]
+paths_to_mutate = [
+  "src/wumpus/engine",
+  "src/wumpus/types",
+  "src/wumpus/events",
+  "src/wumpus/surfaces",
+  "src/wumpus/sinks",
+  "src/wumpus/taxonomy",
+]
+backup = false
+runner = "uv run pytest python/packages/wumpus/tests -x --ff -q"
+tests_dir = "tests"
