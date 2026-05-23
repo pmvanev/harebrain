@@ -10,7 +10,11 @@ R0 ships only the events the walking skeleton needs:
     - MoveAttempted
     - MoveResolved
 
-Additional event types (SenseEmitted, HazardResolved, ArrowPathStep, GameEnded,
+R1-S02 adds:
+    - SenseEmitted     (one per adjacent wumpus/pit/bat on room entry)
+    - LocationReported (fires after all SenseEmitted on a successful move)
+
+Additional event types (HazardResolved, ArrowPathStep, GameEnded,
 SinkFailure, ...) land in subsequent releases per their respective slices.
 
 Per ADR-002 (schema evolution) this module pins SCHEMA_VERSION; R0 ships v1.
@@ -101,9 +105,43 @@ class MoveResolved(_BaseEventFields):
     player_room: int = -1
 
 
+@dataclass(frozen=True)
+class SenseEmitted(_BaseEventFields):
+    """Emitted on room entry for each adjacent wumpus/pit/bat, in Yob's
+    L-array order (see `wumpus.constants.SENSE_ORDER`).
+
+    `kind` is a discriminator (enum-like) the engine emits; surface translation
+    to "I SMELL A WUMPUS!" / "I FEEL A DRAFT" / "BATS NEARBY!" lives at R4-S03
+    behind the Surface seam (SC8). `cause_room` records the room number of
+    the adjacent hazard whose presence fired this event — pedagogically useful
+    for downstream replay analysis.
+    """
+
+    type: Literal["SenseEmitted"] = "SenseEmitted"
+    kind: Literal["WUMPUS_SMELL", "PIT_DRAFT", "BAT_NEARBY"] = "WUMPUS_SMELL"
+    cause_room: int = -1
+
+
+@dataclass(frozen=True)
+class LocationReported(_BaseEventFields):
+    """Emitted on every successful move AFTER any SenseEmitted events for the
+    newly-entered room.
+
+    Carries the room number plus the room's tuple of adjacent rooms (the
+    dodecahedron is 3-regular, so always three). Yob's BASIC source prints
+    `YOU ARE IN ROOM <n>` + `TUNNELS LEAD TO <a> <b> <c>` immediately after
+    the sense lines; this event packages the structured ground truth that
+    feeds those two render lines.
+    """
+
+    type: Literal["LocationReported"] = "LocationReported"
+    room: int = -1
+    adjacencies: tuple[int, int, int] = (-1, -1, -1)
+
+
 # ---------------------------------------------------------------------------
 # Discriminated union — pattern matching at consumers uses this alias.
 # ---------------------------------------------------------------------------
 
 
-Event = GameStarted | MoveAttempted | MoveResolved
+Event = GameStarted | MoveAttempted | MoveResolved | SenseEmitted | LocationReported

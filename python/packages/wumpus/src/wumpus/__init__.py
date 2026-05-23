@@ -14,8 +14,10 @@ from wumpus.events import (
     SCHEMA_VERSION,
     Event,
     GameStarted,
+    LocationReported,
     MoveAttempted,
     MoveResolved,
+    SenseEmitted,
 )
 from wumpus.types import Observation, Snapshot, World
 
@@ -30,5 +32,7 @@ __all__ = [
     "GameStarted",
     "MoveAttempted",
     "MoveResolved",
+    "SenseEmitted",
+    "LocationReported",
     "SCHEMA_VERSION",
 ]

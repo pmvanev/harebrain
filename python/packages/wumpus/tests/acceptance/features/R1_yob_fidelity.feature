@@ -39,3 +39,21 @@ Feature: R1 Yob fidelity — dodecahedron cave + Yob mechanics
     Given a Python 3.11+ interpreter
     When random.Random(42).randrange(20) is invoked
     Then the result equals a pinned constant (catches Python-stdlib drift at CI time)
+
+  # ---------------------------------------------------------------------------
+  # R1-S02 — Sense emit on entry (Yob L-array order)
+  # ---------------------------------------------------------------------------
+
+  Scenario: Senses fire in L-array order
+    Given the player enters a room adjacent to the wumpus AND adjacent to a pit
+    Then a SenseEmitted(WUMPUS_SMELL) event fires
+    And then a SenseEmitted(PIT_DRAFT) event fires
+    And then a LocationReported event fires
+
+  Scenario: Repeated same-kind hazards repeat the sense
+    Given the player enters a room adjacent to two pits
+    Then two SenseEmitted(PIT_DRAFT) events fire (one per adjacency match)
+
+  Scenario: No sense fires for a non-adjacent hazard
+    Given the player enters a room with no adjacent hazards
+    Then no SenseEmitted event fires before LocationReported

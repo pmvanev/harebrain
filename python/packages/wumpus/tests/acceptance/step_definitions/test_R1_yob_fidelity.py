@@ -238,3 +238,254 @@ def _r1s01_randrange_pinned(r1s01_randrange_result: int) -> None:
         f"expected {_PINNED_RANDRANGE_42}. Python stdlib RNG algorithm changed. "
         f"This is a CI-time canary for Yob-fidelity replay determinism (SC1, K-2)."
     )
+
+
+# ---------------------------------------------------------------------------
+# R1-S02 — Sense emit on entry (Yob L-array order)
+# ---------------------------------------------------------------------------
+#
+# Strategy: use the `Game._from_world` test hatch to construct a Game whose
+# initial layout exactly matches each scenario's "player adjacent to ..."
+# precondition, then drive the player into the target room via `step("move N")`
+# and inspect the post-move event stream on a subscribed InMemorySink.
+#
+# Room 1 has dodecahedron neighbors {2, 5, 8}. We place the player one
+# neighbor away (e.g. room 8), park hazards on the OTHER neighbors of room 1,
+# and move the player into room 1. The events emitted on that move's
+# resolution are the ones the scenario asserts about.
+#
+# Adjacent helpers (read from the audited DODECAHEDRON):
+#   room 1 -> {2, 5, 8}
+#   room 2 -> {1, 3, 10}
+# Layouts chosen to make every hazard non-adjacent to the no-hazard scenario's
+# destination room (room 2, neighbors {1, 3, 10}).
+
+
+def _build_world_for_r1s02(
+    *,
+    player_room: int,
+    wumpus_rooms: tuple[int, ...],
+    pit_rooms: tuple[int, ...],
+    bat_rooms: tuple[int, ...],
+) -> Any:
+    """Helper that constructs a Tier-A1 World pinned to the given hazard layout
+    for use with `Game._from_world`. All entity slots must be distinct and
+    within rooms 1..20 (Yob FNB invariant)."""
+    from wumpus.types import World
+
+    return World(
+        player_room=player_room,
+        wumpus_rooms=wumpus_rooms,
+        pit_rooms=pit_rooms,
+        bat_rooms=bat_rooms,
+        arrows=5,  # Yob default; not used by R1-S02
+        turn=0,
+        alive=True,
+        pending_prompt=None,
+        pending_arrow_path=(),
+    )
+
+
+def _drive_into_target_and_capture(
+    *,
+    player_start: int,
+    target_room: int,
+    wumpus_rooms: tuple[int, ...],
+    pit_rooms: tuple[int, ...],
+    bat_rooms: tuple[int, ...],
+) -> list[Any]:
+    """Construct a Game pinned to the given layout, attach a fresh InMemorySink,
+    step the player into the target room, and return the events emitted
+    AFTER the construction-time GameStarted event."""
+    from wumpus import Game
+    from wumpus.sinks import InMemorySink
+
+    world = _build_world_for_r1s02(
+        player_room=player_start,
+        wumpus_rooms=wumpus_rooms,
+        pit_rooms=pit_rooms,
+        bat_rooms=bat_rooms,
+    )
+    game = Game._from_world(world, seed=0)
+    sink = InMemorySink()
+    game.subscribe(sink)
+    # Snapshot how many events the GameStarted replay drops into the sink so
+    # the assertions below address ONLY the post-move event stream.
+    pre_move_count = len(sink.events)
+    game.step(f"move {target_room}")
+    return sink.events[pre_move_count:]
+
+
+# ---------------------------------------------------------------------------
+# R1-S02 — Scenario 1: Senses fire in L-array order
+# ---------------------------------------------------------------------------
+
+
+@given(
+    "the player enters a room adjacent to the wumpus AND adjacent to a pit",
+    target_fixture="r1s02_post_move_events_mixed",
+)
+def _r1s02_enter_room_adjacent_wumpus_and_pit() -> list[Any]:
+    # Target room 1 has neighbors {2, 5, 8}. Wumpus at 2, pit at 5, second pit
+    # parked away (room 11 — not adjacent to room 1). Bats parked at 14/17.
+    # Player starts at 8 (neighbor of 1) and moves to 1.
+    return _drive_into_target_and_capture(
+        player_start=8,
+        target_room=1,
+        wumpus_rooms=(2,),
+        pit_rooms=(5, 11),
+        bat_rooms=(14, 17),
+    )
+
+
+@then("a SenseEmitted(WUMPUS_SMELL) event fires")
+def _r1s02_wumpus_smell_fired_first(
+    r1s02_post_move_events_mixed: list[Any],
+) -> None:
+    from wumpus.events import SenseEmitted
+
+    sense_events = [
+        e for e in r1s02_post_move_events_mixed if isinstance(e, SenseEmitted)
+    ]
+    assert sense_events, (
+        "No SenseEmitted event was emitted when player entered a room adjacent "
+        "to the wumpus and a pit. R1-S02 contract violated."
+    )
+    assert sense_events[0].kind == "WUMPUS_SMELL", (
+        f"First SenseEmitted.kind was {sense_events[0].kind!r}; "
+        f"expected 'WUMPUS_SMELL' per Yob L-array order."
+    )
+
+
+@then("then a SenseEmitted(PIT_DRAFT) event fires")
+def _r1s02_pit_draft_fired_second(
+    r1s02_post_move_events_mixed: list[Any],
+) -> None:
+    from wumpus.events import SenseEmitted
+
+    sense_events = [
+        e for e in r1s02_post_move_events_mixed if isinstance(e, SenseEmitted)
+    ]
+    assert len(sense_events) >= 2, (
+        f"Expected at least two SenseEmitted events; got {len(sense_events)}."
+    )
+    assert sense_events[1].kind == "PIT_DRAFT", (
+        f"Second SenseEmitted.kind was {sense_events[1].kind!r}; "
+        f"expected 'PIT_DRAFT' per Yob L-array order."
+    )
+
+
+@then("then a LocationReported event fires")
+def _r1s02_location_reported_fires_after_senses(
+    r1s02_post_move_events_mixed: list[Any],
+) -> None:
+    from wumpus.events import LocationReported, SenseEmitted
+
+    # LocationReported MUST appear AFTER the last SenseEmitted in the event stream.
+    location_indices = [
+        i
+        for i, e in enumerate(r1s02_post_move_events_mixed)
+        if isinstance(e, LocationReported)
+    ]
+    sense_indices = [
+        i
+        for i, e in enumerate(r1s02_post_move_events_mixed)
+        if isinstance(e, SenseEmitted)
+    ]
+    assert len(location_indices) == 1, (
+        f"Expected exactly one LocationReported event after move; "
+        f"got {len(location_indices)}."
+    )
+    if sense_indices:
+        assert location_indices[0] > sense_indices[-1], (
+            "LocationReported fired before/between SenseEmitted events. "
+            "Yob's order (senses, then location) violated."
+        )
+
+
+# ---------------------------------------------------------------------------
+# R1-S02 — Scenario 2: Repeated same-kind hazards repeat the sense
+# ---------------------------------------------------------------------------
+
+
+@given(
+    "the player enters a room adjacent to two pits",
+    target_fixture="r1s02_post_move_events_two_pits",
+)
+def _r1s02_enter_room_adjacent_two_pits() -> list[Any]:
+    # Target room 1 (neighbors {2, 5, 8}). Both pits adjacent: pit_a=2, pit_b=5.
+    # Wumpus parked at non-adjacent room 11; bats parked at 14/17.
+    # Player starts at 8 and moves to 1.
+    return _drive_into_target_and_capture(
+        player_start=8,
+        target_room=1,
+        wumpus_rooms=(11,),
+        pit_rooms=(2, 5),
+        bat_rooms=(14, 17),
+    )
+
+
+@then("two SenseEmitted(PIT_DRAFT) events fire (one per adjacency match)")
+def _r1s02_two_pit_drafts_emit(
+    r1s02_post_move_events_two_pits: list[Any],
+) -> None:
+    from wumpus.events import SenseEmitted
+
+    pit_drafts = [
+        e
+        for e in r1s02_post_move_events_two_pits
+        if isinstance(e, SenseEmitted) and e.kind == "PIT_DRAFT"
+    ]
+    assert len(pit_drafts) == 2, (
+        f"Expected 2 SenseEmitted(PIT_DRAFT) events for two adjacent pits; "
+        f"got {len(pit_drafts)}. R1-S02 repetition contract violated."
+    )
+
+
+# ---------------------------------------------------------------------------
+# R1-S02 — Scenario 3: No sense fires for a non-adjacent hazard
+# ---------------------------------------------------------------------------
+
+
+@given(
+    "the player enters a room with no adjacent hazards",
+    target_fixture="r1s02_post_move_events_no_hazards",
+)
+def _r1s02_enter_room_no_adjacent_hazards() -> list[Any]:
+    # Target room 2 has neighbors {1, 3, 10}. Park every hazard far from there:
+    # wumpus at 20 (neighbors {13, 16, 19}); pits at 15 and 6; bats at 11 and 12.
+    # None of those are in {1, 3, 10}, so room 2 has zero adjacent hazards.
+    # Player starts at room 1 (neighbor of 2) and moves to room 2.
+    return _drive_into_target_and_capture(
+        player_start=1,
+        target_room=2,
+        wumpus_rooms=(20,),
+        pit_rooms=(15, 6),
+        bat_rooms=(11, 12),
+    )
+
+
+@then("no SenseEmitted event fires before LocationReported")
+def _r1s02_no_sense_before_location(
+    r1s02_post_move_events_no_hazards: list[Any],
+) -> None:
+    from wumpus.events import LocationReported, SenseEmitted
+
+    location_indices = [
+        i
+        for i, e in enumerate(r1s02_post_move_events_no_hazards)
+        if isinstance(e, LocationReported)
+    ]
+    assert len(location_indices) == 1, (
+        f"Expected exactly one LocationReported event; got {len(location_indices)}."
+    )
+    location_index = location_indices[0]
+    senses_before_location = [
+        e
+        for e in r1s02_post_move_events_no_hazards[:location_index]
+        if isinstance(e, SenseEmitted)
+    ]
+    assert senses_before_location == [], (
+        f"Expected no SenseEmitted events before LocationReported when entering "
+        f"a room with no adjacent hazards; got {senses_before_location}."
+    )

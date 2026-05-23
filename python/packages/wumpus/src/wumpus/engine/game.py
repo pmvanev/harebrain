@@ -30,8 +30,15 @@ from typing import TYPE_CHECKING
 from wumpus.engine._r0_toy_cave import initial_world as _r0_toy_initial_world
 from wumpus.engine.cave_gen import generate_initial_layout
 from wumpus.engine.hash import internal_state_hash
+from wumpus.engine.sense import emit_senses_for_room
 from wumpus.engine.transitions import _adjacent_rooms_for_cave, resolve_move
-from wumpus.events import SCHEMA_VERSION, Event, GameStarted
+from wumpus.events import (
+    SCHEMA_VERSION,
+    Event,
+    GameStarted,
+    LocationReported,
+    MoveResolved,
+)
 from wumpus.types import Observation, Snapshot, World
 
 if TYPE_CHECKING:
@@ -87,6 +94,44 @@ class Game:
         )
         self._emit(start_event)
 
+    # ---- test hatch (TEST-ONLY; underscore-prefixed not in public API) ----
+
+    @classmethod
+    def _from_world(cls, world: World, *, seed: int = 0) -> "Game":
+        """TEST-ONLY constructor that pins the initial World instead of rolling
+        it from `seed`. The `seed` argument still seeds the engine's RNG so
+        downstream RNG-consuming steps (R1-S03 startle, R1-S04 bat teleport)
+        remain deterministic.
+
+        This hatch lets acceptance tests express preconditions like "player
+        adjacent to wumpus AND a pit" without searching for a seed whose FNB
+        layout happens to satisfy that geometry. The underscore prefix signals
+        non-public API; the contract is that the supplied World must already
+        satisfy Yob's invariants (distinct entity rooms, valid 1..20 indices).
+        """
+        game = cls.__new__(cls)
+        game._seed = seed
+        game._random = random.Random(seed)
+        game._cave = _CAVE_YOB
+        game._world = world
+        game._subscribers = []
+        game._debug_events = []
+
+        start_event = GameStarted(
+            schema_version=SCHEMA_VERSION,
+            turn=game._world.turn,
+            surface_variant=_R0_SURFACE_VARIANT,
+            internal_state_hash=internal_state_hash(game._world),
+            rng_cursor=game._encode_rng_cursor(),
+            seed=seed,
+            engine_version=_R0_ENGINE_VERSION,
+            surface_id=_R0_SURFACE_ID,
+            layout_hash=internal_state_hash(game._world),
+            active_escalation_rules=(),
+        )
+        game._emit(start_event)
+        return game
+
     # ---- public driving-port API -----------------------------------------
 
     def step(self, action: str) -> Observation:
@@ -95,6 +140,12 @@ class Game:
         Returns an `Observation` describing the post-step view. Events are
         emitted to all subscribed sinks (and to `_debug_events`) in the order
         the transition produced them.
+
+        R1-S02: on a successful move (MoveAttempted accepted=True followed by
+        MoveResolved) the engine emits any SenseEmitted events for the newly
+        entered room in Yob L-array order, then a single LocationReported.
+        Rejected moves emit only MoveAttempted(accepted=False) and skip
+        sense / location emission (the player never entered a new room).
         """
         target_room = self._parse_move_action(action)
         rng_cursor = self._encode_rng_cursor()
@@ -104,7 +155,44 @@ class Game:
         self._world = next_world
         for event in events:
             self._emit(event)
+
+        # Sense + location emission only fires on a resolved move (MoveResolved
+        # in `events`). The toy cave is retired from sense emission — it has
+        # no DODECAHEDRON entry — so we gate on the yob cave topology too.
+        if self._cave == _CAVE_YOB and any(
+            isinstance(event, MoveResolved) for event in events
+        ):
+            self._emit_senses_and_location(target_room)
+
         return self._render_observation()
+
+    def _emit_senses_and_location(self, entered_room: int) -> None:
+        """Emit SenseEmitted events for `entered_room` (Yob L-array order),
+        then exactly one LocationReported. Called from `step()` after a
+        successful move resolves."""
+        sense_events = emit_senses_for_room(self._world, entered_room)
+        for sense_event in sense_events:
+            self._emit(sense_event)
+
+        adjacencies = _adjacent_rooms_for_cave(self._cave, entered_room)
+        # Dodecahedron is 3-regular; narrow the variable-length tuple to the
+        # LocationReported field's `tuple[int, int, int]` invariant. An
+        # assertion documents the invariant in case any future cave topology
+        # violates it (e.g. test-only toy caves would re-enter sense emission).
+        assert len(adjacencies) == 3, (
+            f"LocationReported requires a 3-regular cave; room {entered_room} "
+            f"under cave {self._cave!r} has {len(adjacencies)} neighbors."
+        )
+        location_event = LocationReported(
+            schema_version=SCHEMA_VERSION,
+            turn=self._world.turn,
+            surface_variant=_R0_SURFACE_VARIANT,
+            internal_state_hash=internal_state_hash(self._world),
+            rng_cursor=self._encode_rng_cursor(),
+            room=entered_room,
+            adjacencies=(adjacencies[0], adjacencies[1], adjacencies[2]),
+        )
+        self._emit(location_event)
 
     def snapshot(self) -> Snapshot:
         """Return a serializable Snapshot of the current engine state.

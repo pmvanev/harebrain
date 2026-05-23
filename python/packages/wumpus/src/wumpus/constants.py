@@ -10,8 +10,10 @@ the constants in this module are immutable tuples / frozensets / strings.
 R1-S01 ships:
     - DODECAHEDRON: the 20x3 adjacency table
 
+R1-S02 ships:
+    - SENSE_ORDER: the L-array kind order for sense emission
+
 Future slices append:
-    - SENSE_ORDER (R1-S02): the L-array order for sense emission
     - HAZARD_ORDER (R1-S04): the move-resolution order (wumpus, pit, bat)
 """
 
@@ -56,4 +58,24 @@ DODECAHEDRON: Final[dict[int, frozenset[int]]] = {
 }
 
 
-__all__ = ["DODECAHEDRON"]
+# ---------------------------------------------------------------------------
+# SENSE_ORDER (Yob wumpus.gwbasic.bas lines 2020-2120) — R1-S02
+# ---------------------------------------------------------------------------
+#
+# Yob's BASIC source iterates entities in L-array order via `FOR J=2 TO 6`:
+#   L(2) = wumpus
+#   L(3) = pit #1
+#   L(4) = pit #2
+#   L(5) = bat #1
+#   L(6) = bat #2
+# Reduced to distinct kinds in L-array order: (wumpus, pit, bat). The per-room
+# iteration inside `wumpus.engine.sense.emit_senses_for_room` walks each
+# kind's room collection in placement order, recovering Yob's L(3)-before-L(4)
+# / L(5)-before-L(6) ordering without duplicating the kind labels in this
+# constant. See the archived shared-artifacts-registry section "Sense order
+# on room entry" — any change here is a Yob-fidelity break.
+
+SENSE_ORDER: Final[tuple[str, ...]] = ("wumpus", "pit", "bat")
+
+
+__all__ = ["DODECAHEDRON", "SENSE_ORDER"]
