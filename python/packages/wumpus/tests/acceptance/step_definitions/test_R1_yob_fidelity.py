@@ -15,6 +15,7 @@ from __future__ import annotations
 import random
 from typing import Any
 
+import pytest
 from hypothesis import given as hyp_given
 from hypothesis import settings, strategies as st
 from pytest_bdd import given, scenarios, then, when
@@ -488,4 +489,331 @@ def _r1s02_no_sense_before_location(
     assert senses_before_location == [], (
         f"Expected no SenseEmitted events before LocationReported when entering "
         f"a room with no adjacent hazards; got {senses_before_location}."
+    )
+
+
+# ---------------------------------------------------------------------------
+# R1-S03 — Move + wumpus bump + startle
+# ---------------------------------------------------------------------------
+#
+# Strategy: park the wumpus at room 7 and the player one neighbor away (room 8;
+# the audited dodecahedron has 7-{6,8,17}). Use `Game._from_world` to pin the
+# layout, then monkeypatch `game._random` with a `MockRandom` instance whose
+# `randint(1, 4)` return values are scripted by the scenario's Given step.
+#
+# Per FNC(0) ∈ {1,2,3,4}: K∈{1,2,3} → wumpus moves to sorted_neighbors[K-1];
+# K=4 → wumpus stays. Sorted neighbors of room 7 are [6, 8, 17], so:
+#   K=1 → wumpus to 6
+#   K=2 → wumpus to 8 (the player's new room → eaten)
+#   K=3 → wumpus to 17
+#   K=4 → wumpus stays at 7 (also the player's new room → eaten)
+
+
+class _MockRandom:
+    """Test helper that scripts `randint(a, b)` return values.
+
+    The engine also calls `getstate()` during `_encode_rng_cursor` after every
+    step (ADR-001/SC6: events carry a base64-pickled RNG cursor). We supply a
+    stable sentinel so the cursor encoding still round-trips, but downstream
+    consumers cannot use it to reconstruct a real RNG. Tests that care about
+    the cursor's value rely on `random.Random`, not `_MockRandom`.
+
+    Other RNG methods are intentionally absent — accessing one (e.g. randrange)
+    raises AttributeError immediately, catching any engine code that consumes
+    RNG more aggressively than the slice scripted for.
+    """
+
+    def __init__(self, randint_values: list[int]) -> None:
+        self._randint_values: list[int] = list(randint_values)
+        self._index: int = 0
+
+    def randint(self, a: int, b: int) -> int:
+        if self._index >= len(self._randint_values):
+            raise AssertionError(
+                f"_MockRandom exhausted: only {len(self._randint_values)} scripted "
+                f"values for randint({a}, {b}). The engine consumed RNG more times "
+                f"than the test scripted."
+            )
+        value = self._randint_values[self._index]
+        self._index += 1
+        if not (a <= value <= b):
+            raise AssertionError(
+                f"_MockRandom scripted value {value} is outside randint({a}, {b}) range."
+            )
+        return value
+
+    def getstate(self) -> tuple[Any, ...]:
+        """Stable sentinel cursor so the engine's `_encode_rng_cursor` keeps
+        working under a scripted RNG. Pickle-safe; the encoded value is opaque."""
+        return ("mock_random", self._index)
+
+
+def _drive_bump_into_wumpus(scripted_randint: list[int]) -> list[Any]:
+    """Construct a Game pinned with wumpus@7 + player@8, monkeypatch the
+    RNG with a `_MockRandom` returning `scripted_randint`, step the player
+    into room 7, and return the events emitted after construction."""
+    from wumpus import Game
+    from wumpus.sinks import InMemorySink
+    from wumpus.types import World
+
+    world = World(
+        player_room=8,
+        wumpus_rooms=(7,),
+        pit_rooms=(11, 14),  # parked away from room 7's neighbors {6, 8, 17}
+        bat_rooms=(15, 19),  # parked away from room 7's neighbors {6, 8, 17}
+        arrows=5,
+        turn=0,
+        alive=True,
+        pending_prompt=None,
+        pending_arrow_path=(),
+    )
+    game = Game._from_world(world, seed=0)
+    # Cast: _MockRandom duck-types the subset of random.Random methods the
+    # engine calls during startle (randint only at R1-S03). mypy would flag
+    # the assignment under strict; the inner cast keeps the contract honest.
+    game._random = _MockRandom(scripted_randint)  # type: ignore[assignment]
+
+    sink = InMemorySink()
+    game.subscribe(sink)
+    pre_move_count = len(sink.events)
+    game.step("move 7")
+    return sink.events[pre_move_count:]
+
+
+# ---------------------------------------------------------------------------
+# R1-S03 — Scenario 1: Bumping the wumpus triggers startle to an adjacent room
+# ---------------------------------------------------------------------------
+
+
+@given(
+    "the wumpus is in room 7 and the player is in room 8 (adjacent to 7)",
+    target_fixture="r1s03_scripted_randint_scenario1",
+)
+def _r1s03_layout_scenario1() -> list[int]:
+    """Scenario 1 stores the scripted randint sequence; the When step uses it
+    to drive the bump and capture events."""
+    return []
+
+
+@given("the engine's next startle draw will be 1 (move to first adjacent room)")
+def _r1s03_startle_draw_one(
+    r1s03_scripted_randint_scenario1: list[int],
+) -> None:
+    r1s03_scripted_randint_scenario1.append(1)
+
+
+@when(
+    "the player moves to room 7",
+    target_fixture="r1s03_post_move_events",
+)
+def _r1s03_player_moves_to_room_7(request: Any) -> list[Any]:
+    """Pull whichever scripted-randint fixture the active scenario populated.
+
+    Scenarios 2 and 3 share the first Given step text ("the wumpus is in room
+    7 and the player is in room 8") and therefore share its target_fixture
+    name `r1s03_scripted_randint_scenario2`. Scenario 3's second Given builds
+    a separate `r1s03_scripted_randint_scenario3` from that shared base. We
+    probe scenario3 BEFORE scenario2 so the derived (richer) list wins when
+    both exist.
+    """
+    candidates = (
+        "r1s03_scripted_randint_scenario3",
+        "r1s03_scripted_randint_scenario2",
+        "r1s03_scripted_randint_scenario1",
+    )
+    for name in candidates:
+        try:
+            scripted: list[int] = request.getfixturevalue(name)
+        except pytest.FixtureLookupError:
+            continue
+        return _drive_bump_into_wumpus(scripted)
+    raise AssertionError(
+        "No r1s03_scripted_randint_* fixture was set up by the Given steps; "
+        "the active scenario did not run a Given that primes the RNG."
+    )
+
+
+@then("a HazardTriggered(WUMPUS) event fires")
+def _r1s03_hazard_triggered_wumpus(
+    r1s03_post_move_events: list[Any],
+) -> None:
+    from wumpus.events import HazardTriggered
+
+    hazard_events = [
+        e for e in r1s03_post_move_events if isinstance(e, HazardTriggered)
+    ]
+    assert hazard_events, (
+        f"No HazardTriggered event emitted on wumpus bump. "
+        f"Events seen: {[type(e).__name__ for e in r1s03_post_move_events]}"
+    )
+    assert hazard_events[0].kind == "WUMPUS", (
+        f"First HazardTriggered.kind was {hazard_events[0].kind!r}; expected 'WUMPUS'."
+    )
+
+
+@then(
+    "a WumpusStartled(from=7, to=<first-adjacent-of-7>, ate_player=False) event fires"
+)
+def _r1s03_wumpus_startled_to_first_adjacent(
+    r1s03_post_move_events: list[Any],
+) -> None:
+    from wumpus.events import WumpusStartled
+
+    startled_events = [
+        e for e in r1s03_post_move_events if isinstance(e, WumpusStartled)
+    ]
+    assert startled_events, "No WumpusStartled event emitted on wumpus bump."
+    event = startled_events[0]
+    # Sorted neighbors of room 7 are [6, 8, 17]. K=1 → adjacent[0] = 6.
+    assert event.from_room == 7, (
+        f"WumpusStartled.from_room was {event.from_room}; expected 7."
+    )
+    assert event.to_room == 6, (
+        f"WumpusStartled.to_room was {event.to_room}; expected 6 "
+        f"(first adjacent of 7 in sorted order [6, 8, 17])."
+    )
+    assert event.ate_player is False, (
+        f"WumpusStartled.ate_player was {event.ate_player}; expected False "
+        f"(wumpus moved to room 6, player is in room 7)."
+    )
+
+
+@then("the game continues")
+def _r1s03_game_continues(
+    r1s03_post_move_events: list[Any],
+) -> None:
+    from wumpus.events import GameEnded
+
+    game_ended = [e for e in r1s03_post_move_events if isinstance(e, GameEnded)]
+    assert game_ended == [], (
+        f"Expected the game to continue but GameEnded fired: {game_ended!r}."
+    )
+
+
+# ---------------------------------------------------------------------------
+# R1-S03 — Scenario 2: Bumping the wumpus and being eaten
+# ---------------------------------------------------------------------------
+
+
+@given(
+    "the wumpus is in room 7 and the player is in room 8",
+    target_fixture="r1s03_scripted_randint_scenario2",
+)
+def _r1s03_layout_scenario2() -> list[int]:
+    return []
+
+
+@given(
+    "the engine's next startle draw will leave the wumpus on room 8 (the player's room)"
+)
+def _r1s03_startle_draw_lands_on_player(
+    r1s03_scripted_randint_scenario2: list[int],
+) -> None:
+    """Brief reads as "the next startle draw lands the wumpus on the player's
+    room". After the move resolves, the player occupies room 7 (formerly the
+    wumpus's room — the bump). For the startled wumpus to land on the player,
+    it must stay at room 7 (K=4 in the FNC(0) distribution). The brief's
+    parenthetical "(the player's room)" refers to the player's room AFTER the
+    move (room 7), not before (room 8); the scenario's `to_room` assertion is
+    omitted on purpose because both K=4 (stay at 7) and any K that lands the
+    wumpus on the player's new room satisfy the eat-bump contract.
+    """
+    r1s03_scripted_randint_scenario2.append(4)
+
+
+@then("a WumpusStartled(ate_player=True) event fires")
+def _r1s03_wumpus_startled_ate_player(
+    r1s03_post_move_events: list[Any],
+) -> None:
+    from wumpus.events import WumpusStartled
+
+    startled_events = [
+        e for e in r1s03_post_move_events if isinstance(e, WumpusStartled)
+    ]
+    assert startled_events, "No WumpusStartled event emitted on wumpus bump."
+    assert startled_events[0].ate_player is True, (
+        f"WumpusStartled.ate_player was {startled_events[0].ate_player}; "
+        f"expected True (wumpus landed on player)."
+    )
+
+
+@then("a GameEnded(outcome=eaten_after_bump) event fires")
+def _r1s03_game_ended_eaten(
+    r1s03_post_move_events: list[Any],
+) -> None:
+    from wumpus.events import GameEnded
+
+    ended_events = [e for e in r1s03_post_move_events if isinstance(e, GameEnded)]
+    assert ended_events, "No GameEnded event emitted after startled wumpus ate player."
+    assert ended_events[0].outcome == "eaten_after_bump", (
+        f"GameEnded.outcome was {ended_events[0].outcome!r}; expected 'eaten_after_bump'."
+    )
+    assert ended_events[0].message_kind == "lose", (
+        f"GameEnded.message_kind was {ended_events[0].message_kind!r}; expected 'lose'."
+    )
+
+
+# ---------------------------------------------------------------------------
+# R1-S03 — Scenario 3: 25% stay-put rule
+# ---------------------------------------------------------------------------
+
+
+@given(
+    "the engine's next startle draw will be 4 (stay)",
+    target_fixture="r1s03_scripted_randint_scenario3",
+)
+def _r1s03_startle_draw_four(
+    request: Any,
+) -> list[int]:
+    """Scenario 3's Given chain: the first Given (wumpus@7, player@8) is shared
+    with scenario 2 — pytest-bdd treats identical Given text as the same step
+    function. The second Given (the K=4 instruction) is unique to this scenario
+    and is the one that target_fixtures the scripted list.
+
+    Because scenarios 2 and 3 share the first Given step, both populate the
+    `r1s03_scripted_randint_scenario2` fixture name. To disambiguate at the
+    When step, we copy whatever the scenario-2 fixture holds into a fresh
+    scenario-3 list, then append K=4.
+    """
+    # Pull the shared Given's list and copy + extend it locally.
+    try:
+        shared = request.getfixturevalue("r1s03_scripted_randint_scenario2")
+    except pytest.FixtureLookupError:
+        shared = []
+    fresh: list[int] = list(shared) + [4]
+    return fresh
+
+
+@then(
+    "WumpusStartled(from=7, to=7, ate_player=True) fires (the wumpus stays in 7, which is now the player's room)"
+)
+def _r1s03_wumpus_stays_eats_player(
+    r1s03_post_move_events: list[Any],
+) -> None:
+    from wumpus.events import GameEnded, WumpusStartled
+
+    startled_events = [
+        e for e in r1s03_post_move_events if isinstance(e, WumpusStartled)
+    ]
+    assert startled_events, "No WumpusStartled event emitted on wumpus bump."
+    event = startled_events[0]
+    assert event.from_room == 7, (
+        f"WumpusStartled.from_room was {event.from_room}; expected 7."
+    )
+    assert event.to_room == 7, (
+        f"WumpusStartled.to_room was {event.to_room}; expected 7 (K=4 → stay-put)."
+    )
+    assert event.ate_player is True, (
+        f"WumpusStartled.ate_player was {event.ate_player}; expected True "
+        f"(wumpus stayed at 7 = player's new room)."
+    )
+    # GameEnded should also fire — see brief's note: "the implementation should
+    # still emit it — add the assertion to be thorough."
+    ended_events = [e for e in r1s03_post_move_events if isinstance(e, GameEnded)]
+    assert ended_events, (
+        "GameEnded(eaten_after_bump) should also fire after a stay-put startle "
+        "that lands the wumpus on the player's room."
+    )
+    assert ended_events[0].outcome == "eaten_after_bump", (
+        f"GameEnded.outcome was {ended_events[0].outcome!r}; expected 'eaten_after_bump'."
     )

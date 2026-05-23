@@ -78,4 +78,19 @@ DODECAHEDRON: Final[dict[int, frozenset[int]]] = {
 SENSE_ORDER: Final[tuple[str, ...]] = ("wumpus", "pit", "bat")
 
 
-__all__ = ["DODECAHEDRON", "SENSE_ORDER"]
+# ---------------------------------------------------------------------------
+# HAZARD_ORDER (Yob wumpus.gwbasic.bas lines 4140-4310) — R1-S03
+# ---------------------------------------------------------------------------
+#
+# Yob's BASIC source resolves co-located hazards in fixed order on entry to
+# a new room: wumpus (4150-4200), then pit (4220-4250), then bat (4270-4300).
+# R1-S03 wires the wumpus arm; R1-S04 extends with pit + bat handlers. The
+# ordering matters because (at R1-S04+) a bat teleport recursively re-enters
+# `hazard_resolve` for the destination room — re-using this order.
+#
+# See archived shared-artifacts-registry section "hazard check order".
+
+HAZARD_ORDER: Final[tuple[str, ...]] = ("wumpus", "pit", "bat")
+
+
+__all__ = ["DODECAHEDRON", "SENSE_ORDER", "HAZARD_ORDER"]

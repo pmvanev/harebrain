@@ -25,6 +25,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
+from wumpus.types import Snapshot
+
 SCHEMA_VERSION: int = 1
 
 
@@ -139,9 +141,82 @@ class LocationReported(_BaseEventFields):
     adjacencies: tuple[int, int, int] = (-1, -1, -1)
 
 
+@dataclass(frozen=True)
+class HazardTriggered(_BaseEventFields):
+    """Emitted when the player enters a room containing a hazard.
+
+    R1-S03 ships only `kind="WUMPUS"`; R1-S04 extends with `"PIT"` and
+    `"BAT"`. The event fires BEFORE the kind-specific follow-up
+    (WumpusStartled for wumpus, GameEnded for pit, PlayerTeleported for bat —
+    last two land at R1-S04). Surface translation of the kind to Yob's
+    `...OOPS! BUMPED A WUMPUS!` / `YYYIIIIEEEE` / `ZAP--SUPER BAT SNATCH!`
+    happens at R4-S03 behind the Surface seam (SC8).
+
+    The `room` field records the room the hazard was triggered in (the
+    player's post-move room). Carrying it on the event keeps the event
+    stream self-contained for replay analysis.
+    """
+
+    type: Literal["HazardTriggered"] = "HazardTriggered"
+    kind: Literal["WUMPUS", "PIT", "BAT"] = "WUMPUS"
+    room: int = -1
+
+
+@dataclass(frozen=True)
+class WumpusStartled(_BaseEventFields):
+    """Emitted after `HazardTriggered(WUMPUS)` to record the FNC(0) startle
+    outcome (Yob `bas` 3370-3440).
+
+    `FNC(0)` draws K ∈ {1, 2, 3, 4}. For K ∈ {1, 2, 3} the wumpus moves to
+    `S(L(2), K)` — its K-th adjacent room (in Yob's adjacency-table order;
+    here, `sorted(DODECAHEDRON[from_room])[K-1]`). For K=4 the wumpus stays.
+
+    If the destination room equals the player's room, `ate_player=True` and
+    a downstream `GameEnded(outcome=eaten_after_bump)` fires.
+    """
+
+    type: Literal["WumpusStartled"] = "WumpusStartled"
+    from_room: int = -1
+    to_room: int = -1
+    ate_player: bool = False
+
+
+@dataclass(frozen=True)
+class GameEnded(_BaseEventFields):
+    """Emitted exactly once on any terminal state — win or lose.
+
+    `outcome` discriminates the terminal cause; `message_kind` records the
+    Yob win/lose-swap (HEE HEE HEE on lose vs HA HA HA on win, per Yob's
+    famously-bugged BASIC). Surface translation of `message_kind` to the
+    actual rendered text lives at R1-S07 / R4-S03; the engine just emits
+    the structured discriminator (SC8).
+
+    `final_snapshot` captures the engine's full state at the moment the
+    game ends — used by R1-S07's `SAME SET-UP=Y` reset (restoring the
+    initial layout) and by replay analysis. The Snapshot is value-typed
+    (ADR-001/SC6), so the capture is cheap and serialization-safe.
+    """
+
+    type: Literal["GameEnded"] = "GameEnded"
+    outcome: Literal[
+        "wumpus_shot", "eaten_after_bump", "fell_in_pit", "out_of_arrows"
+    ] = "eaten_after_bump"
+    message_kind: Literal["win", "lose"] = "lose"
+    final_snapshot: Snapshot | None = None
+
+
 # ---------------------------------------------------------------------------
 # Discriminated union — pattern matching at consumers uses this alias.
 # ---------------------------------------------------------------------------
 
 
-Event = GameStarted | MoveAttempted | MoveResolved | SenseEmitted | LocationReported
+Event = (
+    GameStarted
+    | MoveAttempted
+    | MoveResolved
+    | SenseEmitted
+    | LocationReported
+    | HazardTriggered
+    | WumpusStartled
+    | GameEnded
+)

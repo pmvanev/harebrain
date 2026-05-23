@@ -57,3 +57,29 @@ Feature: R1 Yob fidelity — dodecahedron cave + Yob mechanics
   Scenario: No sense fires for a non-adjacent hazard
     Given the player enters a room with no adjacent hazards
     Then no SenseEmitted event fires before LocationReported
+
+  # ---------------------------------------------------------------------------
+  # R1-S03 — Move + wumpus bump + startle
+  # ---------------------------------------------------------------------------
+
+  Scenario: Bumping the wumpus triggers startle to an adjacent room
+    Given the wumpus is in room 7 and the player is in room 8 (adjacent to 7)
+    And the engine's next startle draw will be 1 (move to first adjacent room)
+    When the player moves to room 7
+    Then a HazardTriggered(WUMPUS) event fires
+    And a WumpusStartled(from=7, to=<first-adjacent-of-7>, ate_player=False) event fires
+    And the game continues
+
+  Scenario: Bumping the wumpus and being eaten
+    Given the wumpus is in room 7 and the player is in room 8
+    And the engine's next startle draw will leave the wumpus on room 8 (the player's room)
+    When the player moves to room 7
+    Then a HazardTriggered(WUMPUS) event fires
+    And a WumpusStartled(ate_player=True) event fires
+    And a GameEnded(outcome=eaten_after_bump) event fires
+
+  Scenario: 25% stay-put rule
+    Given the wumpus is in room 7 and the player is in room 8
+    And the engine's next startle draw will be 4 (stay)
+    When the player moves to room 7
+    Then WumpusStartled(from=7, to=7, ate_player=True) fires (the wumpus stays in 7, which is now the player's room)

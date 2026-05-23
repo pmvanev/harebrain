@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import pytest
 
-from wumpus.constants import DODECAHEDRON
+from wumpus.constants import DODECAHEDRON, HAZARD_ORDER
 
 
 def _neighbors(room: int) -> frozenset[int]:
@@ -62,3 +62,14 @@ def test_neighbors_are_in_valid_room_range() -> None:
             assert neighbor != room, (
                 f"Room {room} lists itself as a neighbor (self-loop)."
             )
+
+
+def test_hazard_order_is_yob_move_resolution_order() -> None:
+    """Yob `bas` 4140-4310 resolves hazards in fixed order: wumpus (4150-4200),
+    then pit (4220-4250), then bat (4270-4300). The HAZARD_ORDER constant
+    pins this for the hazard-resolve dispatcher (R1-S03 wires wumpus; R1-S04
+    extends with pit + bat)."""
+    assert HAZARD_ORDER == ("wumpus", "pit", "bat"), (
+        f"HAZARD_ORDER changed shape: {HAZARD_ORDER!r}. Yob-fidelity break — "
+        f"see archived shared-artifacts-registry section 'hazard check order'."
+    )

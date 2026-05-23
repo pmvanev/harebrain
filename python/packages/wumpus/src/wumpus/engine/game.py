@@ -30,11 +30,13 @@ from typing import TYPE_CHECKING
 from wumpus.engine._r0_toy_cave import initial_world as _r0_toy_initial_world
 from wumpus.engine.cave_gen import generate_initial_layout
 from wumpus.engine.hash import internal_state_hash
+from wumpus.engine.hazard_resolve import hazard_resolve
 from wumpus.engine.sense import emit_senses_for_room
 from wumpus.engine.transitions import _adjacent_rooms_for_cave, resolve_move
 from wumpus.events import (
     SCHEMA_VERSION,
     Event,
+    GameEnded,
     GameStarted,
     LocationReported,
     MoveResolved,
@@ -146,6 +148,15 @@ class Game:
         entered room in Yob L-array order, then a single LocationReported.
         Rejected moves emit only MoveAttempted(accepted=False) and skip
         sense / location emission (the player never entered a new room).
+
+        R1-S03: after `MoveResolved` the engine checks for a co-located
+        hazard via `hazard_resolve`. If the player walked into the wumpus's
+        room, the resolver emits `HazardTriggered(WUMPUS)`, runs the FNC(0)
+        startle, and (if the startled wumpus lands on the player) emits
+        `GameEnded(eaten_after_bump)`. When a hazard fires, sense + location
+        events are suppressed for that room (the player no longer occupies
+        a "safe new room" — either the game ended or the world's mutated).
+        Pit and bat handlers land at R1-S04.
         """
         target_room = self._parse_move_action(action)
         rng_cursor = self._encode_rng_cursor()
@@ -156,15 +167,57 @@ class Game:
         for event in events:
             self._emit(event)
 
-        # Sense + location emission only fires on a resolved move (MoveResolved
-        # in `events`). The toy cave is retired from sense emission — it has
-        # no DODECAHEDRON entry — so we gate on the yob cave topology too.
-        if self._cave == _CAVE_YOB and any(
-            isinstance(event, MoveResolved) for event in events
-        ):
-            self._emit_senses_and_location(target_room)
+        move_resolved = any(isinstance(event, MoveResolved) for event in events)
+        if not (self._cave == _CAVE_YOB and move_resolved):
+            return self._render_observation()
 
+        hazard_fired = self._resolve_post_move_hazards()
+        if hazard_fired:
+            # Bumped wumpus (or, later, fell-in-pit / bat-snatch). Skip the
+            # sense + location emission — the player either died or is no
+            # longer in a stable "entered a new room" state.
+            return self._render_observation()
+
+        self._emit_senses_and_location(target_room)
         return self._render_observation()
+
+    def _resolve_post_move_hazards(self) -> bool:
+        """Drive `hazard_resolve` for the player's current room.
+
+        Returns True iff the resolver fired any event (i.e. a hazard was
+        co-located with the player); False iff the player is in a safe
+        room. The Game shell stamps `GameEnded.final_snapshot` with the
+        engine's real Snapshot metadata (overrides the resolver's
+        placeholder) before emission.
+        """
+        post_move_world, hazard_events = hazard_resolve(self._world, self._random)
+        if not hazard_events:
+            return False
+
+        self._world = post_move_world
+        rng_cursor = self._encode_rng_cursor()
+        for event in hazard_events:
+            self._emit(self._stamp_engine_metadata(event, rng_cursor=rng_cursor))
+        return True
+
+    def _stamp_engine_metadata(self, event: Event, *, rng_cursor: str) -> Event:
+        """Replace the resolver's placeholder Game-shell fields (rng_cursor;
+        for GameEnded, also `final_snapshot` metadata) with the engine's real
+        values. The resolver is pure-functional and doesn't know the Game's
+        seed/engine_version/surface_id; the shell fills those in here.
+
+        Per ADR-003 every emitted event carries the post-effect rng_cursor;
+        the resolver leaves the field at its default ("") and the shell
+        rewrites it before emission so downstream replay/ledger consumers see
+        a complete chain.
+        """
+        from dataclasses import replace
+
+        if isinstance(event, GameEnded):
+            real_snapshot = self.snapshot()
+            return replace(event, rng_cursor=rng_cursor, final_snapshot=real_snapshot)
+        # HazardTriggered + WumpusStartled both leave rng_cursor=""; stamp them.
+        return replace(event, rng_cursor=rng_cursor)
 
     def _emit_senses_and_location(self, entered_room: int) -> None:
         """Emit SenseEmitted events for `entered_room` (Yob L-array order),

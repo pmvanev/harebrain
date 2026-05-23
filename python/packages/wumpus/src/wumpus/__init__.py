@@ -13,11 +13,14 @@ from wumpus.engine.game import Game
 from wumpus.events import (
     SCHEMA_VERSION,
     Event,
+    GameEnded,
     GameStarted,
+    HazardTriggered,
     LocationReported,
     MoveAttempted,
     MoveResolved,
     SenseEmitted,
+    WumpusStartled,
 )
 from wumpus.types import Observation, Snapshot, World
 
@@ -34,5 +37,8 @@ __all__ = [
     "MoveResolved",
     "SenseEmitted",
     "LocationReported",
+    "HazardTriggered",
+    "WumpusStartled",
+    "GameEnded",
     "SCHEMA_VERSION",
 ]
