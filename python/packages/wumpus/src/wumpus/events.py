@@ -33,7 +33,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
-from wumpus.types import Snapshot
+from wumpus.types import PromptKind, Snapshot
 
 SCHEMA_VERSION: int = 1
 
@@ -214,6 +214,82 @@ class PlayerTeleported(_BaseEventFields):
 
 
 @dataclass(frozen=True)
+class ActionChosen(_BaseEventFields):
+    """Emitted when the player picks an action at the top-level prompt
+    (S = shoot, M = move). Lands at R1-S05 as the first event of the shoot
+    sub-state-machine; the move-side analog is implicit in the existing
+    MoveAttempted chain (R0 / R1-S01) — a future slice may emit it
+    explicitly on the move path for symmetry.
+
+    Per ADR-010 / DESIGN A4 event-family, this event is part of the
+    canonical event-stream alphabet; carries no additional state beyond the
+    chosen action.
+    """
+
+    type: Literal["ActionChosen"] = "ActionChosen"
+    action: Literal["S", "M"] = "S"
+
+
+@dataclass(frozen=True)
+class PromptIssued(_BaseEventFields):
+    """Emitted when the engine becomes ready to receive its next input.
+
+    `kind` discriminates which prompt is being issued:
+      - "action"          — top-level SHOOT OR MOVE (S-M)?
+      - "move_target"     — after the player picks M, awaiting a room number
+      - "shoot_path_len"  — after the player picks S, awaiting NO. OF ROOMS(1-5)?
+      - "shoot_path_room" — once path length is set, awaiting each slot's ROOM #?
+
+    `context` carries prompt-specific structured data for downstream consumers:
+      - "shoot_path_room": {"slot": K, "of": N} — current slot index and total
+      - others: None or {} as appropriate
+
+    Surface rendering of the prompt text lives at R4-S03 (SC8); the engine
+    only emits the structured discriminator + context.
+    """
+
+    type: Literal["PromptIssued"] = "PromptIssued"
+    kind: PromptKind = "action"
+    # `context` is a dict mapping str → primitive (int, str, etc). We use a
+    # tuple of (key, value) pairs internally is more dataclass-friendly, but
+    # the simpler dict suffices here — frozen dataclasses don't deeply freeze
+    # mutable defaults; we use a default_factory to avoid the shared-mutable
+    # trap, and `None` to mean "no context".
+    context: dict[str, int | str] | None = None
+
+
+@dataclass(frozen=True)
+class CrookedPathRejected(_BaseEventFields):
+    """Emitted when a player-supplied shoot-path entry violates Yob's
+    crooked-arrow rule `P(K) == P(K-2)` (K > 2).
+
+    `slot` is the 1-indexed slot that was rejected; `attempted_room` is the
+    room the player typed. The engine re-prompts ONLY that slot (the
+    previously-accepted slots are preserved). Yob's surface text
+    `ARROWS AREN'T THAT CROOKED - TRY ANOTHER ROOM` is rendered at R4-S03.
+    """
+
+    type: Literal["CrookedPathRejected"] = "CrookedPathRejected"
+    slot: int = -1
+    attempted_room: int = -1
+
+
+@dataclass(frozen=True)
+class ArrowFired(_BaseEventFields):
+    """Emitted when the shoot-collection sub-state-machine finishes
+    accepting all slots of a path. Marks the end of the input-collection
+    phase; the actual arrow-walk through the dodecahedron lands at R1-S06.
+
+    `path` is the full collected path (1-indexed slots in order). At R1-S05
+    no walking happens — the event records the path; R1-S06's arrow walk
+    consumes it.
+    """
+
+    type: Literal["ArrowFired"] = "ArrowFired"
+    path: tuple[int, ...] = ()
+
+
+@dataclass(frozen=True)
 class GameEnded(_BaseEventFields):
     """Emitted exactly once on any terminal state — win or lose.
 
@@ -251,5 +327,9 @@ Event = (
     | HazardTriggered
     | WumpusStartled
     | PlayerTeleported
+    | ActionChosen
+    | PromptIssued
+    | CrookedPathRejected
+    | ArrowFired
     | GameEnded
 )

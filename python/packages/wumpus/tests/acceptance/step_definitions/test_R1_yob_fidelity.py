@@ -1139,3 +1139,304 @@ def _pull_r1s04_bat_scenario_events(request: Any) -> list[Any]:
     except pytest.FixtureLookupError:
         pass
     raise AssertionError("No bat-scenario events fixture resolved (scenario 2 or 3).")
+
+
+# ---------------------------------------------------------------------------
+# R1-S05 — Shoot path collection + crooked-arrow rejection
+# ---------------------------------------------------------------------------
+#
+# Strategy: the shoot sub-state-machine is driven entirely through `step()`
+# calls; no monkeypatch is required. We construct a pinned World via
+# `Game._from_world` (so we get a stable layout), then drive the sub-state-
+# machine via `step("S")` → `step("<path-len>")` → `step("<room>")` chains
+# and inspect the post-step event streams on a subscribed InMemorySink.
+
+
+def _build_default_shoot_world() -> Any:
+    """Pin a layout suitable for R1-S05's shoot-collection scenarios. The
+    actual room numbers chosen for slots don't matter for the state-machine
+    behavior — what matters is that the engine accepts the chain and emits
+    the right events. We keep all entities far away from the player so no
+    incidental hazards fire during the test setup."""
+    from wumpus.types import World
+
+    return World(
+        player_room=1,
+        wumpus_rooms=(11,),
+        pit_rooms=(13, 14),
+        bat_rooms=(15, 19),
+        arrows=5,
+        turn=0,
+        alive=True,
+        pending_prompt=None,
+        pending_arrow_path=(),
+    )
+
+
+def _capture_post_step_events(
+    game: Any, sink: Any, action: str
+) -> list[Any]:
+    """Run a single `step(action)` and return only the events emitted by
+    that step (not the historical replay the sink received on subscribe)."""
+    pre_count = len(sink.events)
+    game.step(action)
+    return sink.events[pre_count:]
+
+
+# ---------------------------------------------------------------------------
+# R1-S05 — Scenario 1: Path-length out of range re-prompts
+# ---------------------------------------------------------------------------
+
+
+@given(
+    "the player has chosen S",
+    target_fixture="r1s05_after_S_state",
+)
+def _r1s05_after_S_state() -> dict[str, Any]:
+    """Construct a Game and run `step("S")` so the engine enters shoot mode
+    and is awaiting the path length. Return the game + sink for follow-up."""
+    from wumpus import Game
+    from wumpus.sinks import InMemorySink
+
+    game = Game._from_world(_build_default_shoot_world(), seed=0)
+    sink = InMemorySink()
+    game.subscribe(sink)
+    _capture_post_step_events(game, sink, "S")
+    return {
+        "game": game,
+        "sink": sink,
+        "turn_at_S": game.world_state().turn,
+    }
+
+
+@when(
+    "the player enters 0 for NO. OF ROOMS(1-5)?",
+    target_fixture="r1s05_path_len_zero_events",
+)
+def _r1s05_path_len_zero(r1s05_after_S_state: dict[str, Any]) -> list[Any]:
+    return _capture_post_step_events(
+        r1s05_after_S_state["game"],
+        r1s05_after_S_state["sink"],
+        "0",
+    )
+
+
+@then("NO. OF ROOMS(1-5)? is re-prompted")
+def _r1s05_path_len_zero_reprompt(
+    r1s05_path_len_zero_events: list[Any],
+    r1s05_after_S_state: dict[str, Any],
+) -> None:
+    from wumpus.events import PromptIssued
+
+    prompt_events = [
+        e for e in r1s05_path_len_zero_events if isinstance(e, PromptIssued)
+    ]
+    assert prompt_events, (
+        "No PromptIssued event emitted after invalid path length. "
+        f"Events seen: {[type(e).__name__ for e in r1s05_path_len_zero_events]}"
+    )
+    assert prompt_events[-1].kind == "shoot_path_len", (
+        f"Re-prompt PromptIssued.kind was {prompt_events[-1].kind!r}; "
+        f"expected 'shoot_path_len' (path-length re-prompt)."
+    )
+    # pending_prompt must still be the path-length prompt — not advanced.
+    assert (
+        r1s05_after_S_state["game"].world_state().pending_prompt
+        == "shoot_path_len"
+    ), (
+        "After rejecting an out-of-range path length, pending_prompt should "
+        "still be 'shoot_path_len'; got "
+        f"{r1s05_after_S_state['game'].world_state().pending_prompt!r}."
+    )
+
+
+@then("no turn counter advance has occurred")
+def _r1s05_no_turn_advance(
+    r1s05_after_S_state: dict[str, Any],
+) -> None:
+    assert (
+        r1s05_after_S_state["game"].world_state().turn
+        == r1s05_after_S_state["turn_at_S"]
+    ), (
+        "Turn counter advanced on a path-length re-prompt; per Yob 1973 + the "
+        "monotonic_turn discipline, only action-completing events advance the "
+        "turn counter."
+    )
+
+
+# ---------------------------------------------------------------------------
+# R1-S05 — Scenario 2: Crooked path triggers slot-specific re-prompt
+# ---------------------------------------------------------------------------
+
+
+@given(
+    "the player has entered path entries [7, 14] for a 3-room shoot",
+    target_fixture="r1s05_mid_shoot_state",
+)
+def _r1s05_mid_shoot_state() -> dict[str, Any]:
+    """Drive the engine through `S` → `3` → `7` → `14` so it is awaiting
+    slot 3 of a 3-room shoot, with [7, 14] already accepted."""
+    from wumpus import Game
+    from wumpus.sinks import InMemorySink
+
+    game = Game._from_world(_build_default_shoot_world(), seed=0)
+    sink = InMemorySink()
+    game.subscribe(sink)
+    _capture_post_step_events(game, sink, "S")
+    _capture_post_step_events(game, sink, "3")
+    _capture_post_step_events(game, sink, "7")
+    _capture_post_step_events(game, sink, "14")
+    return {"game": game, "sink": sink}
+
+
+@when(
+    "the player enters 7 for the third slot",
+    target_fixture="r1s05_crooked_events",
+)
+def _r1s05_crooked_third_slot(
+    r1s05_mid_shoot_state: dict[str, Any],
+) -> list[Any]:
+    return _capture_post_step_events(
+        r1s05_mid_shoot_state["game"],
+        r1s05_mid_shoot_state["sink"],
+        "7",
+    )
+
+
+@then("a CrookedPathRejected(slot=3, attempted_room=7) event fires")
+def _r1s05_crooked_event_fires(
+    r1s05_crooked_events: list[Any],
+) -> None:
+    from wumpus.events import CrookedPathRejected
+
+    crooked = [
+        e for e in r1s05_crooked_events if isinstance(e, CrookedPathRejected)
+    ]
+    assert crooked, (
+        "No CrookedPathRejected event emitted. "
+        f"Events seen: {[type(e).__name__ for e in r1s05_crooked_events]}"
+    )
+    assert crooked[0].slot == 3, (
+        f"CrookedPathRejected.slot was {crooked[0].slot}; expected 3."
+    )
+    assert crooked[0].attempted_room == 7, (
+        f"CrookedPathRejected.attempted_room was {crooked[0].attempted_room}; "
+        f"expected 7."
+    )
+
+
+@then("ROOM #? is re-prompted ONLY for slot 3")
+def _r1s05_reprompt_slot_3_only(
+    r1s05_crooked_events: list[Any],
+    r1s05_mid_shoot_state: dict[str, Any],
+) -> None:
+    from wumpus.events import PromptIssued
+
+    prompts = [e for e in r1s05_crooked_events if isinstance(e, PromptIssued)]
+    assert prompts, (
+        "No PromptIssued event emitted after crooked path rejection."
+    )
+    last = prompts[-1]
+    assert last.kind == "shoot_path_room", (
+        f"Re-prompt PromptIssued.kind was {last.kind!r}; "
+        f"expected 'shoot_path_room'."
+    )
+    assert last.context is not None and last.context.get("slot") == 3, (
+        f"Re-prompt PromptIssued.context.slot was {last.context}; "
+        f"expected slot=3."
+    )
+
+
+@then("the previously-entered rooms 7 and 14 remain unchanged")
+def _r1s05_path_preserved(
+    r1s05_mid_shoot_state: dict[str, Any],
+) -> None:
+    world = r1s05_mid_shoot_state["game"].world_state()
+    assert world.pending_arrow_path == (7, 14), (
+        f"After crooked rejection at slot 3, pending_arrow_path should still "
+        f"be (7, 14); got {world.pending_arrow_path!r}."
+    )
+
+
+# ---------------------------------------------------------------------------
+# R1-S05 — Scenario 3: Mid-shoot snapshot round-trips
+# ---------------------------------------------------------------------------
+
+
+@given(
+    "the player is mid-shoot, has entered NO. OF ROOMS=3 and ROOM #=7 for slot 1",
+    target_fixture="r1s05_mid_shoot_for_snapshot",
+)
+def _r1s05_mid_shoot_for_snapshot() -> Any:
+    """Drive the engine to mid-shoot state: S → 3 → 7, awaiting slot 2 of 3."""
+    from wumpus import Game
+    from wumpus.sinks import InMemorySink
+
+    game = Game._from_world(_build_default_shoot_world(), seed=0)
+    sink = InMemorySink()
+    game.subscribe(sink)
+    _capture_post_step_events(game, sink, "S")
+    _capture_post_step_events(game, sink, "3")
+    _capture_post_step_events(game, sink, "7")
+    return game
+
+
+@when(
+    "game.snapshot() is taken and Game.from_snapshot(snap) is constructed",
+    target_fixture="r1s05_resurrected_game",
+)
+def _r1s05_resurrect_from_snapshot(
+    r1s05_mid_shoot_for_snapshot: Any,
+) -> Any:
+    from wumpus import Game
+
+    snap = r1s05_mid_shoot_for_snapshot.snapshot()
+    return Game.from_snapshot(snap)
+
+
+@then("the resurrected game prompts for ROOM #? at slot 2")
+def _r1s05_resurrected_prompts_slot_2(
+    r1s05_resurrected_game: Any,
+) -> None:
+    world = r1s05_resurrected_game.world_state()
+    assert world.pending_prompt == "shoot_path_room", (
+        f"Resurrected game's pending_prompt was {world.pending_prompt!r}; "
+        f"expected 'shoot_path_room'."
+    )
+    # After feeding a fresh step("8") (an arbitrary non-crooked room), the
+    # next prompt context must mention slot 2 + total length 3. Instead of
+    # introspecting hidden state, we check the prompt context emitted by the
+    # resurrected game on its next subscribe replay.
+    # The snapshot must encode enough state that the engine knows it's at
+    # slot 2; we observe this via the next emitted PromptIssued.
+    from wumpus.events import PromptIssued
+    from wumpus.sinks import InMemorySink
+
+    sink = InMemorySink()
+    r1s05_resurrected_game.subscribe(sink)
+    # Find the last PromptIssued in the replay (which should be the
+    # awaiting-slot-2 prompt that was emitted before snapshot).
+    prompts = [e for e in sink.events if isinstance(e, PromptIssued)]
+    assert prompts, (
+        "Resurrected game replayed no PromptIssued events; snapshot must "
+        "preserve enough state to re-emit the pending prompt."
+    )
+    last = prompts[-1]
+    assert last.kind == "shoot_path_room", (
+        f"Resurrected game's last replayed prompt was {last.kind!r}; "
+        f"expected 'shoot_path_room'."
+    )
+    assert last.context is not None and last.context.get("slot") == 2, (
+        f"Resurrected prompt context was {last.context!r}; expected slot=2."
+    )
+
+
+@then("the pending_arrow_path is [7]")
+def _r1s05_resurrected_path_is_7(
+    r1s05_resurrected_game: Any,
+) -> None:
+    world = r1s05_resurrected_game.world_state()
+    assert world.pending_arrow_path == (7,), (
+        f"Resurrected game's pending_arrow_path was {world.pending_arrow_path!r}; "
+        f"expected (7,)."
+    )

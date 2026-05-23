@@ -21,7 +21,24 @@ R0 does NOT ship VariantConfig parametric handling (R4-S01), Surface Protocol
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Protocol
+from typing import Literal, Protocol
+
+# ---------------------------------------------------------------------------
+# PromptKind — the engine's discriminator for which prompt it's awaiting next.
+# ---------------------------------------------------------------------------
+#
+# Used in two places:
+#   - `Observation.prompt` (player-visible hint of next input shape)
+#   - `PromptIssued.kind` (event-stream signal of what the engine awaits)
+#
+# Values:
+#   "action"           — top-level prompt: SHOOT OR MOVE (S-M)?
+#   "move_target"      — after the player picks M, the engine awaits a room number
+#   "shoot_path_len"   — after the player picks S, the engine awaits NO. OF ROOMS(1-5)?
+#   "shoot_path_room"  — once path length is set, the engine awaits each slot's ROOM #?
+PromptKind = Literal[
+    "action", "move_target", "shoot_path_len", "shoot_path_room"
+]
 
 
 # ---------------------------------------------------------------------------
@@ -50,6 +67,11 @@ class World:
     alive: bool
     pending_prompt: str | None
     pending_arrow_path: tuple[int, ...]
+    # R1-S05: when a shoot path is being collected, this records the total
+    # length committed by the player at the NO. OF ROOMS(1-5)? prompt. None
+    # outside of shoot-path collection. The snapshot round-trip depends on
+    # this field so a resurrected Game knows it's at slot K of N.
+    pending_path_length: int | None = None
 
 
 # ---------------------------------------------------------------------------

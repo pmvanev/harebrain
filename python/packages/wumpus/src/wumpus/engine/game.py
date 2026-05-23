@@ -36,14 +36,18 @@ from wumpus.engine.sense import emit_senses_for_room
 from wumpus.engine.transitions import _adjacent_rooms_for_cave, resolve_move
 from wumpus.events import (
     SCHEMA_VERSION,
+    ActionChosen,
+    ArrowFired,
+    CrookedPathRejected,
     Event,
     GameEnded,
     GameStarted,
     LocationReported,
     MoveResolved,
     PlayerTeleported,
+    PromptIssued,
 )
-from wumpus.types import Observation, Snapshot, World
+from wumpus.types import Observation, PromptKind, Snapshot, World
 
 if TYPE_CHECKING:
     from wumpus.sinks import Sink
@@ -156,7 +160,14 @@ class Game:
     # ---- public driving-port API -----------------------------------------
 
     def step(self, action: str) -> Observation:
-        """Apply `action` to the engine. R0 supports only `move <N>` actions.
+        """Apply `action` to the engine.
+
+        R0 supported only `move <N>` actions. R1-S05 extends `step` with the
+        shoot sub-state-machine: `step("S")` enters shoot mode, after which
+        the engine awaits a path length (1..5), then per-slot rooms. The
+        shoot sub-state-machine is driven entirely through follow-up `step`
+        calls that supply the next bare integer; the engine routes on the
+        World's `pending_prompt` field.
 
         Returns an `Observation` describing the post-step view. Events are
         emitted to all subscribed sinks (and to `_debug_events`) in the order
@@ -183,7 +194,26 @@ class Game:
         player in a safe room (no further hazard), the shell re-emits
         sense events for the new room (Yob 4280-4290 prints sense+location
         for the teleport destination), followed by LocationReported.
+
+        R1-S05: shoot path collection. `step("S")` from the base state emits
+        `ActionChosen("S")` + `PromptIssued("shoot_path_len")` and parks the
+        engine in `pending_prompt="shoot_path_len"`. The next `step("<int>")`
+        validates the path length (range 1-5) and either re-prompts or
+        advances to per-slot prompts. The crooked-arrow rule
+        `P(K) == P(K-2)` is enforced at K > 2 with `CrookedPathRejected` +
+        slot-specific re-prompt. When all slots are collected, `ArrowFired`
+        fires and the pending state clears (no arrow walk — that is R1-S06).
         """
+        # Route on pending_prompt FIRST: if the engine is mid-shoot, the
+        # action is a path-length or room-slot integer string, not a move.
+        if self._world.pending_prompt is not None:
+            return self._step_shoot_subroutine(action)
+        # Top-level: "S" enters the shoot sub-state-machine; everything else
+        # goes through the existing move parser (which also defends the
+        # action-grammar invariants — see `_parse_move_action`).
+        if action == "S":
+            return self._enter_shoot_mode()
+
         target_room = self._parse_move_action(action)
         rng_cursor = self._encode_rng_cursor()
         next_world, events = resolve_move(
@@ -419,3 +449,292 @@ class Game:
             raise ValueError(
                 f"R0 move action target must be an integer; got: {parts[1]!r}"
             ) from exc
+
+    # ---- R1-S05 shoot sub-state-machine ----------------------------------
+
+    def _enter_shoot_mode(self) -> Observation:
+        """Handle `step("S")` from the base state.
+
+        Emits `ActionChosen("S")` + `PromptIssued("shoot_path_len")` and
+        parks the World in `pending_prompt="shoot_path_len"`. The turn
+        counter does NOT advance — picking S is not an action-completing
+        event; the action completes on `ArrowFired`.
+        """
+        new_world = self._with_pending(
+            pending_prompt="shoot_path_len",
+            pending_arrow_path=(),
+            pending_path_length=None,
+        )
+        self._world = new_world
+        rng_cursor = self._encode_rng_cursor()
+        self._emit(
+            ActionChosen(
+                schema_version=SCHEMA_VERSION,
+                turn=new_world.turn,
+                surface_variant=_R0_SURFACE_VARIANT,
+                internal_state_hash=internal_state_hash(new_world),
+                rng_cursor=rng_cursor,
+                action="S",
+            )
+        )
+        self._emit(
+            PromptIssued(
+                schema_version=SCHEMA_VERSION,
+                turn=new_world.turn,
+                surface_variant=_R0_SURFACE_VARIANT,
+                internal_state_hash=internal_state_hash(new_world),
+                rng_cursor=rng_cursor,
+                kind="shoot_path_len",
+                context=None,
+            )
+        )
+        return self._render_observation()
+
+    def _step_shoot_subroutine(self, action: str) -> Observation:
+        """Dispatch a shoot-mode `step(action)` based on `pending_prompt`."""
+        pending = self._world.pending_prompt
+        if pending == "shoot_path_len":
+            return self._handle_path_length_entry(action)
+        if pending == "shoot_path_room":
+            return self._handle_room_slot_entry(action)
+        raise ValueError(
+            f"Unknown pending_prompt {pending!r}; engine routing bug."
+        )
+
+    def _handle_path_length_entry(self, action: str) -> Observation:
+        """Validate a NO. OF ROOMS(1-5)? entry. Out-of-range re-prompts;
+        valid → advance to per-slot collection."""
+        path_length = _parse_int_or_none(action)
+        if path_length is None or not (1 <= path_length <= 5):
+            self._reissue_prompt("shoot_path_len", context=None)
+            return self._render_observation()
+        # Valid path length: advance to slot-1 collection.
+        new_world = self._with_pending(
+            pending_prompt="shoot_path_room",
+            pending_arrow_path=(),
+            pending_path_length=path_length,
+        )
+        self._world = new_world
+        self._reissue_prompt(
+            "shoot_path_room",
+            context={"slot": 1, "of": path_length},
+        )
+        return self._render_observation()
+
+    def _handle_room_slot_entry(self, action: str) -> Observation:
+        """Validate a ROOM #? slot entry. Crooked at K>2 re-prompts the
+        same slot; valid → append to path and advance (or finalize)."""
+        attempted_room = _parse_int_or_none(action)
+        current_path = self._world.pending_arrow_path
+        slot = len(current_path) + 1  # 1-indexed
+        path_length = self._world.pending_path_length
+        assert path_length is not None, (
+            "pending_path_length must be set during shoot_path_room phase; "
+            "this is an engine routing invariant."
+        )
+        if attempted_room is None:
+            # Malformed entry: re-prompt the same slot.
+            self._reissue_prompt(
+                "shoot_path_room",
+                context={"slot": slot, "of": path_length},
+            )
+            return self._render_observation()
+        # Crooked-arrow check: P(K) == P(K-2) only at K > 2.
+        if slot > 2 and attempted_room == current_path[slot - 3]:
+            self._emit_crooked_rejection(slot, attempted_room)
+            self._reissue_prompt(
+                "shoot_path_room",
+                context={"slot": slot, "of": path_length},
+            )
+            return self._render_observation()
+        # Accept the slot. Append to path.
+        new_path = current_path + (attempted_room,)
+        if slot < path_length:
+            # More slots to collect.
+            new_world = self._with_pending(
+                pending_prompt="shoot_path_room",
+                pending_arrow_path=new_path,
+                pending_path_length=path_length,
+            )
+            self._world = new_world
+            self._reissue_prompt(
+                "shoot_path_room",
+                context={"slot": slot + 1, "of": path_length},
+            )
+            return self._render_observation()
+        # Final slot: emit ArrowFired and clear pending state.
+        # Turn counter advances here per the action-completing-events rule.
+        cleared_world = World(
+            player_room=self._world.player_room,
+            wumpus_rooms=self._world.wumpus_rooms,
+            pit_rooms=self._world.pit_rooms,
+            bat_rooms=self._world.bat_rooms,
+            arrows=self._world.arrows,
+            turn=self._world.turn + 1,
+            alive=self._world.alive,
+            pending_prompt=None,
+            pending_arrow_path=(),
+            pending_path_length=None,
+        )
+        self._world = cleared_world
+        self._emit(
+            ArrowFired(
+                schema_version=SCHEMA_VERSION,
+                turn=cleared_world.turn,
+                surface_variant=_R0_SURFACE_VARIANT,
+                internal_state_hash=internal_state_hash(cleared_world),
+                rng_cursor=self._encode_rng_cursor(),
+                path=new_path,
+            )
+        )
+        return self._render_observation()
+
+    def _emit_crooked_rejection(self, slot: int, attempted_room: int) -> None:
+        self._emit(
+            CrookedPathRejected(
+                schema_version=SCHEMA_VERSION,
+                turn=self._world.turn,
+                surface_variant=_R0_SURFACE_VARIANT,
+                internal_state_hash=internal_state_hash(self._world),
+                rng_cursor=self._encode_rng_cursor(),
+                slot=slot,
+                attempted_room=attempted_room,
+            )
+        )
+
+    def _reissue_prompt(
+        self,
+        kind: PromptKind,
+        *,
+        context: dict[str, int | str] | None,
+    ) -> None:
+        self._emit(
+            PromptIssued(
+                schema_version=SCHEMA_VERSION,
+                turn=self._world.turn,
+                surface_variant=_R0_SURFACE_VARIANT,
+                internal_state_hash=internal_state_hash(self._world),
+                rng_cursor=self._encode_rng_cursor(),
+                kind=kind,
+                context=context,
+            )
+        )
+
+    def _with_pending(
+        self,
+        *,
+        pending_prompt: str | None,
+        pending_arrow_path: tuple[int, ...],
+        pending_path_length: int | None,
+    ) -> World:
+        """Return a copy of `self._world` with the three pending-state fields
+        replaced. Used by the shoot sub-state-machine transitions."""
+        return World(
+            player_room=self._world.player_room,
+            wumpus_rooms=self._world.wumpus_rooms,
+            pit_rooms=self._world.pit_rooms,
+            bat_rooms=self._world.bat_rooms,
+            arrows=self._world.arrows,
+            turn=self._world.turn,
+            alive=self._world.alive,
+            pending_prompt=pending_prompt,
+            pending_arrow_path=pending_arrow_path,
+            pending_path_length=pending_path_length,
+        )
+
+    # ---- R1-S05 from_snapshot --------------------------------------------
+
+    @classmethod
+    def from_snapshot(cls, snapshot: Snapshot) -> "Game":
+        """Reconstruct a Game from a Snapshot.
+
+        Per SC6 the snapshot is fully serializable and round-trippable. The
+        reconstructed Game:
+          - has its World restored verbatim (including any mid-shoot pending
+            state: `pending_prompt`, `pending_arrow_path`, `pending_path_length`)
+          - has its RNG restored from the encoded `rng_cursor`
+          - emits a `GameStarted` event tagged with the snapshot's seed
+          - if the World is mid-shoot, re-emits the awaiting `PromptIssued`
+            so the resurrected event stream tells a downstream consumer
+            (renderer, agent, ledger reader) what input the engine awaits
+
+        The seed on the emitted `GameStarted` is the snapshot's seed; replay
+        consumers reconstruct the full event chain by combining the prior
+        event log (from a sink) with the post-resurrection stream.
+        """
+        game = cls.__new__(cls)
+        game._seed = snapshot.seed
+        game._random = _decode_rng_cursor(snapshot.rng_cursor)
+        game._cave = _CAVE_YOB
+        game._world = snapshot.world
+        game._subscribers = []
+        game._debug_events = []
+
+        start_event = GameStarted(
+            schema_version=SCHEMA_VERSION,
+            turn=game._world.turn,
+            surface_variant=_R0_SURFACE_VARIANT,
+            internal_state_hash=internal_state_hash(game._world),
+            rng_cursor=game._encode_rng_cursor(),
+            seed=snapshot.seed,
+            engine_version=_R0_ENGINE_VERSION,
+            surface_id=_R0_SURFACE_ID,
+            layout_hash=internal_state_hash(game._world),
+            active_escalation_rules=snapshot.active_escalation_rules,
+        )
+        game._emit(start_event)
+
+        # Re-emit the pending prompt so the resurrected event stream reflects
+        # what the engine awaits next. Mid-shoot snapshots replay the
+        # awaiting-slot context.
+        if game._world.pending_prompt == "shoot_path_room":
+            slot = len(game._world.pending_arrow_path) + 1
+            of = game._world.pending_path_length
+            assert of is not None, (
+                "Snapshot in shoot_path_room state must have a path length."
+            )
+            game._emit(
+                PromptIssued(
+                    schema_version=SCHEMA_VERSION,
+                    turn=game._world.turn,
+                    surface_variant=_R0_SURFACE_VARIANT,
+                    internal_state_hash=internal_state_hash(game._world),
+                    rng_cursor=game._encode_rng_cursor(),
+                    kind="shoot_path_room",
+                    context={"slot": slot, "of": of},
+                )
+            )
+        elif game._world.pending_prompt == "shoot_path_len":
+            game._emit(
+                PromptIssued(
+                    schema_version=SCHEMA_VERSION,
+                    turn=game._world.turn,
+                    surface_variant=_R0_SURFACE_VARIANT,
+                    internal_state_hash=internal_state_hash(game._world),
+                    rng_cursor=game._encode_rng_cursor(),
+                    kind="shoot_path_len",
+                    context=None,
+                )
+            )
+        return game
+
+
+def _parse_int_or_none(action: str) -> int | None:
+    """Parse `action` as a bare integer; return None if it fails. Used by
+    the shoot sub-state-machine where a non-integer input is treated as a
+    malformed entry that simply re-prompts (Yob's BASIC `INPUT` parses on
+    type)."""
+    try:
+        return int(action)
+    except ValueError:
+        return None
+
+
+def _decode_rng_cursor(rng_cursor: str) -> random.Random:
+    """Inverse of `Game._encode_rng_cursor`: base64-decode + unpickle the
+    `random.Random.getstate()` tuple and rebuild a Random instance."""
+    state_bytes = base64.b64decode(rng_cursor.encode("ascii"))
+    state = pickle.loads(state_bytes)
+    rng = random.Random()
+    rng.setstate(state)
+    return rng

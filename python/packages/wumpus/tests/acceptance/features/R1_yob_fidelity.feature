@@ -109,3 +109,26 @@ Feature: R1 Yob fidelity — dodecahedron cave + Yob mechanics
     Then PlayerTeleported(from=5, to=17) fires
     And HazardTriggered(PIT) fires
     And GameEnded(outcome=fell_in_pit) fires
+
+  # ---------------------------------------------------------------------------
+  # R1-S05 — Shoot path collection + crooked-arrow rejection
+  # ---------------------------------------------------------------------------
+
+  Scenario: Path-length out of range re-prompts
+    Given the player has chosen S
+    When the player enters 0 for NO. OF ROOMS(1-5)?
+    Then NO. OF ROOMS(1-5)? is re-prompted
+    And no turn counter advance has occurred
+
+  Scenario: Crooked path triggers slot-specific re-prompt
+    Given the player has entered path entries [7, 14] for a 3-room shoot
+    When the player enters 7 for the third slot
+    Then a CrookedPathRejected(slot=3, attempted_room=7) event fires
+    And ROOM #? is re-prompted ONLY for slot 3
+    And the previously-entered rooms 7 and 14 remain unchanged
+
+  Scenario: Mid-shoot snapshot round-trips
+    Given the player is mid-shoot, has entered NO. OF ROOMS=3 and ROOM #=7 for slot 1
+    When game.snapshot() is taken and Game.from_snapshot(snap) is constructed
+    Then the resurrected game prompts for ROOM #? at slot 2
+    And the pending_arrow_path is [7]

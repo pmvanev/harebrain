@@ -12,6 +12,9 @@ from __future__ import annotations
 from wumpus.engine.game import Game
 from wumpus.events import (
     SCHEMA_VERSION,
+    ActionChosen,
+    ArrowFired,
+    CrookedPathRejected,
     Event,
     GameEnded,
     GameStarted,
@@ -20,10 +23,11 @@ from wumpus.events import (
     MoveAttempted,
     MoveResolved,
     PlayerTeleported,
+    PromptIssued,
     SenseEmitted,
     WumpusStartled,
 )
-from wumpus.types import Observation, Snapshot, World
+from wumpus.types import Observation, PromptKind, Snapshot, World
 
 __version__ = "0.0.0"
 
@@ -32,6 +36,7 @@ __all__ = [
     "World",
     "Snapshot",
     "Observation",
+    "PromptKind",
     "Event",
     "GameStarted",
     "MoveAttempted",
@@ -41,6 +46,10 @@ __all__ = [
     "HazardTriggered",
     "WumpusStartled",
     "PlayerTeleported",
+    "ActionChosen",
+    "PromptIssued",
+    "CrookedPathRejected",
+    "ArrowFired",
     "GameEnded",
     "SCHEMA_VERSION",
 ]

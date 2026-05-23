@@ -46,6 +46,7 @@ def _canonical_world_bytes(world: World) -> bytes:
         b"alive=" + (b"1" if world.alive else b"0"),
         b"pending_prompt=" + _opt_str_bytes(world.pending_prompt),
         b"pending_arrow_path=" + _tuple_bytes(world.pending_arrow_path),
+        b"pending_path_length=" + _opt_int_bytes(world.pending_path_length),
     ]
     return b";".join(parts)
 
@@ -58,3 +59,9 @@ def _opt_str_bytes(value: str | None) -> bytes:
     if value is None:
         return b"<none>"
     return value.encode("utf-8")
+
+
+def _opt_int_bytes(value: int | None) -> bytes:
+    if value is None:
+        return b"<none>"
+    return str(value).encode("ascii")
