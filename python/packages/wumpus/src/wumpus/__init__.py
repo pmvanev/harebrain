@@ -19,6 +19,7 @@ from wumpus.events import (
     LocationReported,
     MoveAttempted,
     MoveResolved,
+    PlayerTeleported,
     SenseEmitted,
     WumpusStartled,
 )
@@ -39,6 +40,7 @@ __all__ = [
     "LocationReported",
     "HazardTriggered",
     "WumpusStartled",
+    "PlayerTeleported",
     "GameEnded",
     "SCHEMA_VERSION",
 ]

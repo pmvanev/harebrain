@@ -83,3 +83,29 @@ Feature: R1 Yob fidelity — dodecahedron cave + Yob mechanics
     And the engine's next startle draw will be 4 (stay)
     When the player moves to room 7
     Then WumpusStartled(from=7, to=7, ate_player=True) fires (the wumpus stays in 7, which is now the player's room)
+
+  # ---------------------------------------------------------------------------
+  # R1-S04 — Move + pit + bat teleport (recursive)
+  # ---------------------------------------------------------------------------
+
+  Scenario: Falling into a pit ends the game
+    Given a pit is in room 4 and the player is in room 3 (adjacent to 4)
+    When the player moves to room 4
+    Then HazardTriggered(PIT) fires
+    And GameEnded(outcome=fell_in_pit) fires
+
+  Scenario: Bat teleport to a safe room re-emits senses for the new room
+    Given a bat is in room 5 and the engine's next bat-teleport target is room 17
+    And room 17 is adjacent to no hazards
+    When the player moves to room 5
+    Then PlayerTeleported(from=5, to=17) fires
+    And LocationReported(room=17) fires
+    And no SenseEmitted event fires for the new room
+
+  Scenario: Bat teleport into a pit ends the game (recursive hazard)
+    Given a bat is in room 5 and a pit is in room 17
+    And the engine's next bat-teleport target is room 17
+    When the player moves to room 5
+    Then PlayerTeleported(from=5, to=17) fires
+    And HazardTriggered(PIT) fires
+    And GameEnded(outcome=fell_in_pit) fires

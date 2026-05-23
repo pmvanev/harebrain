@@ -23,6 +23,7 @@ outside the engine + tests MUST NOT depend on it.
 from __future__ import annotations
 
 import base64
+import enum
 import pickle
 import random
 from typing import TYPE_CHECKING
@@ -40,6 +41,7 @@ from wumpus.events import (
     GameStarted,
     LocationReported,
     MoveResolved,
+    PlayerTeleported,
 )
 from wumpus.types import Observation, Snapshot, World
 
@@ -58,6 +60,23 @@ _R0_SURFACE_VARIANT: str = "<placeholder>"
 # the engine's deterministic-from-seed abstractions on the cheapest substrate.
 _CAVE_YOB: str = "yob"
 _CAVE_TOY: str = "toy"
+
+
+class _HazardOutcome(enum.Enum):
+    """Tri-valued result of `_resolve_post_move_hazards`.
+
+    - `NONE`: the resolver fired no events; the player is in a safe room.
+      The shell should emit sense+location for the originally-targeted room.
+    - `TERMINAL`: a `GameEnded` event fired (eaten_after_bump or fell_in_pit).
+      The shell skips sense+location entirely.
+    - `SAFE_TELEPORT`: a bat snatch teleported the player to a hazard-free
+      room (no GameEnded). The shell should emit sense+location for the
+      teleport destination (the current `world.player_room`).
+    """
+
+    NONE = "none"
+    TERMINAL = "terminal"
+    SAFE_TELEPORT = "safe_teleport"
 
 
 class Game:
@@ -153,10 +172,17 @@ class Game:
         hazard via `hazard_resolve`. If the player walked into the wumpus's
         room, the resolver emits `HazardTriggered(WUMPUS)`, runs the FNC(0)
         startle, and (if the startled wumpus lands on the player) emits
-        `GameEnded(eaten_after_bump)`. When a hazard fires, sense + location
-        events are suppressed for that room (the player no longer occupies
-        a "safe new room" — either the game ended or the world's mutated).
-        Pit and bat handlers land at R1-S04.
+        `GameEnded(eaten_after_bump)`. When a wumpus or pit hazard fires
+        (terminal or near-terminal), sense + location events are suppressed
+        for that room.
+
+        R1-S04: pit and bat arms ship. A pit fall short-circuits the move
+        (HazardTriggered(PIT) + GameEnded(fell_in_pit), no sense+location).
+        A bat snatch emits HazardTriggered(BAT) + PlayerTeleported, then
+        the resolver recurses on the new room. If the recursion lands the
+        player in a safe room (no further hazard), the shell re-emits
+        sense events for the new room (Yob 4280-4290 prints sense+location
+        for the teleport destination), followed by LocationReported.
         """
         target_room = self._parse_move_action(action)
         rng_cursor = self._encode_rng_cursor()
@@ -171,34 +197,56 @@ class Game:
         if not (self._cave == _CAVE_YOB and move_resolved):
             return self._render_observation()
 
-        hazard_fired = self._resolve_post_move_hazards()
-        if hazard_fired:
-            # Bumped wumpus (or, later, fell-in-pit / bat-snatch). Skip the
-            # sense + location emission — the player either died or is no
-            # longer in a stable "entered a new room" state.
+        hazard_outcome = self._resolve_post_move_hazards()
+        if hazard_outcome == _HazardOutcome.NONE:
+            self._emit_senses_and_location(target_room)
             return self._render_observation()
-
-        self._emit_senses_and_location(target_room)
+        if hazard_outcome == _HazardOutcome.TERMINAL:
+            # GameEnded fired (eaten_after_bump or fell_in_pit). No sense+location.
+            return self._render_observation()
+        # SAFE_TELEPORT — bat snatch landed the player in a hazard-free
+        # room. Re-emit sense+location for the new room (Yob 4280-4290).
+        self._emit_senses_and_location(self._world.player_room)
         return self._render_observation()
 
-    def _resolve_post_move_hazards(self) -> bool:
+    def _resolve_post_move_hazards(self) -> _HazardOutcome:
         """Drive `hazard_resolve` for the player's current room.
 
-        Returns True iff the resolver fired any event (i.e. a hazard was
-        co-located with the player); False iff the player is in a safe
-        room. The Game shell stamps `GameEnded.final_snapshot` with the
-        engine's real Snapshot metadata (overrides the resolver's
-        placeholder) before emission.
+        Returns a `_HazardOutcome` discriminating the three cases the shell
+        cares about:
+          - `NONE`: no hazard fired; the shell continues with sense+location.
+          - `TERMINAL`: `GameEnded` fired; the shell skips sense+location.
+          - `SAFE_TELEPORT`: a bat snatch teleported the player to a safe
+            room (no GameEnded); the shell emits sense+location for the new
+            room (Yob 4280-4290 prints sense+location for the destination).
+
+        The Game shell stamps `GameEnded.final_snapshot` with the engine's
+        real Snapshot metadata (overrides the resolver's placeholder) before
+        emission.
         """
         post_move_world, hazard_events = hazard_resolve(self._world, self._random)
         if not hazard_events:
-            return False
+            return _HazardOutcome.NONE
 
         self._world = post_move_world
         rng_cursor = self._encode_rng_cursor()
         for event in hazard_events:
             self._emit(self._stamp_engine_metadata(event, rng_cursor=rng_cursor))
-        return True
+
+        if any(isinstance(e, GameEnded) for e in hazard_events):
+            return _HazardOutcome.TERMINAL
+        if any(isinstance(e, PlayerTeleported) for e in hazard_events):
+            # Bat snatch with no terminal outcome — the recursion landed
+            # the player in a safe room (or a chain that bottomed out in
+            # a safe room). Shell should emit sense+location for the
+            # final destination.
+            return _HazardOutcome.SAFE_TELEPORT
+        # Non-terminal wumpus bump (startle moved the wumpus away). Treat
+        # as TERMINAL-skip: the player's room state is "just bumped a
+        # wumpus" — Yob does NOT re-emit sense lines for this case
+        # (the player has not "entered a new room" from the sense engine's
+        # perspective, even though they technically did).
+        return _HazardOutcome.TERMINAL
 
     def _stamp_engine_metadata(self, event: Event, *, rng_cursor: str) -> Event:
         """Replace the resolver's placeholder Game-shell fields (rng_cursor;

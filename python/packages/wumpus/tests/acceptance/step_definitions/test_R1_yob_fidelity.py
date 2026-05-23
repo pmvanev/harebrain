@@ -817,3 +817,325 @@ def _r1s03_wumpus_stays_eats_player(
     assert ended_events[0].outcome == "eaten_after_bump", (
         f"GameEnded.outcome was {ended_events[0].outcome!r}; expected 'eaten_after_bump'."
     )
+
+
+# ---------------------------------------------------------------------------
+# R1-S04 — Move + pit + bat teleport (recursive)
+# ---------------------------------------------------------------------------
+#
+# Strategy mirrors R1-S03: pin the layout via `Game._from_world`, swap
+# `game._random` with a `_MockRandom` whose scripted `randint` values control
+# the bat-teleport target (Yob's FNB(1) for bat snatch draws over rooms
+# 1..20 — uniform per the archived journey yaml step 4 spec, NOT just adjacents).
+#
+# Each scenario constructs its own World fixture in its Given step. The When
+# step (`the player moves to room <N>`) drives the move and captures the
+# event stream emitted after construction.
+
+
+def _drive_move_with_scripted_rng(
+    *,
+    world: Any,
+    target_room: int,
+    scripted_randint: list[int],
+) -> list[Any]:
+    """Construct a Game pinned to `world`, swap its RNG with `_MockRandom`
+    scripted by `scripted_randint`, attach a fresh InMemorySink, step the
+    player into `target_room`, and return events emitted after construction."""
+    from wumpus import Game
+    from wumpus.sinks import InMemorySink
+
+    game = Game._from_world(world, seed=0)
+    game._random = _MockRandom(scripted_randint)  # type: ignore[assignment]
+
+    sink = InMemorySink()
+    game.subscribe(sink)
+    pre_move_count = len(sink.events)
+    game.step(f"move {target_room}")
+    return sink.events[pre_move_count:]
+
+
+# ---------------------------------------------------------------------------
+# R1-S04 — Scenario 1: Falling into a pit ends the game
+# ---------------------------------------------------------------------------
+
+
+@given(
+    "a pit is in room 4 and the player is in room 3 (adjacent to 4)",
+    target_fixture="r1s04_pit_scenario_events",
+)
+def _r1s04_pit_scenario_events() -> list[Any]:
+    # Room 3 has neighbors {2, 4, 12}. Player at 3, pit at 4 (adjacent).
+    # Wumpus parked at 11 (not in {2,4,12} and not in room 4's neighbors
+    # {3,5,14} either — irrelevant since the pit-fall fires first). Second
+    # pit at 14, bats at 15, 19 — all distinct, none in the pit-fall path.
+    from wumpus.types import World
+
+    world = World(
+        player_room=3,
+        wumpus_rooms=(11,),
+        pit_rooms=(4, 14),
+        bat_rooms=(15, 19),
+        arrows=5,
+        turn=0,
+        alive=True,
+        pending_prompt=None,
+        pending_arrow_path=(),
+    )
+    # No RNG draws expected for a pure pit fall (no startle, no teleport).
+    return _drive_move_with_scripted_rng(
+        world=world, target_room=4, scripted_randint=[]
+    )
+
+
+@when("the player moves to room 4")
+def _r1s04_when_move_to_4() -> None:
+    """No-op: the Given step already drove the move and captured events.
+    pytest-bdd needs a When binding for the step text to resolve."""
+
+
+@then("HazardTriggered(PIT) fires")
+def _r1s04_hazard_triggered_pit(request: Any) -> None:
+    """Shared across scenarios 1 (direct pit fall) and 3 (bat→pit chain).
+    Probes for the active scenario's fixture."""
+    events = _pull_r1s04_any_scenario_events(request)
+    from wumpus.events import HazardTriggered
+
+    pit_events = [
+        e for e in events if isinstance(e, HazardTriggered) and e.kind == "PIT"
+    ]
+    assert pit_events, (
+        f"No HazardTriggered(PIT) event after pit fall. "
+        f"Events seen: {[type(e).__name__ for e in events]}"
+    )
+
+
+@then("GameEnded(outcome=fell_in_pit) fires")
+def _r1s04_game_ended_fell_in_pit(request: Any) -> None:
+    """Shared across scenarios 1 and 3."""
+    events = _pull_r1s04_any_scenario_events(request)
+    from wumpus.events import GameEnded
+
+    ended_events = [e for e in events if isinstance(e, GameEnded)]
+    assert ended_events, "No GameEnded event after pit fall (direct or recursive)."
+    assert ended_events[0].outcome == "fell_in_pit", (
+        f"GameEnded.outcome was {ended_events[0].outcome!r}; expected 'fell_in_pit'."
+    )
+    assert ended_events[0].message_kind == "lose", (
+        f"GameEnded.message_kind was {ended_events[0].message_kind!r}; expected 'lose'."
+    )
+
+
+# ---------------------------------------------------------------------------
+# R1-S04 — Scenario 2: Bat teleport to a safe room re-emits senses for new room
+# ---------------------------------------------------------------------------
+
+
+@given(
+    "a bat is in room 5 and the engine's next bat-teleport target is room 17",
+    target_fixture="r1s04_bat_safe_scenario_events",
+)
+def _r1s04_bat_safe_scenario_events() -> list[Any]:
+    # Room 5 neighbors {1, 4, 6}; player starts at 1 and moves to 5.
+    # Bat at 5; second bat parked at 12 (NOT in room 17's neighbors {7,16,18},
+    # NOT room 17 itself).
+    # Room 17 neighbors {7, 16, 18}. To make room 17 hazard-free + safe:
+    #   wumpus at 11 (not in {7,16,18}, not room 17)
+    #   pits at 13, 14 (neither in {7,16,18}, neither is 17)
+    # Verified: no entity is in {17}∪{7,16,18}.
+    from wumpus.types import World
+
+    world = World(
+        player_room=1,
+        wumpus_rooms=(11,),
+        pit_rooms=(13, 14),
+        bat_rooms=(5, 12),
+        arrows=5,
+        turn=0,
+        alive=True,
+        pending_prompt=None,
+        pending_arrow_path=(),
+    )
+    # One bat draw: randint(1, 20) → 17 (the bat-teleport target).
+    return _drive_move_with_scripted_rng(
+        world=world, target_room=5, scripted_randint=[17]
+    )
+
+
+@given("room 17 is adjacent to no hazards")
+def _r1s04_room_17_safe_assertion() -> None:
+    """Layout assertion: the prior Given already constructed a world where
+    room 17's neighbors {7, 16, 18} contain no entity rooms. No fixture state
+    to propagate; pytest-bdd just needs the binding."""
+
+
+@when("the player moves to room 5")
+def _r1s04_when_move_to_5() -> None:
+    """No-op: the Given step already drove the move."""
+
+
+@then("PlayerTeleported(from=5, to=17) fires")
+def _r1s04_player_teleported_5_to_17(request: Any) -> None:
+    """Shared across scenarios 2 and 3."""
+    events = _pull_r1s04_bat_scenario_events(request)
+    from wumpus.events import PlayerTeleported
+
+    tps = [e for e in events if isinstance(e, PlayerTeleported)]
+    assert tps, (
+        f"No PlayerTeleported event emitted on bat snatch. "
+        f"Events seen: {[type(e).__name__ for e in events]}"
+    )
+    event = tps[0]
+    assert event.from_room == 5, (
+        f"PlayerTeleported.from_room was {event.from_room}; expected 5."
+    )
+    assert event.to_room == 17, (
+        f"PlayerTeleported.to_room was {event.to_room}; expected 17 "
+        f"(scripted randint(1, 20) → 17)."
+    )
+    assert event.cause == "bat", (
+        f"PlayerTeleported.cause was {event.cause!r}; expected 'bat' "
+        f"(per L18 + Tier A4 amendment)."
+    )
+
+
+@then("LocationReported(room=17) fires")
+def _r1s04_location_reported_room_17(
+    r1s04_bat_safe_scenario_events: list[Any],
+) -> None:
+    from wumpus.events import LocationReported
+
+    location_events = [
+        e for e in r1s04_bat_safe_scenario_events if isinstance(e, LocationReported)
+    ]
+    assert location_events, (
+        "No LocationReported event after bat teleport into a safe room. "
+        "Sense+location re-emission contract violated."
+    )
+    # The LAST LocationReported should be for the teleport destination.
+    final_location = location_events[-1]
+    assert final_location.room == 17, (
+        f"Final LocationReported.room was {final_location.room}; "
+        f"expected 17 (the teleport destination)."
+    )
+
+
+@then("no SenseEmitted event fires for the new room")
+def _r1s04_no_sense_for_new_room(
+    r1s04_bat_safe_scenario_events: list[Any],
+) -> None:
+    from wumpus.events import LocationReported, PlayerTeleported, SenseEmitted
+
+    # Find the slice of events BETWEEN PlayerTeleported and the final
+    # LocationReported. Any SenseEmitted in that slice would mean sense
+    # events fired for the new room. Room 17's neighbors {7, 16, 18} contain
+    # no hazards in our layout, so the engine should emit ZERO SenseEmitted
+    # for the teleport destination.
+    teleport_indices = [
+        i
+        for i, e in enumerate(r1s04_bat_safe_scenario_events)
+        if isinstance(e, PlayerTeleported)
+    ]
+    location_indices = [
+        i
+        for i, e in enumerate(r1s04_bat_safe_scenario_events)
+        if isinstance(e, LocationReported)
+    ]
+    assert teleport_indices and location_indices, (
+        "Missing PlayerTeleported or LocationReported events; cannot validate "
+        "sense-emission window for the teleport destination."
+    )
+    window_start = teleport_indices[-1]
+    window_end = location_indices[-1]
+    new_room_senses = [
+        e
+        for e in r1s04_bat_safe_scenario_events[window_start:window_end]
+        if isinstance(e, SenseEmitted)
+    ]
+    assert new_room_senses == [], (
+        f"Expected zero SenseEmitted events for safe teleport destination "
+        f"(room 17 has no adjacent hazards); got {new_room_senses!r}."
+    )
+
+
+# ---------------------------------------------------------------------------
+# R1-S04 — Scenario 3: Bat teleport into a pit ends the game (recursive)
+# ---------------------------------------------------------------------------
+
+
+@given(
+    "a bat is in room 5 and a pit is in room 17",
+    target_fixture="r1s04_bat_pit_scenario_events",
+)
+def _r1s04_bat_pit_scenario_setup() -> dict[str, Any]:
+    """Build the world fixture for scenario 3. The events list is filled in
+    by the second Given step (which scripts the RNG draw)."""
+    from wumpus.types import World
+
+    # Player at 1 (neighbor of 5), bat at 5, pit at 17 (the teleport destination).
+    # Wumpus parked at 11 (not adjacent to 5 or 17). Second pit at 14, second
+    # bat at 9 — all distinct, all far from the recursive-hazard chain.
+    world = World(
+        player_room=1,
+        wumpus_rooms=(11,),
+        pit_rooms=(17, 14),
+        bat_rooms=(5, 9),
+        arrows=5,
+        turn=0,
+        alive=True,
+        pending_prompt=None,
+        pending_arrow_path=(),
+    )
+    return {"world": world, "events": []}
+
+
+@given("the engine's next bat-teleport target is room 17")
+def _r1s04_bat_target_is_17(
+    r1s04_bat_pit_scenario_events: dict[str, Any],
+) -> None:
+    """Drive the move with randint(1, 20) → 17 and capture the resulting
+    events into the shared scenario fixture."""
+    world = r1s04_bat_pit_scenario_events["world"]
+    events = _drive_move_with_scripted_rng(
+        world=world, target_room=5, scripted_randint=[17]
+    )
+    r1s04_bat_pit_scenario_events["events"] = events
+
+
+def _pull_r1s04_any_scenario_events(request: Any) -> list[Any]:
+    """Probe scenario 3's dict fixture first (recursive bat→pit), then
+    scenarios 1 and 2 in order."""
+    try:
+        bag = request.getfixturevalue("r1s04_bat_pit_scenario_events")
+        if isinstance(bag, dict) and bag.get("events"):
+            return list(bag["events"])
+    except pytest.FixtureLookupError:
+        pass
+    try:
+        return list(request.getfixturevalue("r1s04_pit_scenario_events"))
+    except pytest.FixtureLookupError:
+        pass
+    try:
+        return list(request.getfixturevalue("r1s04_bat_safe_scenario_events"))
+    except pytest.FixtureLookupError:
+        pass
+    raise AssertionError(
+        "No r1s04_*_scenario_events fixture resolved; scenario Given steps did "
+        "not populate one."
+    )
+
+
+def _pull_r1s04_bat_scenario_events(request: Any) -> list[Any]:
+    """Probe scenario 3's dict fixture first (bat→pit), then scenario 2's
+    list fixture (safe bat teleport)."""
+    try:
+        bag = request.getfixturevalue("r1s04_bat_pit_scenario_events")
+        if isinstance(bag, dict) and bag.get("events"):
+            return list(bag["events"])
+    except pytest.FixtureLookupError:
+        pass
+    try:
+        return list(request.getfixturevalue("r1s04_bat_safe_scenario_events"))
+    except pytest.FixtureLookupError:
+        pass
+    raise AssertionError("No bat-scenario events fixture resolved (scenario 2 or 3).")

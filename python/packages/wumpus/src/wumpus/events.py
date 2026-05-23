@@ -14,8 +14,16 @@ R1-S02 adds:
     - SenseEmitted     (one per adjacent wumpus/pit/bat on room entry)
     - LocationReported (fires after all SenseEmitted on a successful move)
 
-Additional event types (HazardResolved, ArrowPathStep, GameEnded,
-SinkFailure, ...) land in subsequent releases per their respective slices.
+R1-S03 adds:
+    - HazardTriggered  (player walks onto a hazard room)
+    - WumpusStartled   (FNC(0) startle PMF outcome after a wumpus bump)
+    - GameEnded        (terminal state — win or lose)
+
+R1-S04 adds:
+    - PlayerTeleported (bat snatch + Yob FNB(1) destination)
+
+Additional event types (ArrowPathStep, SinkFailure, ...) land in subsequent
+releases per their respective slices.
 
 Per ADR-002 (schema evolution) this module pins SCHEMA_VERSION; R0 ships v1.
 """
@@ -182,6 +190,30 @@ class WumpusStartled(_BaseEventFields):
 
 
 @dataclass(frozen=True)
+class PlayerTeleported(_BaseEventFields):
+    """Emitted after `HazardTriggered(BAT)` to record a bat-snatch teleport
+    (Yob `bas` 4270-4300; `FNB(1)` → uniform random over rooms 1..20).
+
+    `from_room` is the room the bat snatched the player from; `to_room` is
+    the bat's chosen destination (which may itself be a hazard — Yob recurses
+    via `GOTO 4130`). `cause` is currently always `"bat"`; the field exists
+    per L18 (sense-history pollution from counterfactual rollouts) and the
+    Tier A4 amendment, so downstream metric analysis can distinguish
+    bat-induced location changes from voluntary moves.
+
+    The destination may be the player's CURRENT room (no-op teleport), the
+    wumpus's room (bump-startle chain), another bat's room (recurse), or a
+    pit (game-ending). Yob handles all four uniformly via the GOTO 4130
+    recursion.
+    """
+
+    type: Literal["PlayerTeleported"] = "PlayerTeleported"
+    from_room: int = -1
+    to_room: int = -1
+    cause: Literal["bat"] = "bat"
+
+
+@dataclass(frozen=True)
 class GameEnded(_BaseEventFields):
     """Emitted exactly once on any terminal state — win or lose.
 
@@ -218,5 +250,6 @@ Event = (
     | LocationReported
     | HazardTriggered
     | WumpusStartled
+    | PlayerTeleported
     | GameEnded
 )
