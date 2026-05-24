@@ -33,7 +33,7 @@ game. We preserve it bug-for-bug.
 
 from __future__ import annotations
 
-from wumpus.events import GameEnded, HazardTriggered
+from wumpus.events import GameEnded, HazardTriggered, InstructionsShown
 
 # ---------------------------------------------------------------------------
 # Verbatim Yob strings — DO NOT edit without consulting
@@ -135,6 +135,124 @@ def render_same_setup_prompt() -> tuple[str, ...]:
     return (PROMPT_SAME_SETUP,)
 
 
+# ---------------------------------------------------------------------------
+# R1-S08 — Instructions block + RAMDOM typo + HUNT THE WUMPUS banner.
+#
+# Verbatim from the Yob BASIC source
+# (`wumpus/experiments/g_wild_baseline/wumpus.gwbasic.bas`, lines 1010-1400 +
+# line 375). Each BASIC `PRINT` becomes one tuple entry; bare `PRINT` (no
+# argument) becomes an empty string. The `RAMDOM` typo at BASIC line 1300
+# is preserved bug-for-bug per D11 — it is the canary signaling the
+# instructions block has not been "corrected" by a future PR.
+#
+# DO NOT edit without consulting `wumpus/docs/wumpus_python_goals.md`
+# § Goal 1 "Mistakes — verbatim" (RAMDOM call-out). Full byte-for-byte
+# regression against a PC-BASIC transcript lands at R1-S10.
+# ---------------------------------------------------------------------------
+
+INSTRUCTIONS_PROMPT: str = "INSTRUCTIONS (Y-N)?"
+
+HUNT_THE_WUMPUS_BANNER: str = "HUNT THE WUMPUS"
+
+# The instructions block — one tuple entry per Yob BASIC PRINT statement.
+# Bare `PRINT` statements (no argument) appear as empty strings, preserving
+# Yob's intended line breaks. Sourced verbatim from BASIC source lines
+# 1010-1400 (the GOSUB 1000 instructions routine).
+_INSTRUCTIONS_LINES: tuple[str, ...] = (
+    "WELCOME TO 'HUNT THE WUMPUS'",
+    "  THE WUMPUS LIVES IN A CAVE OF 20 ROOMS. EACH ROOM",
+    "HAS 3 TUNNELS LEADING TO OTHER ROOMS. (LOOK AT A",
+    "DODECAHEDRON TO SEE HOW THIS WORKS-IF YOU DON'T KNOW",
+    "WHAT A DODECAHEDRON IS, ASK SOMEONE)",
+    "",
+    "     HAZARDS:",
+    " BOTTOMLESS PITS - TWO ROOMS HAVE BOTTOMLESS PITS IN THEM",
+    "     IF YOU GO THERE, YOU FALL INTO THE PIT (& LOSE!)",
+    " SUPER BATS - TWO OTHER ROOMS HAVE SUPER BATS. IF YOU",
+    "     GO THERE, A BAT GRABS YOU AND TAKES YOU TO SOME OTHER",
+    "     ROOM AT RANDOM. (WHICH MIGHT BE TROUBLESOME)",
+    "",
+    "     WUMPUS:",
+    " THE WUMPUS IS NOT BOTHERED BY THE HAZARDS (HE HAS SUCKER",
+    " FEET AND IS TOO BIG FOR A BAT TO LIFT).  USUALLY",
+    " HE IS ASLEEP. TWO THINGS WAKE HIM UP: YOUR ENTERING",
+    " HIS ROOM OR YOUR SHOOTING AN ARROW.",
+    "     IF THE WUMPUS WAKES, HE MOVES (P=.75) ONE ROOM",
+    " OR STAYS STILL (P=.25). AFTER THAT, IF HE IS WHERE YOU",
+    " ARE, HE EATS YOU UP (& YOU LOSE!)",
+    "",
+    "     YOU:",
+    " EACH TURN YOU MAY MOVE OR SHOOT A CROOKED ARROW",
+    "   MOVING: YOU CAN GO ONE ROOM (THRU ONE TUNNEL)",
+    "   ARROWS: YOU HAVE 5 ARROWS. YOU LOSE WHEN YOU RUN OUT.",
+    "   EACH ARROW CAN GO FROM 1 TO 5 ROOMS. YOU AIM BY TELLING",
+    "   THE COMPUTER THE ROOM#S YOU WANT THE ARROW TO GO TO.",
+    "   IF THE ARROW CAN'T GO THAT WAY (IE NO TUNNEL) IT MOVES",
+    "   AT RAMDOM TO THE NEXT ROOM.",
+    "     IF THE ARROW HITS THE WUMPUS, YOU WIN.",
+    "     IF THE ARROW HITS YOU, YOU LOSE.",
+    "",
+    "    WARNINGS:",
+    "     WHEN YOU ARE ONE ROOM AWAY FROM WUMPUS OR HAZARD,",
+    "    THE COMPUTER SAYS:",
+    " WUMPUS-  'I SMELL A WUMPUS'",
+    " BAT   -  'BATS NEARBY'",
+    " PIT   -  'I FEEL A DRAFT'",
+    "",
+)
+
+
+def instructions_block() -> tuple[str, ...]:
+    """Return Yob's verbatim instructions text as a tuple of lines.
+
+    Sourced from BASIC source lines 1010-1400 (the GOSUB 1000 instructions
+    routine). Each BASIC `PRINT` becomes one tuple entry; bare `PRINT`
+    (line 1060, 1130, 1220, 1330, 1400) becomes an empty string.
+
+    The `RAMDOM` typo (BASIC line 1300, in the arrow-deflection sentence)
+    is preserved bug-for-bug per D11 — it is the canary signaling the
+    instructions block has not been "corrected" by a future PR.
+
+    Per SC2 + D11 the text is byte-exact to Yob's source; the full
+    byte-for-byte regression against PC-BASIC transcripts lands at R1-S10.
+    """
+    return _INSTRUCTIONS_LINES
+
+
+def render_instructions(event: InstructionsShown) -> tuple[str, ...]:
+    """Translate an InstructionsShown event to its rendered lines.
+
+    Returns the instructions block followed by an empty separator line and
+    the HUNT THE WUMPUS banner — the BASIC source emits `PRINT "HUNT THE
+    WUMPUS"` at line 375 immediately after the instructions routine
+    returns (or, if the player answered N, immediately after the welcome
+    block at line 0052-0066). The banner is part of the post-instructions
+    render path; emitting it through the same surface call keeps the
+    order-of-operations invariant from drifting.
+
+    The event itself carries the lines payload (per ADR-010 the engine
+    emits a structured event; the surface translates). The `lines` field
+    is sourced from `instructions_block()` at emission time."""
+    return tuple(event.lines) + (HUNT_THE_WUMPUS_BANNER,)
+
+
+def render_instructions_prompt() -> tuple[str, ...]:
+    """Render the pre-game INSTRUCTIONS (Y-N)? prompt."""
+    return (INSTRUCTIONS_PROMPT,)
+
+
+def render_banner_only() -> tuple[str, ...]:
+    """Render the HUNT THE WUMPUS banner without the instructions block.
+
+    Used when the player answers N at the INSTRUCTIONS prompt — Yob jumps
+    past the GOSUB 1000 instructions routine (BASIC line 0040 IF I$="N"
+    THEN 52) and prints just the welcome additions + the banner. R1-S08
+    ships the banner-only path; the WUMPUS LOVERS welcome additions land
+    later (they are not part of Yob's original 1973 source — they are
+    Dave's addition per BASIC line 0052)."""
+    return (HUNT_THE_WUMPUS_BANNER,)
+
+
 __all__ = [
     "HAZARD_BUMP_WUMPUS",
     "HAZARD_PIT",
@@ -146,7 +264,13 @@ __all__ = [
     "LOSE_TAG",
     "ARROW_MISSED",
     "PROMPT_SAME_SETUP",
+    "INSTRUCTIONS_PROMPT",
+    "HUNT_THE_WUMPUS_BANNER",
+    "instructions_block",
     "render_hazard",
     "render_terminal",
     "render_same_setup_prompt",
+    "render_instructions",
+    "render_instructions_prompt",
+    "render_banner_only",
 ]

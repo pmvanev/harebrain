@@ -2310,3 +2310,147 @@ def _r1s07_layout_hash_matches(
         f"New GameStarted.layout_hash was {new_started.layout_hash!r}; "
         f"expected {original_hash!r} (the original layout's hash)."
     )
+
+
+# ---------------------------------------------------------------------------
+# R1-S08 — Instructions block + RAMDOM typo preservation
+# ---------------------------------------------------------------------------
+#
+# Strategy: construct a Game (which now enters pre-game state with
+# pending_prompt="instructions"), step("Y") or step("N"), and inspect the
+# resulting Observation.rendered_lines for the instructions text + banner.
+# The pre-game state machine is the engine's new top-level dispatch: before
+# any other action, the engine awaits a Y/N answer at the INSTRUCTIONS
+# prompt.
+#
+# Per SC8 the instructions text + banner live ONLY in wumpus.surfaces.yob;
+# the engine emits structured InstructionsShown events that the surface
+# translates to rendered lines.
+
+
+def _build_r1s08_pregame_world() -> Any:
+    """Pin a layout for R1-S08 acceptance: hazards parked far from the player
+    start so no incidental hazards fire on the first turn. Only the
+    instructions + banner + opening turn are exercised."""
+    from wumpus.types import World
+
+    return World(
+        player_room=1,
+        wumpus_rooms=(11,),
+        pit_rooms=(13, 14),
+        bat_rooms=(15, 19),
+        arrows=5,
+        turn=0,
+        alive=True,
+        pending_prompt="instructions",
+        pending_arrow_path=(),
+    )
+
+
+def _drive_pregame_with_answer(answer: str) -> tuple[str, ...]:
+    """Construct a Game pinned to the R1-S08 pre-game world, attach a sink,
+    step the given answer ('Y' or 'N'), and return the concatenated
+    rendered_lines emitted across all observations from construction through
+    the answer step. The returned tuple represents the "printed output"
+    the acceptance scenarios assert on."""
+    from wumpus import Game
+    from wumpus.sinks import InMemorySink
+
+    game = Game._from_world(_build_r1s08_pregame_world(), seed=0)
+    sink = InMemorySink()
+    game.subscribe(sink)
+    observation = game.step(answer)
+    return observation.rendered_lines
+
+
+# ---------------------------------------------------------------------------
+# R1-S08 — Scenario 1: Instructions block contains Yob's RAMDOM typo
+# ---------------------------------------------------------------------------
+
+
+@given(
+    'the user answers Y to "INSTRUCTIONS (Y-N)?"',
+    target_fixture="r1s08_y_rendered_lines",
+)
+def _r1s08_y_rendered_lines() -> tuple[str, ...]:
+    return _drive_pregame_with_answer("Y")
+
+
+@then('the printed output contains the exact substring "RAMDOM" exactly once')
+def _r1s08_ramdom_appears_exactly_once(
+    r1s08_y_rendered_lines: tuple[str, ...],
+) -> None:
+    full_output = "\n".join(r1s08_y_rendered_lines)
+    occurrences = full_output.count("RAMDOM")
+    assert occurrences == 1, (
+        f"Expected 'RAMDOM' to appear exactly once in the instructions block "
+        f"(D11 bug-for-bug); got {occurrences} occurrences. "
+        f"Rendered output:\n{full_output}"
+    )
+
+
+@then(
+    'the printed output ends with the "HUNT THE WUMPUS" banner '
+    "before any game text begins"
+)
+def _r1s08_banner_after_instructions(
+    r1s08_y_rendered_lines: tuple[str, ...],
+) -> None:
+    # The instructions block lines come first, then the banner.
+    # The banner is the EXACT-MATCH line "HUNT THE WUMPUS" — distinct from
+    # the instructions' welcome line "WELCOME TO 'HUNT THE WUMPUS'" which
+    # also contains the substring. The banner must appear AFTER the RAMDOM
+    # line (the canary that lives inside the instructions block).
+    banner_indices = [
+        i for i, line in enumerate(r1s08_y_rendered_lines) if line == "HUNT THE WUMPUS"
+    ]
+    assert banner_indices, (
+        f"Expected exact 'HUNT THE WUMPUS' banner line in rendered output "
+        f"after instructions; got: {r1s08_y_rendered_lines!r}"
+    )
+    ramdom_indices = [
+        i for i, line in enumerate(r1s08_y_rendered_lines) if "RAMDOM" in line
+    ]
+    assert ramdom_indices, "Sanity: expected RAMDOM line in instructions."
+    assert banner_indices[0] > ramdom_indices[0], (
+        f"'HUNT THE WUMPUS' banner appeared before the instructions block "
+        f"(RAMDOM line). Banner index={banner_indices[0]}, "
+        f"RAMDOM index={ramdom_indices[0]}. Order-of-operations violated."
+    )
+
+
+# ---------------------------------------------------------------------------
+# R1-S08 — Scenario 2: Answering N skips the instructions
+# ---------------------------------------------------------------------------
+
+
+@given(
+    'the user answers N to "INSTRUCTIONS (Y-N)?"',
+    target_fixture="r1s08_n_rendered_lines",
+)
+def _r1s08_n_rendered_lines() -> tuple[str, ...]:
+    return _drive_pregame_with_answer("N")
+
+
+@then('the next printed output contains the "HUNT THE WUMPUS" banner')
+def _r1s08_n_banner_present(
+    r1s08_n_rendered_lines: tuple[str, ...],
+) -> None:
+    # Look for the EXACT banner line — not the welcome-instruction substring
+    # variant — so the N-path can never be satisfied by a stray instructions
+    # line leaking through.
+    assert any(line == "HUNT THE WUMPUS" for line in r1s08_n_rendered_lines), (
+        f"Expected exact 'HUNT THE WUMPUS' banner line in N-path output; "
+        f"got: {r1s08_n_rendered_lines!r}"
+    )
+
+
+@then('the captured output does NOT contain "RAMDOM"')
+def _r1s08_n_no_ramdom(
+    r1s08_n_rendered_lines: tuple[str, ...],
+) -> None:
+    full_output = "\n".join(r1s08_n_rendered_lines)
+    assert "RAMDOM" not in full_output, (
+        f"N-path output unexpectedly contains 'RAMDOM' (instructions should "
+        f"have been skipped). Got:\n{full_output}"
+    )

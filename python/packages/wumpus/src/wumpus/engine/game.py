@@ -44,12 +44,14 @@ from wumpus.events import (
     Event,
     GameEnded,
     GameStarted,
+    InstructionsShown,
     LocationReported,
     MoveResolved,
     PlayerTeleported,
     PromptIssued,
     SessionEnded,
 )
+from wumpus.surfaces import yob as yob_surface
 from wumpus.types import Observation, PromptKind, Snapshot, World
 
 if TYPE_CHECKING:
@@ -105,8 +107,20 @@ class Game:
         # The frozen-dataclass World is value-typed, so the reference cannot
         # be mutated; subsequent transitions REPLACE `_world` with new World
         # values, leaving `_initial_layout` intact for the lifetime of the
-        # Game instance.
+        # Game instance. R1-S08: `_initial_layout` is pinned BEFORE the
+        # pre-game INSTRUCTIONS state is entered — restoring on SAME SET-UP=Y
+        # should NOT re-show the instructions block (Yob's GOTO 360 restores
+        # the cave + arrows but does not GOSUB 1000 again).
         self._initial_layout: World = self._world
+        # R1-S08: production (yob) construction enters the pre-game
+        # INSTRUCTIONS (Y-N)? state. The first `step()` call MUST be
+        # `step("Y")` or `step("N")` (case-insensitive); other input
+        # re-prompts. Toy-cave construction skips the pre-game state to
+        # keep R0's deterministic-action-sequence tests untouched —
+        # `cave="toy"` is a test-only substrate, the production R1-S08
+        # contract does not apply.
+        if cave == _CAVE_YOB:
+            self._world = self._enter_instructions_state(self._world)
         # R1-S07: per-step event buffer used by `_render_observation` to
         # populate `Observation.rendered_lines` via the surface seam. Cleared
         # at the START of every `step()` call (and at the synthesized
@@ -128,10 +142,44 @@ class Game:
             seed=seed,
             engine_version=_R0_ENGINE_VERSION,
             surface_id=_R0_SURFACE_ID,
-            layout_hash=internal_state_hash(self._world),
+            layout_hash=internal_state_hash(self._initial_layout),
             active_escalation_rules=(),
         )
         self._emit(start_event)
+        # R1-S08: if production (yob) pre-game state is active, emit
+        # PromptIssued(kind="instructions") so the caller knows a Y/N
+        # answer is awaited.
+        if cave == _CAVE_YOB and self._world.pending_prompt == "instructions":
+            self._emit(
+                PromptIssued(
+                    schema_version=SCHEMA_VERSION,
+                    turn=self._world.turn,
+                    surface_variant=_R0_SURFACE_VARIANT,
+                    internal_state_hash=internal_state_hash(self._world),
+                    rng_cursor=self._encode_rng_cursor(),
+                    kind="instructions",
+                    context=None,
+                )
+            )
+
+    @staticmethod
+    def _enter_instructions_state(world: World) -> World:
+        """Return a copy of `world` with `pending_prompt="instructions"`.
+
+        R1-S08 pre-game state — the engine awaits a Y/N answer at the
+        INSTRUCTIONS (Y-N)? prompt before any other action can be taken."""
+        return World(
+            player_room=world.player_room,
+            wumpus_rooms=world.wumpus_rooms,
+            pit_rooms=world.pit_rooms,
+            bat_rooms=world.bat_rooms,
+            arrows=world.arrows,
+            turn=world.turn,
+            alive=world.alive,
+            pending_prompt="instructions",
+            pending_arrow_path=world.pending_arrow_path,
+            pending_path_length=world.pending_path_length,
+        )
 
     # ---- test hatch (TEST-ONLY; underscore-prefixed not in public API) ----
 
@@ -231,6 +279,11 @@ class Game:
         # so `_render_observation()` only sees events from THIS step.
         self._step_events = []
 
+        # R1-S08: pre-game INSTRUCTIONS (Y-N)? takes precedence over every
+        # other dispatcher — the engine is awaiting a Y/N answer before the
+        # first turn can begin.
+        if self._world.pending_prompt == "instructions":
+            return self._step_instructions(action)
         # R1-S07: post-terminal SAME SET-UP=Y/N takes precedence over the
         # shoot/move dispatchers — the engine is awaiting a Y/N answer, not
         # a move target or shoot input.
@@ -472,6 +525,69 @@ class Game:
             adjacencies=adjacencies,
             senses=(),
         )
+
+    # ---- R1-S08 INSTRUCTIONS state machine -------------------------------
+
+    def _step_instructions(self, action: str) -> Observation:
+        """Handle a step from the pre-game `pending_prompt="instructions"`
+        state. Accepts case-insensitive 'Y' / 'N'; any other input
+        re-prompts (and the turn counter does not advance — the pre-game
+        prompt is not an action-completing event per the monotonic_turn
+        discipline).
+
+        On Y: emit `InstructionsShown` with the full verbatim Yob
+        instructions block; the surface renders the block followed by the
+        HUNT THE WUMPUS banner.
+
+        On N: emit `InstructionsShown` with an empty lines payload; the
+        surface renders just the banner (skipping the instructions text).
+        This single event-shape handles both arms — the lines payload
+        discriminates them.
+
+        On invalid input: re-emit `PromptIssued(kind="instructions")`.
+        """
+        answer = action.strip().upper()
+        if answer == "Y":
+            return self._reveal_instructions(lines=yob_surface.instructions_block())
+        if answer == "N":
+            return self._reveal_instructions(lines=())
+        # Malformed answer — re-prompt by re-emitting the INSTRUCTIONS prompt.
+        self._reissue_prompt("instructions", context=None)
+        return self._render_observation()
+
+    def _reveal_instructions(self, *, lines: tuple[str, ...]) -> Observation:
+        """Emit InstructionsShown and clear `pending_prompt` so the engine
+        leaves the pre-game state.
+
+        On Y the `lines` payload carries the full verbatim Yob block; on N
+        it is empty (the surface renders just the banner). After emission
+        the engine is in its normal turn-zero state ready for the first
+        player action; the first-turn sense+location lands at R4-S03.
+        """
+        new_world = World(
+            player_room=self._world.player_room,
+            wumpus_rooms=self._world.wumpus_rooms,
+            pit_rooms=self._world.pit_rooms,
+            bat_rooms=self._world.bat_rooms,
+            arrows=self._world.arrows,
+            turn=self._world.turn,
+            alive=self._world.alive,
+            pending_prompt=None,
+            pending_arrow_path=self._world.pending_arrow_path,
+            pending_path_length=self._world.pending_path_length,
+        )
+        self._world = new_world
+        self._emit(
+            InstructionsShown(
+                schema_version=SCHEMA_VERSION,
+                turn=new_world.turn,
+                surface_variant=_R0_SURFACE_VARIANT,
+                internal_state_hash=internal_state_hash(new_world),
+                rng_cursor=self._encode_rng_cursor(),
+                lines=lines,
+            )
+        )
+        return self._render_observation()
 
     # ---- R1-S07 SAME SET-UP state machine --------------------------------
 

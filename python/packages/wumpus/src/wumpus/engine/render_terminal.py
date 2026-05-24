@@ -25,7 +25,13 @@ from __future__ import annotations
 
 from typing import Iterable
 
-from wumpus.events import Event, GameEnded, HazardTriggered, PromptIssued
+from wumpus.events import (
+    Event,
+    GameEnded,
+    HazardTriggered,
+    InstructionsShown,
+    PromptIssued,
+)
 from wumpus.surfaces import yob as yob_surface
 
 # R0 render placeholder. Events that have no R1-S07-shipped surface mapping
@@ -71,6 +77,10 @@ def _render_event(event: Event) -> tuple[str, ...]:
         return yob_surface.render_terminal(event)
     if isinstance(event, PromptIssued) and event.kind == "same_setup":
         return yob_surface.render_same_setup_prompt()
+    if isinstance(event, PromptIssued) and event.kind == "instructions":
+        return yob_surface.render_instructions_prompt()
+    if isinstance(event, InstructionsShown):
+        return yob_surface.render_instructions(event)
     return ()
 
 

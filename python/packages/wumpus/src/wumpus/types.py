@@ -45,6 +45,12 @@ PromptKind = Literal[
     # in this state after any GameEnded so the caller can answer Y (restore
     # the initial layout) or N (end the session via SessionEnded).
     "same_setup",
+    # R1-S08 — pre-game "INSTRUCTIONS (Y-N)?" prompt. The engine parks in
+    # this state at construction (before any GameStarted-driven turn so
+    # the caller can answer Y (print the verbatim Yob instructions block +
+    # banner) or N (just print the banner). Invalid input re-prompts; the
+    # turn counter does not advance until the answer is accepted.
+    "instructions",
 ]
 
 

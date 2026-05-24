@@ -369,6 +369,28 @@ class ArrowCountChanged(_BaseEventFields):
 
 
 @dataclass(frozen=True)
+class InstructionsShown(_BaseEventFields):
+    """Emitted when the player answers Y at the pre-game INSTRUCTIONS
+    (Y-N)? prompt (R1-S08). Carries the full verbatim Yob instructions
+    block as a tuple of lines so downstream consumers (renderer, ledger,
+    LLM-actor harness) have the structured payload, not just the
+    surface-translated render lines.
+
+    Per SC8 the engine emits this structured event; the surface
+    (`wumpus.surfaces.yob.render_instructions`) translates `lines` into
+    output text. Yob's BASIC source emits the instructions via PRINT
+    statements at lines 1010-1400; the `lines` field stores those verbatim
+    in BASIC-source order, one tuple entry per PRINT (with bare PRINT
+    becoming an empty string).
+
+    The `RAMDOM` typo (BASIC line 1300) is preserved bug-for-bug per D11.
+    """
+
+    type: Literal["InstructionsShown"] = "InstructionsShown"
+    lines: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
 class SessionEnded(_BaseEventFields):
     """Emitted when the player declines SAME SET-UP=N at the post-terminal
     prompt (R1-S07).
@@ -438,4 +460,5 @@ Event = (
     | ArrowCountChanged
     | GameEnded
     | SessionEnded
+    | InstructionsShown
 )

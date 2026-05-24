@@ -24,6 +24,7 @@ from wumpus.events import (
     GameEnded,
     GameStarted,
     HazardTriggered,
+    InstructionsShown,
     LocationReported,
     MoveAttempted,
     MoveResolved,
@@ -63,5 +64,6 @@ __all__ = [
     "ArrowCountChanged",
     "GameEnded",
     "SessionEnded",
+    "InstructionsShown",
     "SCHEMA_VERSION",
 ]

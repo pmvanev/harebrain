@@ -201,3 +201,17 @@ Feature: R1 Yob fidelity — dodecahedron cave + Yob mechanics
     Then a new GameStarted event fires
     And the new game's _initial_layout equals the just-finished game's _initial_layout
     And the new game's layout_hash equals the just-finished game's layout_hash
+
+  # ---------------------------------------------------------------------------
+  # R1-S08 — Instructions block + RAMDOM typo preservation
+  # ---------------------------------------------------------------------------
+
+  Scenario: Instructions block contains Yob's RAMDOM typo
+    Given the user answers Y to "INSTRUCTIONS (Y-N)?"
+    Then the printed output contains the exact substring "RAMDOM" exactly once
+    And the printed output ends with the "HUNT THE WUMPUS" banner before any game text begins
+
+  Scenario: Answering N skips the instructions
+    Given the user answers N to "INSTRUCTIONS (Y-N)?"
+    Then the next printed output contains the "HUNT THE WUMPUS" banner
+    And the captured output does NOT contain "RAMDOM"
