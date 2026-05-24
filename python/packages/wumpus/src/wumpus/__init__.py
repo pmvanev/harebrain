@@ -34,6 +34,7 @@ from wumpus.events import (
     SessionEnded,
     WumpusStartled,
 )
+from wumpus.serialization import event_from_dict, event_to_dict
 from wumpus.types import Observation, PromptKind, Snapshot, World
 
 __version__ = "0.0.0"
@@ -66,4 +67,6 @@ __all__ = [
     "SessionEnded",
     "InstructionsShown",
     "SCHEMA_VERSION",
+    "event_to_dict",
+    "event_from_dict",
 ]

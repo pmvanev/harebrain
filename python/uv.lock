@@ -660,6 +660,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "hypothesis" },
+    { name = "jsonschema" },
     { name = "mutmut" },
     { name = "mypy" },
     { name = "pexpect", marker = "sys_platform != 'win32'" },
@@ -680,6 +681,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "hypothesis", specifier = ">=6" },
+    { name = "jsonschema", specifier = ">=4" },
     { name = "mutmut", specifier = ">=2.5" },
     { name = "mypy", specifier = ">=1.11" },
     { name = "pexpect", marker = "sys_platform != 'win32'", specifier = ">=4.9" },
@@ -3495,3 +3497,9 @@ sdist = { url = "https://files.pythonhosted.org/packages/da/78/2a8ca6478f26593e0
 name = "wumpus"
 version = "0.0.0"
 source = { editable = "packages/wumpus" }
+dependencies = [
+    { name = "jsonschema" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "jsonschema", specifier = ">=4" }]

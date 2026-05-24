@@ -58,6 +58,10 @@ class _BaseEventFields:
     surface_variant: str
     internal_state_hash: str
     rng_cursor: str
+    # R2-S01: monotonic_turn ships at R2-S01 (per Tier A4 amendment), defaulting
+    # to `turn` so existing call sites stay compatible. The field is integral
+    # to the schema document — replays will compare it across paired sessions.
+    monotonic_turn: int = 0
     # Optional harness-supplied fields (HARNESS_PRIVATE per ADR-004 / taxonomy):
     wall_clock_ts: float | None = None
     actor_node: str | None = None
@@ -65,6 +69,9 @@ class _BaseEventFields:
     actor_scratchpad: str | None = None
     tokens_in: int | None = None
     tokens_out: int | None = None
+    # R2-S01: per Tier A4 amendment — raw bytes of the player's input that
+    # triggered this event (when applicable). HARNESS_PRIVATE (ADR-004).
+    raw_input_bytes: str | None = None
 
 
 # ---------------------------------------------------------------------------

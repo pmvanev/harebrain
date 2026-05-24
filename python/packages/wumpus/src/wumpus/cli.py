@@ -12,10 +12,13 @@ The loop is thin: parse argv, build the Game, attach a RendererSink to
 stdout, then loop on `input()` -> `game.step()` until the session terminates
 (SessionEnded or alive=False with no pending prompt).
 
-Argument surface (R1-S09):
+Argument surface (R1-S09 + R2-S01):
   - `--seed INT`            optional; if omitted Game(seed=None) auto-rolls
                             via OS entropy at construction
-  - `--ledger PATH`         placeholder until R2-S01; accepted but inert
+  - `--ledger PATH`         R2-S01: when set, the CLI attaches a JsonlSink
+                            writing schema-validated v1 events to PATH in
+                            append mode. The sink is closed on session exit
+                            (clean termination OR stdin EOF).
   - `--surface VARIANT`     placeholder until R4-S03; only "yob" accepted at
                             R1-S09 — other values fail fast with a clear error
   - `--yob`                 explicit-default flag; equivalent to no surface
@@ -32,11 +35,12 @@ are argparse help text and error messages.
 from __future__ import annotations
 
 import argparse
+import pathlib
 import sys
 from typing import TextIO
 
 from wumpus import Game
-from wumpus.sinks import RendererSink
+from wumpus.sinks import JsonlSink, RendererSink
 
 
 def _build_argument_parser() -> argparse.ArgumentParser:
@@ -66,9 +70,11 @@ def _build_argument_parser() -> argparse.ArgumentParser:
         default=None,
         metavar="PATH",
         help=(
-            "Path for a future JSONL event ledger (placeholder; not yet "
-            "wired — lands at R2-S01). Accepted today so harnesses can pin "
-            "the CLI shape."
+            "Path to a JSONL event ledger. When set, every emitted event is "
+            "validated against `wumpus/schemas/v1.json` and appended as one "
+            "JSON object per line. The file is opened in append mode + "
+            "line-buffered; the first emitted event is the first line "
+            "(no separate header). Closed cleanly on session exit."
         ),
     )
     parser.add_argument(
@@ -153,19 +159,31 @@ def main(
     _validate_surface(parser, args.surface)
 
     game = Game(seed=args.seed if args.seed is not None else 0, cave=args.cave)
-    sink = RendererSink(stream=stdout)
-    game.subscribe(sink)
+    renderer_sink = RendererSink(stream=stdout)
+    game.subscribe(renderer_sink)
+    ledger_sink: JsonlSink | None = None
+    if args.ledger is not None:
+        ledger_sink = JsonlSink(pathlib.Path(args.ledger))
+        game.subscribe(ledger_sink)
 
-    while not _session_terminated(game):
-        try:
-            line = stdin.readline()
-        except EOFError:
-            break
-        if line == "":
-            # readline returns "" only on EOF (a blank input line is "\n").
-            break
-        action = line.rstrip("\r\n")
-        game.step(action)
+    try:
+        while not _session_terminated(game):
+            try:
+                line = stdin.readline()
+            except EOFError:
+                break
+            if line == "":
+                # readline returns "" only on EOF (a blank input line is "\n").
+                break
+            action = line.rstrip("\r\n")
+            game.step(action)
+    finally:
+        # SC4: synchronous + ordered emission. Closing the ledger AFTER the
+        # loop ensures every event the engine emitted has been written and
+        # flushed before the process exits. The renderer sink doesn't need
+        # explicit close — it writes to stdout, which the OS owns.
+        if ledger_sink is not None:
+            ledger_sink.close()
 
 
 def _session_terminated(game: Game) -> bool:

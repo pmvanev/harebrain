@@ -1,0 +1,377 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://harebrain/wumpus/schemas/v1.json",
+  "title": "wumpus event schema v1",
+  "description": "JSON Schema for the wumpus engine's v1 event stream (R0-R1 event family). Per ADR-002 schema evolution policy: every emitted event is validated against this document at emit time by JsonlSink. SC5: schema is additive within a major version. R2-S01.",
+  "$defs": {
+    "World": {
+      "type": "object",
+      "properties": {
+        "player_room": {"type": "integer", "minimum": 1, "maximum": 20},
+        "wumpus_rooms": {"type": "array", "items": {"type": "integer", "minimum": 1, "maximum": 20}},
+        "pit_rooms": {"type": "array", "items": {"type": "integer", "minimum": 1, "maximum": 20}},
+        "bat_rooms": {"type": "array", "items": {"type": "integer", "minimum": 1, "maximum": 20}},
+        "arrows": {"type": "integer", "minimum": 0},
+        "turn": {"type": "integer", "minimum": 0},
+        "alive": {"type": "boolean"},
+        "pending_prompt": {"type": ["string", "null"]},
+        "pending_arrow_path": {"type": "array", "items": {"type": "integer"}},
+        "pending_path_length": {"type": ["integer", "null"]}
+      },
+      "required": [
+        "player_room", "wumpus_rooms", "pit_rooms", "bat_rooms",
+        "arrows", "turn", "alive", "pending_prompt", "pending_arrow_path"
+      ]
+    },
+    "Snapshot": {
+      "type": "object",
+      "properties": {
+        "schema_version": {"const": 1},
+        "engine_version": {"type": "string"},
+        "seed": {"type": "integer"},
+        "rng_cursor": {"type": "string"},
+        "surface_id": {"type": "string"},
+        "world": {"$ref": "#/$defs/World"},
+        "active_escalation_rules": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["schema_version", "engine_version", "seed", "rng_cursor", "surface_id", "world"]
+    },
+    "BaseEventFields": {
+      "type": "object",
+      "properties": {
+        "schema_version": {"const": 1},
+        "type": {"type": "string"},
+        "turn": {"type": "integer", "minimum": 0},
+        "surface_variant": {"type": "string"},
+        "internal_state_hash": {"type": "string"},
+        "rng_cursor": {"type": "string"},
+        "monotonic_turn": {"type": "integer", "minimum": 0},
+        "wall_clock_ts": {"type": ["number", "null"]},
+        "actor_node": {"type": ["string", "null"]},
+        "back_prompted": {"type": ["boolean", "null"]},
+        "actor_scratchpad": {"type": ["string", "object", "null"]},
+        "tokens_in": {"type": ["integer", "null"]},
+        "tokens_out": {"type": ["integer", "null"]},
+        "raw_input_bytes": {"type": ["string", "null"]}
+      },
+      "required": [
+        "schema_version", "type", "turn", "surface_variant",
+        "internal_state_hash", "rng_cursor", "monotonic_turn"
+      ]
+    },
+    "GameStarted": {
+      "allOf": [
+        {"$ref": "#/$defs/BaseEventFields"},
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "GameStarted"},
+            "seed": {"type": "integer"},
+            "engine_version": {"type": "string"},
+            "surface_id": {"type": "string"},
+            "layout_hash": {"type": "string"},
+            "active_escalation_rules": {"type": "array", "items": {"type": "string"}}
+          },
+          "required": ["type", "seed", "engine_version", "surface_id", "layout_hash", "active_escalation_rules"]
+        }
+      ]
+    },
+    "MoveAttempted": {
+      "allOf": [
+        {"$ref": "#/$defs/BaseEventFields"},
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "MoveAttempted"},
+            "target_room": {"type": "integer"},
+            "accepted": {"type": "boolean"}
+          },
+          "required": ["type", "target_room", "accepted"]
+        }
+      ]
+    },
+    "MoveResolved": {
+      "allOf": [
+        {"$ref": "#/$defs/BaseEventFields"},
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "MoveResolved"},
+            "player_room": {"type": "integer"}
+          },
+          "required": ["type", "player_room"]
+        }
+      ]
+    },
+    "SenseEmitted": {
+      "allOf": [
+        {"$ref": "#/$defs/BaseEventFields"},
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "SenseEmitted"},
+            "kind": {"enum": ["WUMPUS_SMELL", "PIT_DRAFT", "BAT_NEARBY"]},
+            "cause_room": {"type": "integer"}
+          },
+          "required": ["type", "kind", "cause_room"]
+        }
+      ]
+    },
+    "LocationReported": {
+      "allOf": [
+        {"$ref": "#/$defs/BaseEventFields"},
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "LocationReported"},
+            "room": {"type": "integer"},
+            "adjacencies": {
+              "type": "array",
+              "items": {"type": "integer"},
+              "minItems": 3,
+              "maxItems": 3
+            }
+          },
+          "required": ["type", "room", "adjacencies"]
+        }
+      ]
+    },
+    "HazardTriggered": {
+      "allOf": [
+        {"$ref": "#/$defs/BaseEventFields"},
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "HazardTriggered"},
+            "kind": {"enum": ["WUMPUS", "PIT", "BAT"]},
+            "room": {"type": "integer"}
+          },
+          "required": ["type", "kind", "room"]
+        }
+      ]
+    },
+    "WumpusStartled": {
+      "allOf": [
+        {"$ref": "#/$defs/BaseEventFields"},
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "WumpusStartled"},
+            "from_room": {"type": "integer"},
+            "to_room": {"type": "integer"},
+            "ate_player": {"type": "boolean"}
+          },
+          "required": ["type", "from_room", "to_room", "ate_player"]
+        }
+      ]
+    },
+    "PlayerTeleported": {
+      "allOf": [
+        {"$ref": "#/$defs/BaseEventFields"},
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "PlayerTeleported"},
+            "from_room": {"type": "integer"},
+            "to_room": {"type": "integer"},
+            "cause": {"const": "bat"}
+          },
+          "required": ["type", "from_room", "to_room", "cause"]
+        }
+      ]
+    },
+    "ActionChosen": {
+      "allOf": [
+        {"$ref": "#/$defs/BaseEventFields"},
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "ActionChosen"},
+            "action": {"enum": ["S", "M"]}
+          },
+          "required": ["type", "action"]
+        }
+      ]
+    },
+    "PromptIssued": {
+      "allOf": [
+        {"$ref": "#/$defs/BaseEventFields"},
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "PromptIssued"},
+            "kind": {
+              "enum": [
+                "action", "move_target", "shoot_path_len",
+                "shoot_path_room", "same_setup", "instructions"
+              ]
+            },
+            "context": {"type": ["object", "null"]}
+          },
+          "required": ["type", "kind"]
+        }
+      ]
+    },
+    "CrookedPathRejected": {
+      "allOf": [
+        {"$ref": "#/$defs/BaseEventFields"},
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "CrookedPathRejected"},
+            "slot": {"type": "integer"},
+            "attempted_room": {"type": "integer"}
+          },
+          "required": ["type", "slot", "attempted_room"]
+        }
+      ]
+    },
+    "ArrowFired": {
+      "allOf": [
+        {"$ref": "#/$defs/BaseEventFields"},
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "ArrowFired"},
+            "path": {"type": "array", "items": {"type": "integer"}}
+          },
+          "required": ["type", "path"]
+        }
+      ]
+    },
+    "ArrowPathStep": {
+      "allOf": [
+        {"$ref": "#/$defs/BaseEventFields"},
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "ArrowPathStep"},
+            "room": {"type": "integer"},
+            "deflected": {"type": "boolean"}
+          },
+          "required": ["type", "room", "deflected"]
+        }
+      ]
+    },
+    "ArrowMissed": {
+      "allOf": [
+        {"$ref": "#/$defs/BaseEventFields"},
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "ArrowMissed"}
+          },
+          "required": ["type"]
+        }
+      ]
+    },
+    "ArrowHitWumpus": {
+      "allOf": [
+        {"$ref": "#/$defs/BaseEventFields"},
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "ArrowHitWumpus"},
+            "room": {"type": "integer"}
+          },
+          "required": ["type", "room"]
+        }
+      ]
+    },
+    "ArrowHitPlayer": {
+      "allOf": [
+        {"$ref": "#/$defs/BaseEventFields"},
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "ArrowHitPlayer"},
+            "room": {"type": "integer"}
+          },
+          "required": ["type", "room"]
+        }
+      ]
+    },
+    "ArrowCountChanged": {
+      "allOf": [
+        {"$ref": "#/$defs/BaseEventFields"},
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "ArrowCountChanged"},
+            "new_count": {"type": "integer"}
+          },
+          "required": ["type", "new_count"]
+        }
+      ]
+    },
+    "GameEnded": {
+      "allOf": [
+        {"$ref": "#/$defs/BaseEventFields"},
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "GameEnded"},
+            "outcome": {
+              "enum": ["wumpus_shot", "eaten_after_bump", "fell_in_pit", "out_of_arrows"]
+            },
+            "message_kind": {"enum": ["win", "lose"]},
+            "final_snapshot": {
+              "oneOf": [
+                {"$ref": "#/$defs/Snapshot"},
+                {"type": "null"}
+              ]
+            }
+          },
+          "required": ["type", "outcome", "message_kind"]
+        }
+      ]
+    },
+    "SessionEnded": {
+      "allOf": [
+        {"$ref": "#/$defs/BaseEventFields"},
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "SessionEnded"}
+          },
+          "required": ["type"]
+        }
+      ]
+    },
+    "InstructionsShown": {
+      "allOf": [
+        {"$ref": "#/$defs/BaseEventFields"},
+        {
+          "type": "object",
+          "properties": {
+            "type": {"const": "InstructionsShown"},
+            "lines": {"type": "array", "items": {"type": "string"}}
+          },
+          "required": ["type", "lines"]
+        }
+      ]
+    }
+  },
+  "oneOf": [
+    {"$ref": "#/$defs/GameStarted"},
+    {"$ref": "#/$defs/MoveAttempted"},
+    {"$ref": "#/$defs/MoveResolved"},
+    {"$ref": "#/$defs/SenseEmitted"},
+    {"$ref": "#/$defs/LocationReported"},
+    {"$ref": "#/$defs/HazardTriggered"},
+    {"$ref": "#/$defs/WumpusStartled"},
+    {"$ref": "#/$defs/PlayerTeleported"},
+    {"$ref": "#/$defs/ActionChosen"},
+    {"$ref": "#/$defs/PromptIssued"},
+    {"$ref": "#/$defs/CrookedPathRejected"},
+    {"$ref": "#/$defs/ArrowFired"},
+    {"$ref": "#/$defs/ArrowPathStep"},
+    {"$ref": "#/$defs/ArrowMissed"},
+    {"$ref": "#/$defs/ArrowHitWumpus"},
+    {"$ref": "#/$defs/ArrowHitPlayer"},
+    {"$ref": "#/$defs/ArrowCountChanged"},
+    {"$ref": "#/$defs/GameEnded"},
+    {"$ref": "#/$defs/SessionEnded"},
+    {"$ref": "#/$defs/InstructionsShown"}
+  ]
+}

@@ -3,7 +3,12 @@ name = "wumpus"
 version = "0.0.0"
 description = "Faithful Yob 1973 Hunt the Wumpus engine; substrate for the harebrain experiment matrix."
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    # R2-S01: JsonlSink validates every emitted event against
+    # `wumpus/schemas/v<SCHEMA_VERSION>.json` at emit time. The library is the
+    # standard choice (pure Python; tracks JSON Schema draft 2020-12).
+    "jsonschema>=4",
+]
 
 [project.scripts]
 wumpus = "wumpus.__main__:main"
