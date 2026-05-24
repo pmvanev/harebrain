@@ -24,6 +24,16 @@ dev = [
     "mypy>=1.11",
     "ruff>=0.6",
     "mutmut>=2.5",
+    # R1-S09 subprocess smoke harnesses. pexpect is the POSIX driver
+    # (Linux/macOS); wexpect is the Windows fork. The CI matrix runs
+    # each on its native OS; both are dev-only.
+    "pexpect>=4.9 ; sys_platform != 'win32'",
+    "wexpect>=4.0 ; sys_platform == 'win32'",
+    # wexpect imports `pkg_resources` (legacy setuptools API) at module
+    # load time but does not declare it as a runtime dependency. Force
+    # setuptools in the dev group on Windows so the import succeeds.
+    # See `[REF] Wave Decisions` L4 — wexpect-on-Windows is known finicky.
+    "setuptools>=68 ; sys_platform == 'win32'",
 ]
 
 [tool.pytest.ini_options]

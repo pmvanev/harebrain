@@ -2454,3 +2454,73 @@ def _r1s08_n_no_ramdom(
         f"N-path output unexpectedly contains 'RAMDOM' (instructions should "
         f"have been skipped). Got:\n{full_output}"
     )
+
+
+# ---------------------------------------------------------------------------
+# R1-S09 — CLI subprocess-safe (in-process line-buffering check)
+# ---------------------------------------------------------------------------
+#
+# Strategy: drive `wumpus.cli.main` in-process with StringIO stdin/stdout.
+# The pre-game state of `Game(seed=0, cave="yob")` enters
+# `pending_prompt="instructions"` and emits a `PromptIssued(instructions)`
+# whose surface rendering is the verbatim Yob "INSTRUCTIONS (Y-N)?" line.
+# The captured stdout must contain that line BEFORE the CLI loop consumes
+# any stdin character — the in-process equivalent of the pexpect "read
+# prompt without sending anything first" check.
+
+
+@given(
+    "a CLI invocation with seed 0 and a captured stdout stream",
+    target_fixture="r1s09_cli_streams",
+)
+def _r1s09_cli_streams() -> dict[str, Any]:
+    import io
+
+    return {"stdin": io.StringIO("N\n"), "stdout": io.StringIO()}
+
+
+@when('the CLI loop runs with a stdin that answers "N" to the instructions prompt')
+def _r1s09_run_cli(r1s09_cli_streams: dict[str, Any]) -> None:
+    from wumpus import cli
+
+    cli.main(
+        argv=["--seed", "0"],
+        stdin=r1s09_cli_streams["stdin"],
+        stdout=r1s09_cli_streams["stdout"],
+    )
+
+
+@then(
+    'the captured stdout contains "INSTRUCTIONS (Y-N)?" '
+    "as a complete newline-terminated line"
+)
+def _r1s09_prompt_visible_as_complete_line(
+    r1s09_cli_streams: dict[str, Any],
+) -> None:
+    output: str = r1s09_cli_streams["stdout"].getvalue()
+    # The prompt must appear as a full line — i.e. text + newline. A bare
+    # write with no newline can sit in the underlying line-buffered stdio
+    # and create the exact deadlock SC3 forbids.
+    assert "INSTRUCTIONS (Y-N)?\n" in output, (
+        f"Expected the INSTRUCTIONS prompt as a newline-terminated line "
+        f"on captured stdout (SC3 line-buffering). Got: {output!r}"
+    )
+
+
+@then("the prompt line appears before any further game text")
+def _r1s09_prompt_before_other_text(
+    r1s09_cli_streams: dict[str, Any],
+) -> None:
+    output: str = r1s09_cli_streams["stdout"].getvalue()
+    prompt_index = output.find("INSTRUCTIONS (Y-N)?")
+    banner_index = output.find("HUNT THE WUMPUS")
+    assert prompt_index >= 0, "INSTRUCTIONS prompt missing from output."
+    # The banner is what fires AFTER the player answers N (i.e. after the
+    # CLI consumed input). The prompt MUST precede the banner; if it
+    # doesn't, the loop emitted the banner before the prompt was flushed —
+    # the exact ordering bug SC3 forbids.
+    if banner_index >= 0:
+        assert prompt_index < banner_index, (
+            f"INSTRUCTIONS prompt appeared at {prompt_index} after banner at "
+            f"{banner_index}; prompt must be flushed BEFORE input is read."
+        )

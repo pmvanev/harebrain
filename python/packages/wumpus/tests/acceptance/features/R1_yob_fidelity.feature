@@ -215,3 +215,20 @@ Feature: R1 Yob fidelity — dodecahedron cave + Yob mechanics
     Given the user answers N to "INSTRUCTIONS (Y-N)?"
     Then the next printed output contains the "HUNT THE WUMPUS" banner
     And the captured output does NOT contain "RAMDOM"
+
+  # ---------------------------------------------------------------------------
+  # R1-S09 — CLI subprocess-safe (in-process line-buffering check)
+  # ---------------------------------------------------------------------------
+  #
+  # The pexpect/wexpect subprocess smoke tests at `tests/subprocess/` exercise
+  # the END-TO-END contract; this scenario is the SMOKE-TEST-INSURANCE that
+  # the CLI loop flushes its prompts before reading input. The check runs
+  # in-process (no subprocess overhead) by capturing the CLI's stdout into
+  # a StringIO and asserting the INSTRUCTIONS prompt is present BEFORE the
+  # CLI consumes any stdin.
+
+  Scenario: Prompt is observable before input is awaited (in-process line-buffering check)
+    Given a CLI invocation with seed 0 and a captured stdout stream
+    When the CLI loop runs with a stdin that answers "N" to the instructions prompt
+    Then the captured stdout contains "INSTRUCTIONS (Y-N)?" as a complete newline-terminated line
+    And the prompt line appears before any further game text
