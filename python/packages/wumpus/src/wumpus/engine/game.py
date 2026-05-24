@@ -33,6 +33,7 @@ from wumpus.engine.arrow_walk import walk_arrow
 from wumpus.engine.cave_gen import generate_initial_layout
 from wumpus.engine.hash import internal_state_hash
 from wumpus.engine.hazard_resolve import hazard_resolve
+from wumpus.engine.render_terminal import lines_for_events
 from wumpus.engine.sense import emit_senses_for_room
 from wumpus.engine.transitions import _adjacent_rooms_for_cave, resolve_move
 from wumpus.events import (
@@ -47,6 +48,7 @@ from wumpus.events import (
     MoveResolved,
     PlayerTeleported,
     PromptIssued,
+    SessionEnded,
 )
 from wumpus.types import Observation, PromptKind, Snapshot, World
 
@@ -99,6 +101,17 @@ class Game:
         self._random: random.Random = random.Random(seed)
         self._cave: str = cave
         self._world: World = self._build_initial_world(cave)
+        # R1-S07: pin the initial World snapshot for SAME SET-UP=Y restore.
+        # The frozen-dataclass World is value-typed, so the reference cannot
+        # be mutated; subsequent transitions REPLACE `_world` with new World
+        # values, leaving `_initial_layout` intact for the lifetime of the
+        # Game instance.
+        self._initial_layout: World = self._world
+        # R1-S07: per-step event buffer used by `_render_observation` to
+        # populate `Observation.rendered_lines` via the surface seam. Cleared
+        # at the START of every `step()` call (and at the synthesized
+        # post-terminal prompt emission inside the same step).
+        self._step_events: list[Event] = []
         self._subscribers: list[Sink] = []
         # R0 _debug_events decision (Option A): always-populated internal
         # event log, scoped to the Game instance. Tests use this to compare
@@ -140,6 +153,10 @@ class Game:
         game._random = random.Random(seed)
         game._cave = _CAVE_YOB
         game._world = world
+        # R1-S07: pin the initial layout for SAME SET-UP=Y restore. See
+        # `__init__` for the field's contract.
+        game._initial_layout = world
+        game._step_events = []
         game._subscribers = []
         game._debug_events = []
 
@@ -204,7 +221,28 @@ class Game:
         `P(K) == P(K-2)` is enforced at K > 2 with `CrookedPathRejected` +
         slot-specific re-prompt. When all slots are collected, `ArrowFired`
         fires and the pending state clears (no arrow walk — that is R1-S06).
+
+        R1-S07: post-terminal SAME SET-UP=Y/N handling. After any GameEnded
+        the engine parks in `pending_prompt="same_setup"`. `step("Y")` restores
+        `_initial_layout` and emits a fresh `GameStarted` (same layout_hash).
+        `step("N")` emits `SessionEnded`; further actions become no-ops.
         """
+        # R1-S07: clear the per-step event buffer at the start of every step
+        # so `_render_observation()` only sees events from THIS step.
+        self._step_events = []
+
+        # R1-S07: post-terminal SAME SET-UP=Y/N takes precedence over the
+        # shoot/move dispatchers — the engine is awaiting a Y/N answer, not
+        # a move target or shoot input.
+        if self._world.pending_prompt == "same_setup":
+            return self._step_same_setup(action)
+        # R1-S07: if the player is in a terminal session-ended state, ignore
+        # further actions (return an empty-rendered Observation). This
+        # forecloses the "what if the harness keeps poking after the game
+        # ends" failure mode.
+        if not self._world.alive and self._world.pending_prompt is None:
+            return self._render_observation()
+
         # Route on pending_prompt FIRST: if the engine is mid-shoot, the
         # action is a path-length or room-slot integer string, not a move.
         if self._world.pending_prompt is not None:
@@ -380,10 +418,29 @@ class Game:
         list is populated AFTER subscriber emission so the two lists are
         ordering-equivalent (and so the "no sinks attached" scenario can compare
         them directly).
+
+        R1-S07: also appends to `_step_events` (the per-step buffer feeding
+        `Observation.rendered_lines` via the surface seam). The buffer is
+        cleared at the top of every `step()` call.
         """
         for sink in self._subscribers:
             sink.emit(event)
         self._debug_events.append(event)
+        # `_step_events` may not yet exist on Game instances constructed
+        # before R1-S07 wired it in (snapshot reconstruction path, for
+        # example, runs `__new__` without `__init__`). Defensive init.
+        if not hasattr(self, "_step_events"):
+            self._step_events = []
+        self._step_events.append(event)
+
+        # R1-S07: post-terminal hook — when a GameEnded fires, immediately
+        # follow with a SAME SET-UP prompt so the engine is parked awaiting
+        # a Y/N answer. The prompt issuance is synthesized here (NOT in
+        # hazard_resolve / arrow_walk) because those are pure functions
+        # that don't know about post-terminal UI state. Parking the engine
+        # in `pending_prompt="same_setup"` is the Game shell's responsibility.
+        if isinstance(event, GameEnded) and self._world.pending_prompt != "same_setup":
+            self._enter_same_setup_state()
 
     def _encode_rng_cursor(self) -> str:
         """Base64-encoded pickled `random.Random.getstate()` per ADR-001/SC6."""
@@ -391,20 +448,147 @@ class Game:
         return base64.b64encode(state_bytes).decode("ascii")
 
     def _render_observation(self) -> Observation:
-        """Placeholder rendered lines + ground-truth fields.
+        """Surface-translated rendered lines for THIS step's events.
 
-        The real Yob render lands at R4-S03; until then the engine emits
-        `<placeholder>` lines so no Yob text leaks into engine code (SC8).
+        R1-S07 wires the YobSurface terminal + hazard subset through
+        `wumpus.engine.render_terminal`. Other event kinds (SenseEmitted,
+        LocationReported, MoveResolved, ...) yield `("<placeholder>",)` until
+        the full Surface Protocol lands at R4-S03.
+
+        Per SC8 (surface seam) no Yob text lives in engine code — the
+        translator is `wumpus.engine.render_terminal`, which calls into
+        `wumpus.surfaces.yob` to produce the actual strings.
         """
         adjacencies = _adjacent_rooms_for_cave(self._cave, self._world.player_room)
+        # `_step_events` is the per-step emission buffer. May be absent on
+        # snapshot-resurrected instances (Game.__new__ path); defensive default.
+        step_events = getattr(self, "_step_events", ())
+        rendered_lines = lines_for_events(step_events)
         return Observation(
-            rendered_lines=("<placeholder>",),
+            rendered_lines=rendered_lines,
             prompt=None,
             outcome=None,
             player_room=self._world.player_room,
             adjacencies=adjacencies,
             senses=(),
         )
+
+    # ---- R1-S07 SAME SET-UP state machine --------------------------------
+
+    def _enter_same_setup_state(self) -> None:
+        """Park the engine in the post-terminal `pending_prompt="same_setup"`
+        state and emit a `PromptIssued(kind="same_setup")` so the caller
+        (renderer, harness, agent) knows a Y/N answer is awaited.
+
+        Called from `_emit` immediately after any `GameEnded` event.
+        """
+        terminal_world = self._world
+        new_world = World(
+            player_room=terminal_world.player_room,
+            wumpus_rooms=terminal_world.wumpus_rooms,
+            pit_rooms=terminal_world.pit_rooms,
+            bat_rooms=terminal_world.bat_rooms,
+            arrows=terminal_world.arrows,
+            turn=terminal_world.turn,
+            alive=terminal_world.alive,
+            pending_prompt="same_setup",
+            pending_arrow_path=terminal_world.pending_arrow_path,
+            pending_path_length=terminal_world.pending_path_length,
+        )
+        self._world = new_world
+        self._emit(
+            PromptIssued(
+                schema_version=SCHEMA_VERSION,
+                turn=new_world.turn,
+                surface_variant=_R0_SURFACE_VARIANT,
+                internal_state_hash=internal_state_hash(new_world),
+                rng_cursor=self._encode_rng_cursor(),
+                kind="same_setup",
+                context=None,
+            )
+        )
+
+    def _step_same_setup(self, action: str) -> Observation:
+        """Handle a step from the post-terminal `pending_prompt="same_setup"`
+        state. Accepts case-insensitive 'Y' / 'N'; any other input re-prompts."""
+        answer = action.strip().upper()
+        if answer == "Y":
+            return self._restore_initial_layout()
+        if answer == "N":
+            return self._end_session()
+        # Malformed answer — re-prompt by re-emitting the SAME SET-UP prompt.
+        self._emit(
+            PromptIssued(
+                schema_version=SCHEMA_VERSION,
+                turn=self._world.turn,
+                surface_variant=_R0_SURFACE_VARIANT,
+                internal_state_hash=internal_state_hash(self._world),
+                rng_cursor=self._encode_rng_cursor(),
+                kind="same_setup",
+                context=None,
+            )
+        )
+        return self._render_observation()
+
+    def _restore_initial_layout(self) -> Observation:
+        """Restore `_initial_layout` and emit a fresh `GameStarted` with the
+        same `layout_hash`. The RNG is NOT reseeded — Yob's same-setup replay
+        continues the RNG cursor where the prior game left it (subsequent
+        startle / bat-teleport draws differ across replays).
+
+        Per the R1-S07 brief: turn counter zeroed, arrow count restored to
+        the initial, alive=True, no pending prompt.
+        """
+        self._world = self._initial_layout
+        self._emit(
+            GameStarted(
+                schema_version=SCHEMA_VERSION,
+                turn=self._world.turn,
+                surface_variant=_R0_SURFACE_VARIANT,
+                internal_state_hash=internal_state_hash(self._world),
+                rng_cursor=self._encode_rng_cursor(),
+                seed=self._seed,
+                engine_version=_R0_ENGINE_VERSION,
+                surface_id=_R0_SURFACE_ID,
+                layout_hash=internal_state_hash(self._world),
+                active_escalation_rules=(),
+            )
+        )
+        return self._render_observation()
+
+    def _end_session(self) -> Observation:
+        """Emit `SessionEnded` and park the engine in a no-op terminal state.
+
+        Per the R1-S07 brief: SAME SET-UP=N is the minimal "session close"
+        for the experiment matrix. The fresh-cave-from-the-rolling-RNG
+        behavior Yob does is generalizable to a downstream slice (or to the
+        harness layer driving multi-game replay sequences).
+        """
+        # Clear pending_prompt and leave alive=False so the early-return in
+        # step() short-circuits any further action.
+        new_world = World(
+            player_room=self._world.player_room,
+            wumpus_rooms=self._world.wumpus_rooms,
+            pit_rooms=self._world.pit_rooms,
+            bat_rooms=self._world.bat_rooms,
+            arrows=self._world.arrows,
+            turn=self._world.turn,
+            alive=False,
+            pending_prompt=None,
+            pending_arrow_path=self._world.pending_arrow_path,
+            pending_path_length=self._world.pending_path_length,
+        )
+        self._world = new_world
+        self._emit(
+            SessionEnded(
+                schema_version=SCHEMA_VERSION,
+                turn=new_world.turn,
+                surface_variant=_R0_SURFACE_VARIANT,
+                internal_state_hash=internal_state_hash(new_world),
+                rng_cursor=self._encode_rng_cursor(),
+            )
+        )
+        return self._render_observation()
 
     def _build_initial_world(self, cave: str) -> World:
         """Construct the initial World per the selected cave topology.
@@ -685,6 +869,14 @@ class Game:
         game._random = _decode_rng_cursor(snapshot.rng_cursor)
         game._cave = _CAVE_YOB
         game._world = snapshot.world
+        # R1-S07: snapshots do NOT yet carry _initial_layout (R3 territory).
+        # For now we treat the resurrected world as both the current and the
+        # initial layout — SAME SET-UP=Y on a resurrected mid-game would
+        # restore the mid-game world, not the original new-game world. The
+        # R3 ledger-replay slice will add an `_initial_layout` field to
+        # Snapshot.
+        game._initial_layout = snapshot.world
+        game._step_events = []
         game._subscribers = []
         game._debug_events = []
 

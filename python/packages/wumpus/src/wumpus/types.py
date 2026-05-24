@@ -37,7 +37,14 @@ from typing import Literal, Protocol
 #   "shoot_path_len"   — after the player picks S, the engine awaits NO. OF ROOMS(1-5)?
 #   "shoot_path_room"  — once path length is set, the engine awaits each slot's ROOM #?
 PromptKind = Literal[
-    "action", "move_target", "shoot_path_len", "shoot_path_room"
+    "action",
+    "move_target",
+    "shoot_path_len",
+    "shoot_path_room",
+    # R1-S07 — post-terminal "SAME SET-UP (Y-N)?" prompt. The engine parks
+    # in this state after any GameEnded so the caller can answer Y (restore
+    # the initial layout) or N (end the session via SessionEnded).
+    "same_setup",
 ]
 
 

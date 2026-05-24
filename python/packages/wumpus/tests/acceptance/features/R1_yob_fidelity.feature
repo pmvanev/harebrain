@@ -178,3 +178,26 @@ Feature: R1 Yob fidelity — dodecahedron cave + Yob mechanics
     Then ArrowMissed fires
     And ArrowCountChanged(new_count=0) fires
     And GameEnded(outcome=out_of_arrows) fires
+
+  # ---------------------------------------------------------------------------
+  # R1-S07 — Terminal state + Yob win/lose message swap + SAME SET-UP
+  # ---------------------------------------------------------------------------
+
+  Scenario: Win message is Yob's swapped HEE HEE HEE text
+    Given the player has just shot the wumpus
+    Then GameEnded(outcome=wumpus_shot, message_kind=win) fires
+    And the rendered_lines for the win turn contain "AHA! YOU GOT THE WUMPUS!"
+    And the rendered_lines for the win turn contain "HEE HEE HEE - THE WUMPUS'LL GETCHA NEXT TIME!!"
+
+  Scenario: Loss message is Yob's swapped HA HA HA text
+    Given the player has just fallen in a pit
+    Then GameEnded(outcome=fell_in_pit, message_kind=lose) fires
+    And the rendered_lines for the loss turn contain "YYYIIIIEEEE . . . FELL IN PIT"
+    And the rendered_lines for the loss turn contain "HA HA HA - YOU LOSE!"
+
+  Scenario: SAME SET-UP=Y restores the initial layout exactly
+    Given the player has just finished a game with wumpus in 14, pits in 4 and 17, bats in 5 and 9, start 8
+    When the player answers Y to SAME SET-UP (Y-N)?
+    Then a new GameStarted event fires
+    And the new game's _initial_layout equals the just-finished game's _initial_layout
+    And the new game's layout_hash equals the just-finished game's layout_hash

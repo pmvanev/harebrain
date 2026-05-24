@@ -30,6 +30,7 @@ from wumpus.events import (
     PlayerTeleported,
     PromptIssued,
     SenseEmitted,
+    SessionEnded,
     WumpusStartled,
 )
 from wumpus.types import Observation, PromptKind, Snapshot, World
@@ -61,5 +62,6 @@ __all__ = [
     "ArrowHitPlayer",
     "ArrowCountChanged",
     "GameEnded",
+    "SessionEnded",
     "SCHEMA_VERSION",
 ]

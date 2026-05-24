@@ -1986,3 +1986,327 @@ def _r1s06_game_ended_out_of_arrows(
     assert ended[0].message_kind == "lose", (
         f"GameEnded.message_kind was {ended[0].message_kind!r}; expected 'lose'."
     )
+
+
+# ---------------------------------------------------------------------------
+# R1-S07 — Terminal state + Yob win/lose message swap + SAME SET-UP
+# ---------------------------------------------------------------------------
+#
+# Strategy: drive a Game to a terminal state via the existing shoot or move
+# infrastructure, then inspect:
+#   1. The Observation.rendered_lines emitted on the terminal turn
+#   2. (for SAME SET-UP) the post-terminal step("Y") behavior + the
+#      reconstructed game's _initial_layout / layout_hash
+#
+# YobSurface is a stateless module-level mapping (per ADR-001 "FP inside") in
+# wumpus.surfaces.yob. The engine wires it via wumpus.engine.render_terminal.
+
+
+def _build_win_scenario_world() -> Any:
+    """Pin a layout where the player can shoot the wumpus deterministically.
+    Mirrors R1-S06 scenario 1: player at 8, wumpus at 17, path through 7->17."""
+    from wumpus.types import World
+
+    return World(
+        player_room=8,
+        wumpus_rooms=(17,),
+        pit_rooms=(11, 13),  # parked away
+        bat_rooms=(15, 19),
+        arrows=5,
+        turn=0,
+        alive=True,
+        pending_prompt=None,
+        pending_arrow_path=(),
+    )
+
+
+def _build_pit_scenario_world() -> Any:
+    """Pin a layout where the player steps into a pit (no shoot needed)."""
+    from wumpus.types import World
+
+    return World(
+        player_room=3,
+        wumpus_rooms=(11,),
+        pit_rooms=(4, 14),
+        bat_rooms=(15, 19),
+        arrows=5,
+        turn=0,
+        alive=True,
+        pending_prompt=None,
+        pending_arrow_path=(),
+    )
+
+
+def _drive_to_terminal_capture_observations(
+    *,
+    world: Any,
+    actions: tuple[str, ...],
+) -> dict[str, Any]:
+    """Construct a Game pinned to `world`, attach an InMemorySink, drive
+    through `actions`, and return both the captured events and the FINAL
+    step's Observation (which carries rendered_lines for the terminal turn)."""
+    from wumpus import Game
+    from wumpus.sinks import InMemorySink
+
+    game = Game._from_world(world, seed=0)
+    sink = InMemorySink()
+    game.subscribe(sink)
+    pre_count = len(sink.events)
+    last_observation = None
+    for action in actions:
+        last_observation = game.step(action)
+    return {
+        "game": game,
+        "sink": sink,
+        "last_observation": last_observation,
+        "post_construction_events": sink.events[pre_count:],
+    }
+
+
+# ---------------------------------------------------------------------------
+# R1-S07 — Scenario 1: Win message is Yob's swapped HEE HEE HEE text
+# ---------------------------------------------------------------------------
+
+
+@given(
+    "the player has just shot the wumpus",
+    target_fixture="r1s07_win_state",
+)
+def _r1s07_win_state() -> dict[str, Any]:
+    """Drive shoot path 7->17 against pinned wumpus@17 layout. Yields the
+    captured event list + the FINAL observation (which carries the win turn's
+    rendered_lines)."""
+    return _drive_to_terminal_capture_observations(
+        world=_build_win_scenario_world(),
+        actions=("S", "2", "7", "17"),
+    )
+
+
+@then("GameEnded(outcome=wumpus_shot, message_kind=win) fires")
+def _r1s07_win_game_ended(r1s07_win_state: dict[str, Any]) -> None:
+    from wumpus.events import GameEnded
+
+    ended = [
+        e for e in r1s07_win_state["post_construction_events"] if isinstance(e, GameEnded)
+    ]
+    assert ended, "No GameEnded event emitted after wumpus shot."
+    assert ended[0].outcome == "wumpus_shot", (
+        f"GameEnded.outcome was {ended[0].outcome!r}; expected 'wumpus_shot'."
+    )
+    assert ended[0].message_kind == "win", (
+        f"GameEnded.message_kind was {ended[0].message_kind!r}; expected 'win'."
+    )
+
+
+@then('the rendered_lines for the win turn contain "AHA! YOU GOT THE WUMPUS!"')
+def _r1s07_win_contains_aha(r1s07_win_state: dict[str, Any]) -> None:
+    lines = r1s07_win_state["last_observation"].rendered_lines
+    assert any("AHA! YOU GOT THE WUMPUS!" in line for line in lines), (
+        f"Expected 'AHA! YOU GOT THE WUMPUS!' in rendered_lines on the win turn; "
+        f"got: {lines!r}"
+    )
+
+
+@then(
+    'the rendered_lines for the win turn contain '
+    '"HEE HEE HEE - THE WUMPUS\'LL GETCHA NEXT TIME!!"'
+)
+def _r1s07_win_contains_hee_hee(r1s07_win_state: dict[str, Any]) -> None:
+    lines = r1s07_win_state["last_observation"].rendered_lines
+    assert any(
+        "HEE HEE HEE - THE WUMPUS'LL GETCHA NEXT TIME!!" in line for line in lines
+    ), (
+        f"Expected Yob's swapped win tag 'HEE HEE HEE - THE WUMPUS'LL GETCHA "
+        f"NEXT TIME!!' in rendered_lines on the win turn; got: {lines!r}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# R1-S07 — Scenario 2: Loss message is Yob's swapped HA HA HA text
+# ---------------------------------------------------------------------------
+
+
+@given(
+    "the player has just fallen in a pit",
+    target_fixture="r1s07_pit_state",
+)
+def _r1s07_pit_state() -> dict[str, Any]:
+    """Drive a single move into a pit room. Yields events + final observation."""
+    return _drive_to_terminal_capture_observations(
+        world=_build_pit_scenario_world(),
+        actions=("move 4",),
+    )
+
+
+@then("GameEnded(outcome=fell_in_pit, message_kind=lose) fires")
+def _r1s07_pit_game_ended(r1s07_pit_state: dict[str, Any]) -> None:
+    from wumpus.events import GameEnded
+
+    ended = [
+        e for e in r1s07_pit_state["post_construction_events"] if isinstance(e, GameEnded)
+    ]
+    assert ended, "No GameEnded event emitted after pit fall."
+    assert ended[0].outcome == "fell_in_pit", (
+        f"GameEnded.outcome was {ended[0].outcome!r}; expected 'fell_in_pit'."
+    )
+    assert ended[0].message_kind == "lose", (
+        f"GameEnded.message_kind was {ended[0].message_kind!r}; expected 'lose'."
+    )
+
+
+@then('the rendered_lines for the loss turn contain "YYYIIIIEEEE . . . FELL IN PIT"')
+def _r1s07_loss_contains_pit_reason(r1s07_pit_state: dict[str, Any]) -> None:
+    lines = r1s07_pit_state["last_observation"].rendered_lines
+    assert any("YYYIIIIEEEE . . . FELL IN PIT" in line for line in lines), (
+        f"Expected pit-fall reason 'YYYIIIIEEEE . . . FELL IN PIT' in "
+        f"rendered_lines on the loss turn; got: {lines!r}"
+    )
+
+
+@then('the rendered_lines for the loss turn contain "HA HA HA - YOU LOSE!"')
+def _r1s07_loss_contains_ha_ha(r1s07_pit_state: dict[str, Any]) -> None:
+    lines = r1s07_pit_state["last_observation"].rendered_lines
+    assert any("HA HA HA - YOU LOSE!" in line for line in lines), (
+        f"Expected Yob's swapped loss tag 'HA HA HA - YOU LOSE!' in "
+        f"rendered_lines on the loss turn; got: {lines!r}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# R1-S07 — Scenario 3: SAME SET-UP=Y restores the initial layout exactly
+# ---------------------------------------------------------------------------
+
+
+@given(
+    "the player has just finished a game with wumpus in 14, pits in 4 and 17, "
+    "bats in 5 and 9, start 8",
+    target_fixture="r1s07_same_setup_finished_game",
+)
+def _r1s07_finished_game_for_same_setup() -> dict[str, Any]:
+    """Pin the exact layout the scenario specifies, drive the player to a
+    terminal state, and return the game + the captured initial layout + the
+    captured layout_hash from the original GameStarted event."""
+    from wumpus import Game
+    from wumpus.events import GameStarted
+    from wumpus.sinks import InMemorySink
+    from wumpus.types import World
+
+    initial_world = World(
+        player_room=8,
+        wumpus_rooms=(14,),
+        pit_rooms=(4, 17),
+        bat_rooms=(5, 9),
+        arrows=5,
+        turn=0,
+        alive=True,
+        pending_prompt=None,
+        pending_arrow_path=(),
+    )
+    game = Game._from_world(initial_world, seed=0)
+    sink = InMemorySink()
+    game.subscribe(sink)
+
+    # Capture the original GameStarted layout_hash + the Game._initial_layout.
+    original_started = next(
+        e for e in sink.events if isinstance(e, GameStarted)
+    )
+    original_layout_hash = original_started.layout_hash
+    original_initial_layout = game._initial_layout  # noqa: SLF001 — test-only
+
+    # Drive to a deterministic terminal: shoot self at room 8 via path (1, 8).
+    # 8->1 adj (room 8 neighbors {1, 7, 9}), 1->8 adj. Final = 8 = player → self-shot.
+    # arrows=5 → 4 after self-shot; game continues; need to deplete arrows.
+    # Easier: drive into a pit at room 4 (player at 8 adjacent? 8->{1,7,9} — no).
+    # Player at 8 -> move 7 -> 7 neighbors {6, 8, 17}. Pit at 17! Move 7, then 17.
+    game.step("move 7")
+    game.step("move 17")  # walk into pit at 17 → GameEnded(fell_in_pit)
+    return {
+        "game": game,
+        "sink": sink,
+        "original_initial_layout": original_initial_layout,
+        "original_layout_hash": original_layout_hash,
+    }
+
+
+@when(
+    "the player answers Y to SAME SET-UP (Y-N)?",
+    target_fixture="r1s07_same_setup_after_Y",
+)
+def _r1s07_same_setup_after_Y(
+    r1s07_same_setup_finished_game: dict[str, Any],
+) -> dict[str, Any]:
+    from wumpus.events import GameStarted
+
+    game = r1s07_same_setup_finished_game["game"]
+    sink = r1s07_same_setup_finished_game["sink"]
+    pre_count = len(sink.events)
+    game.step("Y")
+    post_events = sink.events[pre_count:]
+    new_started = [e for e in post_events if isinstance(e, GameStarted)]
+    return {
+        "game": game,
+        "post_events": post_events,
+        "new_started_event": new_started[0] if new_started else None,
+    }
+
+
+@then("a new GameStarted event fires")
+def _r1s07_new_game_started_fires(
+    r1s07_same_setup_after_Y: dict[str, Any],
+) -> None:
+    assert r1s07_same_setup_after_Y["new_started_event"] is not None, (
+        "Expected a fresh GameStarted event after SAME SET-UP=Y; none emitted. "
+        f"Post-Y events: "
+        f"{[type(e).__name__ for e in r1s07_same_setup_after_Y['post_events']]}"
+    )
+
+
+@then(
+    "the new game's _initial_layout equals the just-finished game's _initial_layout"
+)
+def _r1s07_initial_layout_matches(
+    r1s07_same_setup_after_Y: dict[str, Any],
+    r1s07_same_setup_finished_game: dict[str, Any],
+) -> None:
+    new_game = r1s07_same_setup_after_Y["game"]
+    original = r1s07_same_setup_finished_game["original_initial_layout"]
+    restored = new_game._initial_layout  # noqa: SLF001 — test-only
+    assert restored == original, (
+        f"After SAME SET-UP=Y, _initial_layout was {restored!r}; "
+        f"expected the original {original!r}."
+    )
+    # Also verify the world has been reset to the initial layout (player_room,
+    # arrows, alive, turn).
+    current_world = new_game.world_state()
+    assert current_world.player_room == original.player_room, (
+        f"Restored player_room was {current_world.player_room}; expected "
+        f"{original.player_room}."
+    )
+    assert current_world.wumpus_rooms == original.wumpus_rooms
+    assert current_world.pit_rooms == original.pit_rooms
+    assert current_world.bat_rooms == original.bat_rooms
+    assert current_world.arrows == original.arrows, (
+        f"Restored arrows was {current_world.arrows}; expected {original.arrows}."
+    )
+    assert current_world.alive is True, (
+        "Restored alive was False; SAME SET-UP=Y must reset alive=True."
+    )
+    assert current_world.turn == original.turn, (
+        f"Restored turn was {current_world.turn}; expected {original.turn} (0)."
+    )
+
+
+@then(
+    "the new game's layout_hash equals the just-finished game's layout_hash"
+)
+def _r1s07_layout_hash_matches(
+    r1s07_same_setup_after_Y: dict[str, Any],
+    r1s07_same_setup_finished_game: dict[str, Any],
+) -> None:
+    new_started = r1s07_same_setup_after_Y["new_started_event"]
+    assert new_started is not None, "No fresh GameStarted to compare layout_hash."
+    original_hash = r1s07_same_setup_finished_game["original_layout_hash"]
+    assert new_started.layout_hash == original_hash, (
+        f"New GameStarted.layout_hash was {new_started.layout_hash!r}; "
+        f"expected {original_hash!r} (the original layout's hash)."
+    )

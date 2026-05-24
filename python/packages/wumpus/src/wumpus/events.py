@@ -369,6 +369,27 @@ class ArrowCountChanged(_BaseEventFields):
 
 
 @dataclass(frozen=True)
+class SessionEnded(_BaseEventFields):
+    """Emitted when the player declines SAME SET-UP=N at the post-terminal
+    prompt (R1-S07).
+
+    Per the R1-S07 decision: Yob's source generates a fresh cave on
+    SAME SET-UP=N (rolling a new FNB layout from the continuing RNG).
+    R1-S07's minimal design treats N as a clean session close — the engine
+    emits `SessionEnded`, parks in a terminal state, and ignores further
+    actions. The fresh-cave behavior is generalizable to a downstream
+    slice (or to the harness layer) and is NOT needed by R0-R4 (the
+    experiment matrix runs one game per Game instance).
+
+    The event carries no payload beyond `_BaseEventFields`; the
+    discriminator alone suffices for downstream consumers to recognize
+    the session-close intent.
+    """
+
+    type: Literal["SessionEnded"] = "SessionEnded"
+
+
+@dataclass(frozen=True)
 class GameEnded(_BaseEventFields):
     """Emitted exactly once on any terminal state — win or lose.
 
@@ -416,4 +437,5 @@ Event = (
     | ArrowHitPlayer
     | ArrowCountChanged
     | GameEnded
+    | SessionEnded
 )
