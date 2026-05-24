@@ -20,6 +20,8 @@ from hypothesis import given as hyp_given
 from hypothesis import settings, strategies as st
 from pytest_bdd import given, scenarios, then, when
 
+from wumpus.constants import DODECAHEDRON
+
 # Bind the .feature file. Path is relative to this step-defs file's parent.
 scenarios("../features/R1_yob_fidelity.feature")
 
@@ -1439,4 +1441,548 @@ def _r1s05_resurrected_path_is_7(
     assert world.pending_arrow_path == (7,), (
         f"Resurrected game's pending_arrow_path was {world.pending_arrow_path!r}; "
         f"expected (7,)."
+    )
+
+
+# ---------------------------------------------------------------------------
+# R1-S06 — Arrow walk + hit/miss/self-shot + out-of-arrows
+# ---------------------------------------------------------------------------
+#
+# Strategy: drive the shoot sub-state-machine via `step("S")` → path-length
+# → per-slot rooms; the engine fires `ArrowFired` on the final slot and
+# (R1-S06 wires this) immediately calls `walk_arrow`. We pin the World with
+# `Game._from_world` so the player/wumpus rooms are deterministic, then
+# monkeypatch `game._random` with `_MockRandom` for any RNG-consuming step.
+#
+# RNG draws consumed by R1-S06:
+#   - on deflection: one `randint(1, 3)` per missing-tunnel hop
+#   - on miss: one `randint(1, 4)` for the FNC(0) startle
+
+
+def _drive_shoot_through_path(
+    *,
+    world: Any,
+    path: tuple[int, ...],
+    scripted_randint: list[int],
+) -> list[Any]:
+    """Drive a full S → path-length → per-slot chain on a pinned World and
+    return all events emitted from the moment `step("S")` runs. The Mock
+    RNG is installed BEFORE the chain begins so any randint draws made
+    by the arrow walk (deflection / startle) consume scripted values."""
+    from wumpus import Game
+    from wumpus.sinks import InMemorySink
+
+    game = Game._from_world(world, seed=0)
+    game._random = _MockRandom(scripted_randint)  # type: ignore[assignment]
+    sink = InMemorySink()
+    game.subscribe(sink)
+    pre = len(sink.events)
+    game.step("S")
+    game.step(str(len(path)))
+    for room in path:
+        game.step(str(room))
+    return sink.events[pre:]
+
+
+def _build_shoot_world(
+    *,
+    player_room: int,
+    wumpus_rooms: tuple[int, ...],
+    arrows: int = 5,
+) -> Any:
+    """Pin a layout for R1-S06 shoot scenarios. Hazards parked far from any
+    path-walked room so they cannot fire incidentally on `step()` calls.
+    The shoot sub-state-machine does not invoke hazard resolution; this is
+    belt-and-braces."""
+    from wumpus.types import World
+
+    return World(
+        player_room=player_room,
+        wumpus_rooms=wumpus_rooms,
+        pit_rooms=(11, 13),  # Not adjacent to 7/8/9/17 path rooms.
+        bat_rooms=(15, 19),
+        arrows=arrows,
+        turn=0,
+        alive=True,
+        pending_prompt=None,
+        pending_arrow_path=(),
+    )
+
+
+# ---------------------------------------------------------------------------
+# R1-S06 — Scenario 1: Successful shot kills the wumpus
+# ---------------------------------------------------------------------------
+
+
+@given(
+    "the player is in room 8 with 5 arrows",
+    target_fixture="r1s06_scenario_state",
+)
+def _r1s06_player_in_8_with_5_arrows() -> dict[str, Any]:
+    """Shared by scenarios 1 and 2 (both Givens read 'in room 8 with 5
+    arrows'). The dict acts as a scenario bag the subsequent Given/When/Then
+    steps populate."""
+    return {"player_room": 8, "arrows": 5}
+
+
+@given("the wumpus is in room 17 and rooms 8-7, 7-17 are connected")
+def _r1s06_wumpus_in_17_path_connected(
+    r1s06_scenario_state: dict[str, Any],
+) -> None:
+    # Sanity-check the dodecahedron — fails loudly if Yob-fidelity drift.
+    assert 7 in DODECAHEDRON[8], "Room 7 must be adjacent to room 8."
+    assert 17 in DODECAHEDRON[7], "Room 17 must be adjacent to room 7."
+    r1s06_scenario_state["wumpus_rooms"] = (17,)
+
+
+@when("the player shoots a 2-room path through rooms 7, 17")
+def _r1s06_shoot_path_7_17(
+    r1s06_scenario_state: dict[str, Any],
+) -> None:
+    world = _build_shoot_world(
+        player_room=r1s06_scenario_state["player_room"],
+        wumpus_rooms=r1s06_scenario_state["wumpus_rooms"],
+        arrows=r1s06_scenario_state["arrows"],
+    )
+    r1s06_scenario_state["events"] = _drive_shoot_through_path(
+        world=world, path=(7, 17), scripted_randint=[]
+    )
+
+
+@then("ArrowFired(path=[7, 17]) fires")
+def _r1s06_arrow_fired_7_17(r1s06_scenario_state: dict[str, Any]) -> None:
+    from wumpus.events import ArrowFired
+
+    fired = [e for e in r1s06_scenario_state["events"] if isinstance(e, ArrowFired)]
+    assert fired, "No ArrowFired event emitted."
+    assert fired[0].path == (7, 17), (
+        f"ArrowFired.path was {fired[0].path!r}; expected (7, 17)."
+    )
+
+
+@then("ArrowPathStep(room=7, deflected=False) fires")
+def _r1s06_path_step_7(r1s06_scenario_state: dict[str, Any]) -> None:
+    from wumpus.events import ArrowPathStep
+
+    steps = [e for e in r1s06_scenario_state["events"] if isinstance(e, ArrowPathStep)]
+    assert steps, "No ArrowPathStep emitted."
+    assert steps[0].room == 7 and steps[0].deflected is False, (
+        f"First ArrowPathStep was room={steps[0].room}, deflected={steps[0].deflected}; "
+        f"expected room=7, deflected=False."
+    )
+
+
+@then("ArrowPathStep(room=17, deflected=False) fires")
+def _r1s06_path_step_17(r1s06_scenario_state: dict[str, Any]) -> None:
+    from wumpus.events import ArrowPathStep
+
+    steps = [e for e in r1s06_scenario_state["events"] if isinstance(e, ArrowPathStep)]
+    assert len(steps) >= 2, f"Expected >=2 ArrowPathStep events; got {len(steps)}."
+    assert steps[1].room == 17 and steps[1].deflected is False, (
+        f"Second ArrowPathStep was room={steps[1].room}, "
+        f"deflected={steps[1].deflected}; expected room=17, deflected=False."
+    )
+
+
+@then("ArrowHitWumpus(room=17) fires")
+def _r1s06_arrow_hit_wumpus_17(r1s06_scenario_state: dict[str, Any]) -> None:
+    from wumpus.events import ArrowHitWumpus
+
+    hits = [e for e in r1s06_scenario_state["events"] if isinstance(e, ArrowHitWumpus)]
+    assert hits, "No ArrowHitWumpus event emitted."
+    assert hits[0].room == 17, (
+        f"ArrowHitWumpus.room was {hits[0].room}; expected 17."
+    )
+
+
+@then("GameEnded(outcome=wumpus_shot) fires")
+def _r1s06_game_ended_wumpus_shot(r1s06_scenario_state: dict[str, Any]) -> None:
+    from wumpus.events import GameEnded
+
+    ended = [e for e in r1s06_scenario_state["events"] if isinstance(e, GameEnded)]
+    assert ended, "No GameEnded event emitted after wumpus hit."
+    assert ended[0].outcome == "wumpus_shot", (
+        f"GameEnded.outcome was {ended[0].outcome!r}; expected 'wumpus_shot'."
+    )
+    assert ended[0].message_kind == "win", (
+        f"GameEnded.message_kind was {ended[0].message_kind!r}; expected 'win'."
+    )
+
+
+# ---------------------------------------------------------------------------
+# R1-S06 — Scenario 2: Crooked arrow through player's room mid-path does NOT kill
+# ---------------------------------------------------------------------------
+
+
+@given(
+    "the arrow path walks rooms 7, then 8 (mid-path, passing through player), then 9"
+)
+def _r1s06_midpath_through_player(
+    r1s06_scenario_state: dict[str, Any],
+) -> None:
+    # Player at 8. Path: [7, 8, 9]. 8→7 adj, 7→8 adj, 8→9 adj. Final = 9.
+    # 9 != wumpus (parked at 17), 9 != player (8) → miss.
+    # The canary: ArrowPathStep(room=8) fires mid-path but no ArrowHitPlayer.
+    assert 7 in DODECAHEDRON[8] and 8 in DODECAHEDRON[7] and 9 in DODECAHEDRON[8], (
+        "Path 8→7→8→9 must all be adjacent steps."
+    )
+    r1s06_scenario_state["wumpus_rooms"] = (17,)
+    # The arrow misses → wumpus startle consumes randint(1, 4); script K=4
+    # (stay-put) so the wumpus doesn't move onto the player.
+    r1s06_scenario_state["path"] = (7, 8, 9)
+    r1s06_scenario_state["scripted_randint"] = [4]
+
+
+@when("the arrow walks the path")
+def _r1s06_walk_path(r1s06_scenario_state: dict[str, Any]) -> None:
+    world = _build_shoot_world(
+        player_room=r1s06_scenario_state["player_room"],
+        wumpus_rooms=r1s06_scenario_state["wumpus_rooms"],
+        arrows=r1s06_scenario_state["arrows"],
+    )
+    r1s06_scenario_state["events"] = _drive_shoot_through_path(
+        world=world,
+        path=r1s06_scenario_state["path"],
+        scripted_randint=r1s06_scenario_state["scripted_randint"],
+    )
+
+
+@then("ArrowPathStep(room=8, deflected=False) fires (no ArrowHitPlayer)")
+def _r1s06_step_room_8_no_hit_player(
+    r1s06_scenario_state: dict[str, Any],
+) -> None:
+    from wumpus.events import ArrowHitPlayer, ArrowPathStep
+
+    events = r1s06_scenario_state["events"]
+    steps = [e for e in events if isinstance(e, ArrowPathStep)]
+    # The mid-path step into room 8 (player's room) must be present.
+    room_8_steps = [s for s in steps if s.room == 8 and s.deflected is False]
+    assert room_8_steps, (
+        f"Expected an ArrowPathStep(room=8, deflected=False) mid-path; "
+        f"got steps: {[(s.room, s.deflected) for s in steps]}"
+    )
+    # The canary: no ArrowHitPlayer was emitted (Yob D11 bug-for-bug).
+    hits = [e for e in events if isinstance(e, ArrowHitPlayer)]
+    assert hits == [], (
+        f"ArrowHitPlayer fired mid-path; Yob bug-for-bug rule violated. "
+        f"Self-shot must fire ONLY on FINAL room match. Hits: {hits!r}"
+    )
+
+
+@then("ArrowPathStep(room=9, ...) fires")
+def _r1s06_step_room_9_fires(
+    r1s06_scenario_state: dict[str, Any],
+) -> None:
+    from wumpus.events import ArrowPathStep
+
+    steps = [e for e in r1s06_scenario_state["events"] if isinstance(e, ArrowPathStep)]
+    room_9_steps = [s for s in steps if s.room == 9]
+    assert room_9_steps, (
+        f"Expected an ArrowPathStep(room=9, ...) for the final hop; got steps: "
+        f"{[(s.room, s.deflected) for s in steps]}"
+    )
+
+
+@then("the player is unharmed at this step")
+def _r1s06_player_unharmed(
+    r1s06_scenario_state: dict[str, Any],
+) -> None:
+    from wumpus.events import ArrowHitPlayer, GameEnded
+
+    events = r1s06_scenario_state["events"]
+    # The scenario's contract: no self-shot fired. (A GameEnded for any
+    # OTHER reason is acceptable — e.g. out_of_arrows from the decrement
+    # if arrows started low — but in this scenario arrows=5, so no
+    # terminal should fire.)
+    assert not any(isinstance(e, ArrowHitPlayer) for e in events), (
+        "Player was hit mid-path — Yob D11 bug-for-bug violation."
+    )
+    # With arrows=5 starting count, a miss leaves arrows=4 → no terminal.
+    terminal = [e for e in events if isinstance(e, GameEnded)]
+    assert terminal == [], (
+        f"Unexpected terminal event in mid-path-through-player scenario: {terminal!r}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# R1-S06 — Scenario 3: Arrow's FINAL room matches player → self-shot
+# ---------------------------------------------------------------------------
+
+
+@given(
+    "the player is in room 8 and the arrow's final room is room 8",
+    target_fixture="r1s06_selfshot_state",
+)
+def _r1s06_selfshot_setup() -> dict[str, Any]:
+    """Build a path whose FINAL room equals player's room 8.
+    Path [7, 8]: 8→7 adj, 7→8 adj. Final = 8 = player. Self-shot."""
+    assert 7 in DODECAHEDRON[8] and 8 in DODECAHEDRON[7], (
+        "Path 8→7→8 must be a valid 2-step walk."
+    )
+    world = _build_shoot_world(
+        player_room=8,
+        wumpus_rooms=(17,),  # parked away — not on path
+        arrows=5,
+    )
+    events = _drive_shoot_through_path(
+        world=world, path=(7, 8), scripted_randint=[]
+    )
+    return {"events": events}
+
+
+@then("ArrowHitPlayer(room=8) fires")
+def _r1s06_arrow_hit_player_8(
+    r1s06_selfshot_state: dict[str, Any],
+) -> None:
+    from wumpus.events import ArrowHitPlayer
+
+    hits = [e for e in r1s06_selfshot_state["events"] if isinstance(e, ArrowHitPlayer)]
+    assert hits, "No ArrowHitPlayer event emitted after final-room match."
+    assert hits[0].room == 8, (
+        f"ArrowHitPlayer.room was {hits[0].room}; expected 8 (player's room)."
+    )
+
+
+@then("ArrowCountChanged(new_count=4) fires (decrement-as-if-missed)")
+def _r1s06_arrow_count_4(
+    r1s06_selfshot_state: dict[str, Any],
+) -> None:
+    from wumpus.events import ArrowCountChanged
+
+    changes = [
+        e for e in r1s06_selfshot_state["events"] if isinstance(e, ArrowCountChanged)
+    ]
+    assert changes, "No ArrowCountChanged event emitted after self-shot."
+    assert changes[0].new_count == 4, (
+        f"ArrowCountChanged.new_count was {changes[0].new_count}; "
+        f"expected 4 (decrement from 5)."
+    )
+
+
+@then("the game continues unless arrow count is now 0")
+def _r1s06_game_continues(
+    r1s06_selfshot_state: dict[str, Any],
+) -> None:
+    from wumpus.events import GameEnded
+
+    ended = [e for e in r1s06_selfshot_state["events"] if isinstance(e, GameEnded)]
+    # With arrows=5 starting, decrement to 4 → no terminal.
+    assert ended == [], (
+        f"Unexpected GameEnded event on self-shot with arrows=5→4: {ended!r}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# R1-S06 — Scenario 4: Arrow takes random tunnel on missing connection
+# ---------------------------------------------------------------------------
+
+
+@given(
+    "the player is in room 8 and shoots a path beginning with room 14 (not adjacent to 8)",
+    target_fixture="r1s06_deflect_state",
+)
+def _r1s06_deflect_setup() -> dict[str, Any]:
+    """Player in 8 (neighbors {1, 7, 9}). Path starts with 14 — NOT
+    adjacent to 8. Engine deflects via randint(1, 3) into sorted_adjacents[K-1].
+    Script K=1 → arrow goes to sorted_adjacents(8)[0] = 1 (sorted of {1,7,9}).
+    Remaining path slots are discarded."""
+    assert 14 not in DODECAHEDRON[8], "Room 14 must NOT be adjacent to room 8."
+    world = _build_shoot_world(
+        player_room=8,
+        wumpus_rooms=(17,),
+        arrows=5,
+    )
+    # Path = [14, 17, 5] — 14 forces deflect; remaining 17, 5 should be
+    # discarded by the engine. Script randint(1, 3) = 1 for the deflect
+    # (sends arrow to room 1), then randint(1, 4) = 4 for the startle.
+    events = _drive_shoot_through_path(
+        world=world, path=(14, 17, 5), scripted_randint=[1, 4]
+    )
+    return {"events": events, "expected_deflect_room": sorted(DODECAHEDRON[8])[0]}
+
+
+@when("the arrow is walked")
+def _r1s06_arrow_walked() -> None:
+    """No-op: the prior Given already drove the chain."""
+
+
+@then("ArrowPathStep(room=<random-adjacent-of-8>, deflected=True) fires")
+def _r1s06_deflected_step(
+    r1s06_deflect_state: dict[str, Any],
+) -> None:
+    from wumpus.events import ArrowPathStep
+
+    steps = [
+        e for e in r1s06_deflect_state["events"] if isinstance(e, ArrowPathStep)
+    ]
+    assert steps, "No ArrowPathStep emitted under deflection scenario."
+    first = steps[0]
+    expected = r1s06_deflect_state["expected_deflect_room"]
+    assert first.deflected is True, (
+        f"First ArrowPathStep.deflected was {first.deflected}; expected True."
+    )
+    assert first.room == expected, (
+        f"Deflected room was {first.room}; expected {expected} "
+        f"(sorted_adjacents(8)[0] under scripted randint=1)."
+    )
+
+
+@then("no further path rooms are consulted (remaining slots discarded)")
+def _r1s06_remaining_slots_discarded(
+    r1s06_deflect_state: dict[str, Any],
+) -> None:
+    from wumpus.events import ArrowPathStep
+
+    steps = [
+        e for e in r1s06_deflect_state["events"] if isinstance(e, ArrowPathStep)
+    ]
+    # Exactly ONE ArrowPathStep should fire — the deflection. Remaining
+    # path slots [17, 5] are discarded.
+    assert len(steps) == 1, (
+        f"Expected exactly 1 ArrowPathStep (deflection terminates walk); "
+        f"got {len(steps)}: {[(s.room, s.deflected) for s in steps]}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# R1-S06 — Scenario 5: Miss → startle + decrement
+# ---------------------------------------------------------------------------
+
+
+@given(
+    "the player misses and the next startle draw will leave the wumpus in place",
+    target_fixture="r1s06_miss_state",
+)
+def _r1s06_miss_setup() -> dict[str, Any]:
+    """Player at 8, wumpus at 17. Shoot path [7] → final = 7. 7 != wumpus(17),
+    7 != player(8) → miss. Startle draw K=4 keeps the wumpus at 17."""
+    world = _build_shoot_world(
+        player_room=8,
+        wumpus_rooms=(17,),
+        arrows=5,
+    )
+    events = _drive_shoot_through_path(
+        world=world, path=(7,), scripted_randint=[4]
+    )
+    return {"events": events, "prev_arrows": 5}
+
+
+def _pull_r1s06_miss_or_oom_events(request: Any) -> list[Any]:
+    """Probe miss-scenario fixtures (scenario 5 / scenario 6) in order."""
+    for name in ("r1s06_miss_state", "r1s06_out_of_arrows_state"):
+        try:
+            bag = request.getfixturevalue(name)
+        except pytest.FixtureLookupError:
+            continue
+        return list(bag["events"])
+    raise AssertionError(
+        "No r1s06_miss_state or r1s06_out_of_arrows_state fixture resolved."
+    )
+
+
+@then("ArrowMissed fires")
+def _r1s06_arrow_missed(request: Any) -> None:
+    from wumpus.events import ArrowMissed
+
+    events = _pull_r1s06_miss_or_oom_events(request)
+    missed = [e for e in events if isinstance(e, ArrowMissed)]
+    assert missed, (
+        f"No ArrowMissed event emitted. Events: "
+        f"{[type(e).__name__ for e in events]}"
+    )
+
+
+@then("WumpusStartled(moved=False) fires")
+def _r1s06_startled_no_move(
+    r1s06_miss_state: dict[str, Any],
+) -> None:
+    from wumpus.events import WumpusStartled
+
+    startled = [
+        e for e in r1s06_miss_state["events"] if isinstance(e, WumpusStartled)
+    ]
+    assert startled, "No WumpusStartled event emitted on arrow miss."
+    # K=4 in FNC(0) means from_room == to_room (stay-put).
+    assert startled[0].from_room == startled[0].to_room, (
+        f"Expected stay-put startle (K=4); got from_room={startled[0].from_room}, "
+        f"to_room={startled[0].to_room}."
+    )
+    assert startled[0].ate_player is False, (
+        f"WumpusStartled.ate_player was {startled[0].ate_player}; expected False "
+        f"(wumpus stayed at room 17, player is in room 8)."
+    )
+
+
+@then("ArrowCountChanged(new_count=<prev-1>) fires")
+def _r1s06_arrow_decrement_after_miss(
+    r1s06_miss_state: dict[str, Any],
+) -> None:
+    from wumpus.events import ArrowCountChanged
+
+    changes = [
+        e for e in r1s06_miss_state["events"] if isinstance(e, ArrowCountChanged)
+    ]
+    assert changes, "No ArrowCountChanged event emitted after miss."
+    assert changes[0].new_count == r1s06_miss_state["prev_arrows"] - 1, (
+        f"ArrowCountChanged.new_count was {changes[0].new_count}; expected "
+        f"{r1s06_miss_state['prev_arrows'] - 1}."
+    )
+
+
+# ---------------------------------------------------------------------------
+# R1-S06 — Scenario 6: Out of arrows ends the game
+# ---------------------------------------------------------------------------
+
+
+@given(
+    "the player has 1 arrow remaining and misses",
+    target_fixture="r1s06_out_of_arrows_state",
+)
+def _r1s06_out_of_arrows_setup() -> dict[str, Any]:
+    """Player at 8, wumpus at 17, arrows=1. Path [7] misses → startle (K=4
+    stay-put). Arrow count decrements to 0 → GameEnded(out_of_arrows)."""
+    world = _build_shoot_world(
+        player_room=8,
+        wumpus_rooms=(17,),
+        arrows=1,
+    )
+    events = _drive_shoot_through_path(
+        world=world, path=(7,), scripted_randint=[4]
+    )
+    return {"events": events}
+
+
+@then("ArrowCountChanged(new_count=0) fires")
+def _r1s06_arrow_count_zero(
+    r1s06_out_of_arrows_state: dict[str, Any],
+) -> None:
+    from wumpus.events import ArrowCountChanged
+
+    changes = [
+        e
+        for e in r1s06_out_of_arrows_state["events"]
+        if isinstance(e, ArrowCountChanged)
+    ]
+    assert changes, "No ArrowCountChanged event emitted on out-of-arrows path."
+    assert changes[-1].new_count == 0, (
+        f"Final ArrowCountChanged.new_count was {changes[-1].new_count}; "
+        f"expected 0."
+    )
+
+
+@then("GameEnded(outcome=out_of_arrows) fires")
+def _r1s06_game_ended_out_of_arrows(
+    r1s06_out_of_arrows_state: dict[str, Any],
+) -> None:
+    from wumpus.events import GameEnded
+
+    ended = [
+        e for e in r1s06_out_of_arrows_state["events"] if isinstance(e, GameEnded)
+    ]
+    assert ended, "No GameEnded event emitted after out-of-arrows."
+    assert ended[0].outcome == "out_of_arrows", (
+        f"GameEnded.outcome was {ended[0].outcome!r}; expected 'out_of_arrows'."
+    )
+    assert ended[0].message_kind == "lose", (
+        f"GameEnded.message_kind was {ended[0].message_kind!r}; expected 'lose'."
     )

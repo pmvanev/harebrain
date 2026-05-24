@@ -132,3 +132,49 @@ Feature: R1 Yob fidelity — dodecahedron cave + Yob mechanics
     When game.snapshot() is taken and Game.from_snapshot(snap) is constructed
     Then the resurrected game prompts for ROOM #? at slot 2
     And the pending_arrow_path is [7]
+
+  # ---------------------------------------------------------------------------
+  # R1-S06 — Arrow walk + hit/miss/self-shot + out-of-arrows
+  # ---------------------------------------------------------------------------
+
+  Scenario: Successful shot kills the wumpus
+    Given the player is in room 8 with 5 arrows
+    And the wumpus is in room 17 and rooms 8-7, 7-17 are connected
+    When the player shoots a 2-room path through rooms 7, 17
+    Then ArrowFired(path=[7, 17]) fires
+    And ArrowPathStep(room=7, deflected=False) fires
+    And ArrowPathStep(room=17, deflected=False) fires
+    And ArrowHitWumpus(room=17) fires
+    And GameEnded(outcome=wumpus_shot) fires
+
+  Scenario: Crooked arrow passing through player's room mid-path does NOT kill
+    Given the player is in room 8 with 5 arrows
+    And the arrow path walks rooms 7, then 8 (mid-path, passing through player), then 9
+    When the arrow walks the path
+    Then ArrowPathStep(room=8, deflected=False) fires (no ArrowHitPlayer)
+    And ArrowPathStep(room=9, ...) fires
+    And the player is unharmed at this step
+
+  Scenario: Arrow's FINAL room matches player triggers self-shot
+    Given the player is in room 8 and the arrow's final room is room 8
+    Then ArrowHitPlayer(room=8) fires
+    And ArrowCountChanged(new_count=4) fires (decrement-as-if-missed)
+    And the game continues unless arrow count is now 0
+
+  Scenario: Arrow takes random tunnel on missing connection
+    Given the player is in room 8 and shoots a path beginning with room 14 (not adjacent to 8)
+    When the arrow is walked
+    Then ArrowPathStep(room=<random-adjacent-of-8>, deflected=True) fires
+    And no further path rooms are consulted (remaining slots discarded)
+
+  Scenario: Missing the wumpus startles it and decrements the arrow
+    Given the player misses and the next startle draw will leave the wumpus in place
+    Then ArrowMissed fires
+    And WumpusStartled(moved=False) fires
+    And ArrowCountChanged(new_count=<prev-1>) fires
+
+  Scenario: Out of arrows ends the game
+    Given the player has 1 arrow remaining and misses
+    Then ArrowMissed fires
+    And ArrowCountChanged(new_count=0) fires
+    And GameEnded(outcome=out_of_arrows) fires

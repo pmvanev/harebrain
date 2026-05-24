@@ -29,6 +29,7 @@ import random
 from typing import TYPE_CHECKING
 
 from wumpus.engine._r0_toy_cave import initial_world as _r0_toy_initial_world
+from wumpus.engine.arrow_walk import walk_arrow
 from wumpus.engine.cave_gen import generate_initial_layout
 from wumpus.engine.hash import internal_state_hash
 from wumpus.engine.hazard_resolve import hazard_resolve
@@ -587,7 +588,24 @@ class Game:
                 path=new_path,
             )
         )
+        # R1-S06: walk the arrow through the dodecahedron. The walk emits
+        # ArrowPathStep events, then a terminal arm (hit / self-shot / miss).
+        self._fire_arrow_walk(new_path)
         return self._render_observation()
+
+    def _fire_arrow_walk(self, path: tuple[int, ...]) -> None:
+        """Drive `walk_arrow` for the collected `path`. The walk is pure;
+        the shell stamps `rng_cursor` (and `GameEnded.final_snapshot`) onto
+        each emitted event before pushing to subscribers.
+
+        Per ADR-001/SC6, the rng_cursor is the post-walk cursor (it advances
+        as `walk_arrow` consumes randint draws). The walk does not advance
+        the turn counter (that already happened on ArrowFired)."""
+        new_world, walk_events = walk_arrow(self._world, path, self._random)
+        self._world = new_world
+        rng_cursor = self._encode_rng_cursor()
+        for event in walk_events:
+            self._emit(self._stamp_engine_metadata(event, rng_cursor=rng_cursor))
 
     def _emit_crooked_rejection(self, slot: int, attempted_room: int) -> None:
         self._emit(

@@ -290,6 +290,85 @@ class ArrowFired(_BaseEventFields):
 
 
 @dataclass(frozen=True)
+class ArrowPathStep(_BaseEventFields):
+    """Emitted once per room the arrow visits during the R1-S06 walk.
+
+    `room` is the room the arrow has just entered. `deflected=False` means
+    the room came from the player's submitted path (the previous room was
+    adjacent to it). `deflected=True` means the previous room was NOT
+    adjacent to the path's next slot, so the arrow took a uniform-random
+    adjacent room per Yob's `FNB(1)` (BASIC source 3170-3210). When a
+    deflection fires, all remaining path slots are discarded.
+    """
+
+    type: Literal["ArrowPathStep"] = "ArrowPathStep"
+    room: int = -1
+    deflected: bool = False
+
+
+@dataclass(frozen=True)
+class ArrowMissed(_BaseEventFields):
+    """Emitted when the collected arrow path has been fully walked and the
+    final room is NOT the wumpus's and NOT the player's. Followed by a
+    wumpus startle (reusing R1-S03's `move_wumpus_startle`) and an
+    `ArrowCountChanged` decrement. If the startled wumpus lands on the
+    player, a `GameEnded(eaten_after_bump)` follows. If the arrow count
+    reaches 0, a `GameEnded(out_of_arrows)` follows.
+
+    Carries no payload beyond the shared `_BaseEventFields` — Yob's
+    `MISSED` line is a fixed string, so the structured event simply
+    discriminates the case.
+    """
+
+    type: Literal["ArrowMissed"] = "ArrowMissed"
+
+
+@dataclass(frozen=True)
+class ArrowHitWumpus(_BaseEventFields):
+    """Emitted when the arrow's final room equals the wumpus's room.
+
+    Followed by `GameEnded(outcome="wumpus_shot", message_kind="win")`.
+    Per Yob bug-for-bug (D11), the arrow count is NOT decremented on a
+    hit-wumpus — the game ends first. `room` is the wumpus's room (the
+    arrow's terminal resting room).
+    """
+
+    type: Literal["ArrowHitWumpus"] = "ArrowHitWumpus"
+    room: int = -1
+
+
+@dataclass(frozen=True)
+class ArrowHitPlayer(_BaseEventFields):
+    """Emitted ONLY when the arrow's FINAL room equals the player's room.
+
+    Yob's bug-for-bug rule (D11): a crooked arrow that passes through the
+    player's room mid-path does NOT kill the player. Only a final-room
+    match triggers `ArrowHitPlayer`. The arrow count is decremented as
+    if the shot had missed; the game continues unless the decrement
+    reaches 0 (`GameEnded(out_of_arrows)`).
+
+    `room` is the arrow's final room (== player's room).
+    """
+
+    type: Literal["ArrowHitPlayer"] = "ArrowHitPlayer"
+    room: int = -1
+
+
+@dataclass(frozen=True)
+class ArrowCountChanged(_BaseEventFields):
+    """Emitted when the arrow count changes — on miss or self-shot.
+
+    Per Yob bug-for-bug, a hit-wumpus does NOT decrement (the game ends
+    first). The event carries the post-change count; consumers compute
+    the delta from the prior `ArrowCountChanged` (or from `GameStarted`'s
+    implicit starting count of 5).
+    """
+
+    type: Literal["ArrowCountChanged"] = "ArrowCountChanged"
+    new_count: int = -1
+
+
+@dataclass(frozen=True)
 class GameEnded(_BaseEventFields):
     """Emitted exactly once on any terminal state — win or lose.
 
@@ -331,5 +410,10 @@ Event = (
     | PromptIssued
     | CrookedPathRejected
     | ArrowFired
+    | ArrowPathStep
+    | ArrowMissed
+    | ArrowHitWumpus
+    | ArrowHitPlayer
+    | ArrowCountChanged
     | GameEnded
 )
