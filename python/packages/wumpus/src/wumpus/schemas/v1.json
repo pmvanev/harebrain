@@ -70,9 +70,14 @@
             "engine_version": {"type": "string"},
             "surface_id": {"type": "string"},
             "layout_hash": {"type": "string"},
+            "variant_config": {
+              "type": "object",
+              "description": "R2-S02 placeholder shape ({\"name\": \"yob\"}); ADR-002 additive — R4-S01 parametric VariantConfig adds fields.",
+              "additionalProperties": true
+            },
             "active_escalation_rules": {"type": "array", "items": {"type": "string"}}
           },
-          "required": ["type", "seed", "engine_version", "surface_id", "layout_hash", "active_escalation_rules"]
+          "required": ["type", "seed", "engine_version", "surface_id", "layout_hash", "variant_config", "active_escalation_rules"]
         }
       ]
     },

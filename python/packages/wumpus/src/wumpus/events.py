@@ -30,7 +30,7 @@ Per ADR-002 (schema evolution) this module pins SCHEMA_VERSION; R0 ships v1.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Literal
 
 from wumpus.types import PromptKind, Snapshot
@@ -83,9 +83,15 @@ class _BaseEventFields:
 class GameStarted(_BaseEventFields):
     """Emitted once when `Game(seed=k)` is constructed.
 
-    Carries the constructor's seed, the engine version, and a layout hash so
-    downstream replays can verify SAME SET-UP=Y semantics (R3 territory; R0
-    just ships the field).
+    Carries everything `replay(ledger_path)` needs to reconstruct the
+    session from the header alone (R2-S02): the seed, the engine version,
+    the initial layout hash, the variant config (parametric handling lands
+    at R4-S01; R2-S02 ships the placeholder shape), and the surface_id
+    (`"yob"` today; `"mystery"` / `"french"` arrive at R4-S03+).
+
+    Per ADR-002 (additive schema evolution) `variant_config` is typed as a
+    flexible dict so R4-S01 can add fields without breaking the v1
+    contract.
     """
 
     type: Literal["GameStarted"] = "GameStarted"
@@ -93,6 +99,9 @@ class GameStarted(_BaseEventFields):
     engine_version: str = ""
     surface_id: str = ""
     layout_hash: str = ""
+    # R2-S02: placeholder shape `{"name": "yob"}`. R4-S01 lands the
+    # parametric VariantConfig; the schema permits additive fields here.
+    variant_config: dict[str, object] = field(default_factory=lambda: {"name": "yob"})
     active_escalation_rules: tuple[str, ...] = ()
 
 

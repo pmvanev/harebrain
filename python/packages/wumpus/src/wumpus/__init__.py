@@ -34,6 +34,7 @@ from wumpus.events import (
     SessionEnded,
     WumpusStartled,
 )
+from wumpus.replay import Replay, VersionCompatibilityError, replay
 from wumpus.serialization import event_from_dict, event_to_dict
 from wumpus.types import Observation, PromptKind, Snapshot, World
 
@@ -69,4 +70,7 @@ __all__ = [
     "SCHEMA_VERSION",
     "event_to_dict",
     "event_from_dict",
+    "replay",
+    "Replay",
+    "VersionCompatibilityError",
 ]

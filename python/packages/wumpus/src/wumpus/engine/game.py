@@ -60,8 +60,18 @@ if TYPE_CHECKING:
 # R0 placeholder constants — see SC8. Real Yob surface text lives in
 # `wumpus.surfaces.yob` (R4-S03), NOT in the engine module.
 _R0_ENGINE_VERSION: str = "0.0.0"
-_R0_SURFACE_ID: str = "<placeholder>"
+# R2-S02: surface_id moves from "<placeholder>" to the canonical "yob"
+# string (the only surface that ships today; "mystery" / "french" arrive
+# at R4-S03+). The `<placeholder>` token remains on `surface_variant`
+# (HARNESS_PRIVATE per ADR-004) until R4-S03's surface seam lands the
+# real per-turn variant tagging.
+_R0_SURFACE_ID: str = "yob"
 _R0_SURFACE_VARIANT: str = "<placeholder>"
+# R2-S02: variant_config carries the placeholder shape today; R4-S01's
+# parametric VariantConfig will replace this with a real config object.
+# Per ADR-002 (additive schema evolution) the schema permits additive
+# fields here without bumping SCHEMA_VERSION.
+_R2S02_VARIANT_CONFIG: dict[str, object] = {"name": "yob"}
 
 # Cave-topology selector. "yob" is the canonical 20-room dodecahedron + FNB
 # rejection-loop layout (R1-S01 default). "toy" is the R0 walking-skeleton
@@ -98,7 +108,15 @@ class Game:
     acceptance scenarios are rewritten against the real geometry.
     """
 
-    def __init__(self, seed: int, cave: str = _CAVE_YOB) -> None:
+    def __init__(self, seed: int | None = None, cave: str = _CAVE_YOB) -> None:
+        # R2-S02: seed=None → roll an OS-entropy seed so the ledger header
+        # carries a concrete integer the replay path can reuse. Without
+        # this, replay would have no way to reconstruct the initial
+        # layout (the seed IS the contract).
+        if seed is None:
+            import secrets
+
+            seed = secrets.randbits(63)
         self._seed: int = seed
         self._random: random.Random = random.Random(seed)
         self._cave: str = cave
@@ -143,6 +161,7 @@ class Game:
             engine_version=_R0_ENGINE_VERSION,
             surface_id=_R0_SURFACE_ID,
             layout_hash=internal_state_hash(self._initial_layout),
+            variant_config=dict(_R2S02_VARIANT_CONFIG),
             active_escalation_rules=(),
         )
         self._emit(start_event)
@@ -218,6 +237,7 @@ class Game:
             engine_version=_R0_ENGINE_VERSION,
             surface_id=_R0_SURFACE_ID,
             layout_hash=internal_state_hash(game._world),
+            variant_config=dict(_R2S02_VARIANT_CONFIG),
             active_escalation_rules=(),
         )
         game._emit(start_event)
@@ -667,6 +687,7 @@ class Game:
                 engine_version=_R0_ENGINE_VERSION,
                 surface_id=_R0_SURFACE_ID,
                 layout_hash=internal_state_hash(self._world),
+                variant_config=dict(_R2S02_VARIANT_CONFIG),
                 active_escalation_rules=(),
             )
         )
@@ -1006,6 +1027,7 @@ class Game:
             engine_version=_R0_ENGINE_VERSION,
             surface_id=_R0_SURFACE_ID,
             layout_hash=internal_state_hash(game._world),
+            variant_config=dict(_R2S02_VARIANT_CONFIG),
             active_escalation_rules=snapshot.active_escalation_rules,
         )
         game._emit(start_event)

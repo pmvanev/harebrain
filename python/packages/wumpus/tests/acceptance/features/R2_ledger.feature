@@ -43,3 +43,23 @@ Feature: R2 ledger — JSONL event stream
     Given a static AST audit of wumpus.events and wumpus.sinks
     Then no threading.Thread is instantiated for event emission
     And no asyncio.create_task or concurrent.futures.submit is invoked for event emission
+
+  # ---------------------------------------------------------------------------
+  # R2-S02 — Ledger header (full context on GameStarted) + replay() module
+  # ---------------------------------------------------------------------------
+
+  Scenario: GameStarted carries everything needed to replay
+    Given Game(seed=42) is constructed with a JsonlSink writing to a fresh ledger file
+    When the first line of the ledger is read
+    Then it parses as GameStarted with schema_version=1 and type="GameStarted"
+    And the GameStarted header carries seed=42, a non-empty layout_hash, engine_version matching wumpus.__version__, variant_config as a dict, and surface_id="yob"
+
+  Scenario: replay(ledger_path) reconstructs world at turn k
+    Given a Game(seed=42, cave="toy") ran an action sequence to turn 2 with a JsonlSink writing session.jsonl
+    When replay(session_path).advance_to(turn=2).world_state() is called
+    Then the returned world_state equals the original Game.world_state() at turn 2
+
+  Scenario: Replay refuses on engine-version major-mismatch
+    Given a synthetic ledger whose GameStarted carries engine_version="99.0.0"
+    When replay(synthetic_path) is called
+    Then a VersionCompatibilityError is raised naming both the written and current versions
