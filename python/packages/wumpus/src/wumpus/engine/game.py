@@ -412,10 +412,19 @@ class Game:
     def _emit_senses_and_location(self, entered_room: int) -> None:
         """Emit SenseEmitted events for `entered_room` (Yob L-array order),
         then exactly one LocationReported. Called from `step()` after a
-        successful move resolves."""
+        successful move resolves.
+
+        R2-S03: the pure `emit_senses_for_room` leaves `rng_cursor=""` on each
+        returned SenseEmitted (the pure function doesn't know the Game's
+        RNG). The shell stamps the current cursor here so SenseEmitted events
+        carry a non-placeholder rng_cursor downstream — matching the
+        treatment of hazard_resolve / arrow_walk events via
+        `_stamp_engine_metadata`.
+        """
         sense_events = emit_senses_for_room(self._world, entered_room)
+        rng_cursor = self._encode_rng_cursor()
         for sense_event in sense_events:
-            self._emit(sense_event)
+            self._emit(self._stamp_engine_metadata(sense_event, rng_cursor=rng_cursor))
 
         adjacencies = _adjacent_rooms_for_cave(self._cave, entered_room)
         # Dodecahedron is 3-regular; narrow the variable-length tuple to the
@@ -819,9 +828,7 @@ class Game:
             return self._handle_path_length_entry(action)
         if pending == "shoot_path_room":
             return self._handle_room_slot_entry(action)
-        raise ValueError(
-            f"Unknown pending_prompt {pending!r}; engine routing bug."
-        )
+        raise ValueError(f"Unknown pending_prompt {pending!r}; engine routing bug.")
 
     def _handle_path_length_entry(self, action: str) -> Observation:
         """Validate a NO. OF ROOMS(1-5)? entry. Out-of-range re-prompts;

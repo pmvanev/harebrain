@@ -3,8 +3,12 @@
 # R2-S01 ships the JSONL persistence layer + the schema-validation discipline
 # that makes downstream replay safe. Each R2 slice appends its scenarios to
 # this file. R2-S01 ships scenarios 1-4 (schema + JsonlSink + functional
-# --ledger flag + no-background-thread audit); R2-S02 (replay) + R2-S03
-# (determinism-source audit script) will append their own scenarios.
+# --ledger flag + no-background-thread audit); R2-S02 adds 3 scenarios for
+# the ledger header + replay() module; R2-S03 adds 3 more scenarios for the
+# per-event rng_cursor + internal_state_hash + observer-effect property
+# (the K-2 determinism KPI substrate). The 100-seed × 50-action hypothesis
+# property test lands as `tests/property/test_determinism.py`, NOT as a
+# BDD scenario — it is the K-2 CI measurement.
 #
 # Per ADR-002 (schema evolution policy) every emitted event is validated
 # against `wumpus/schemas/v<SCHEMA_VERSION>.json` at emit time by JsonlSink.
@@ -63,3 +67,24 @@ Feature: R2 ledger — JSONL event stream
     Given a synthetic ledger whose GameStarted carries engine_version="99.0.0"
     When replay(synthetic_path) is called
     Then a VersionCompatibilityError is raised naming both the written and current versions
+
+  # ---------------------------------------------------------------------------
+  # R2-S03 — Per-event rng_cursor + internal_state_hash + observer-effect property
+  # ---------------------------------------------------------------------------
+
+  Scenario: Sink attachment does not change event emission
+    Given Game(seed=42, cave="toy") and a fixed action sequence ["move 2", "move 3"]
+    When the run is performed once with no sinks, then with JsonlSink, then with InMemorySink, then with both sinks
+    Then the in-engine event sequences emitted are identical across all four runs
+    And the recorded sinks' contents (when applicable) equal the engine's emission order
+
+  Scenario: internal_state_hash is deterministic given (seed, actions)
+    Given two independent Game(seed=42, cave="toy") instances running the same action sequence ["move 2", "move 3"]
+    When both runs complete
+    Then for every event index t, the events at index t from run 1 and run 2 have equal internal_state_hash
+
+  Scenario: rng_cursor is populated on every emitted event
+    Given Game(seed=42, cave="toy") driven through ["move 2", "move 3"]
+    When the engine's full event log is inspected
+    Then every emitted event has a non-empty rng_cursor field
+    And every emitted event has a non-empty internal_state_hash field

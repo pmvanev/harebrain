@@ -182,9 +182,7 @@ def _r2s01_each_line_is_json(r2s01_emit_result: dict[str, Any]) -> None:
     )
     for index, line in enumerate(lines):
         parsed = json.loads(line)
-        assert isinstance(parsed, dict), (
-            f"Line {index} is not a JSON object: {line!r}"
-        )
+        assert isinstance(parsed, dict), f"Line {index} is not a JSON object: {line!r}"
 
 
 @then("each line conforms to the wumpus/schemas/v1.json contract")
@@ -373,8 +371,12 @@ def _r2s04_audit_trees() -> dict[str, ast.AST]:
     import wumpus.sinks
 
     return {
-        "events": ast.parse(pathlib.Path(wumpus.events.__file__).read_text(encoding="utf-8")),
-        "sinks": ast.parse(pathlib.Path(wumpus.sinks.__file__).read_text(encoding="utf-8")),
+        "events": ast.parse(
+            pathlib.Path(wumpus.events.__file__).read_text(encoding="utf-8")
+        ),
+        "sinks": ast.parse(
+            pathlib.Path(wumpus.sinks.__file__).read_text(encoding="utf-8")
+        ),
         "serialization": ast.parse(
             pathlib.Path(wumpus.serialization.__file__).read_text(encoding="utf-8")
         ),
@@ -505,7 +507,7 @@ def _r2s05_header_is_game_started(r2s05_first_line_event: dict[str, Any]) -> Non
 
 
 @then(
-    "the GameStarted header carries seed=42, a non-empty layout_hash, engine_version matching wumpus.__version__, variant_config as a dict, and surface_id=\"yob\""
+    'the GameStarted header carries seed=42, a non-empty layout_hash, engine_version matching wumpus.__version__, variant_config as a dict, and surface_id="yob"'
 )
 def _r2s05_header_fields(r2s05_first_line_event: dict[str, Any]) -> None:
     import wumpus
@@ -650,3 +652,202 @@ def _r2s07_check_error(r2s07_raised: BaseException | None) -> None:
     msg = str(r2s07_raised)
     assert "99.0.0" in msg, f"Error message missing written version: {msg!r}"
     assert "0.0.0" in msg, f"Error message missing current version: {msg!r}"
+
+
+# ---------------------------------------------------------------------------
+# Scenario 8 — R2-S03: Sink attachment does not change event emission
+# ---------------------------------------------------------------------------
+
+
+# Fixed action sequence used by R2-S03 acceptance scenarios. The toy cave
+# accepts these without raising ValueError; "move 99" emits MoveAttempted
+# (accepted=False) since 99 is not adjacent to anything. We feed both runs
+# this sequence and assert engine-state equality across them.
+_R2S03_FIXED_ACTIONS: tuple[str, ...] = ("move 2", "move 3")
+
+
+def _run_toy_session(
+    seed: int, actions: tuple[str, ...], sinks: tuple[Any, ...]
+) -> dict[str, Any]:
+    """Drive a `Game(seed, cave="toy")` through `actions` with `sinks`
+    subscribed. Return `_debug_events` plus per-sink recorded events for
+    downstream assertions.
+    """
+    from wumpus import Game
+    from wumpus.sinks import InMemorySink
+
+    game = Game(seed=seed, cave="toy")
+    for sink in sinks:
+        game.subscribe(sink)
+    for action in actions:
+        game.step(action)
+    # Capture per-sink events first, then close any file-backed sinks.
+    inmemory_events: list[Any] = []
+    for sink in sinks:
+        if isinstance(sink, InMemorySink):
+            inmemory_events = list(sink.events)
+            break
+    for sink in sinks:
+        close = getattr(sink, "close", None)
+        if callable(close):
+            close()
+    return {
+        "debug_events": list(game._debug_events),
+        "inmemory_events": inmemory_events,
+    }
+
+
+@given(
+    'Game(seed=42, cave="toy") and a fixed action sequence ["move 2", "move 3"]',
+    target_fixture="r2s08_paired_sink_runs",
+)
+def _r2s08_paired_setup(tmp_path: pathlib.Path) -> dict[str, Any]:
+    from wumpus.sinks import InMemorySink
+
+    jsonl_a = tmp_path / "paired_a.jsonl"
+    jsonl_b = tmp_path / "paired_b.jsonl"
+
+    inmemory_sink_solo = InMemorySink()
+    inmemory_sink_both = InMemorySink()
+
+    result_none = _run_toy_session(42, _R2S03_FIXED_ACTIONS, sinks=())
+    result_jsonl = _run_toy_session(
+        42, _R2S03_FIXED_ACTIONS, sinks=(JsonlSink(jsonl_a),)
+    )
+    result_inmemory = _run_toy_session(
+        42, _R2S03_FIXED_ACTIONS, sinks=(inmemory_sink_solo,)
+    )
+    result_both = _run_toy_session(
+        42,
+        _R2S03_FIXED_ACTIONS,
+        sinks=(JsonlSink(jsonl_b), inmemory_sink_both),
+    )
+
+    return {
+        "none": result_none,
+        "jsonl": result_jsonl,
+        "inmemory": result_inmemory,
+        "both": result_both,
+    }
+
+
+@when(
+    "the run is performed once with no sinks, then with JsonlSink, then with InMemorySink, then with both sinks"
+)
+def _r2s08_when_runs_performed(r2s08_paired_sink_runs: dict[str, Any]) -> None:
+    """The setup step already performed all four runs; this `When` step is a
+    pytest-bdd grammar requirement (one When per scenario)."""
+    assert "none" in r2s08_paired_sink_runs
+
+
+@then("the in-engine event sequences emitted are identical across all four runs")
+def _r2s08_engine_sequences_identical(
+    r2s08_paired_sink_runs: dict[str, Any],
+) -> None:
+    baseline = r2s08_paired_sink_runs["none"]["debug_events"]
+    for label in ("jsonl", "inmemory", "both"):
+        events = r2s08_paired_sink_runs[label]["debug_events"]
+        assert events == baseline, (
+            f"_debug_events under {label!r} differs from the no-sink baseline. "
+            f"SC4 / observer-effect-absent violated."
+        )
+
+
+@then(
+    "the recorded sinks' contents (when applicable) equal the engine's emission order"
+)
+def _r2s08_sink_contents_match(
+    r2s08_paired_sink_runs: dict[str, Any],
+) -> None:
+    # The InMemorySink-solo and InMemorySink-of-both configurations both
+    # carry recorded events; assert they equal _debug_events for those runs.
+    for label in ("inmemory", "both"):
+        run = r2s08_paired_sink_runs[label]
+        assert run["inmemory_events"] == run["debug_events"], (
+            f"InMemorySink recorded events under {label!r} differ from the "
+            f"engine's _debug_events. SC4 violated."
+        )
+
+
+# ---------------------------------------------------------------------------
+# Scenario 9 — R2-S03: internal_state_hash is deterministic given (seed, actions)
+# ---------------------------------------------------------------------------
+
+
+@given(
+    'two independent Game(seed=42, cave="toy") instances running the same action sequence ["move 2", "move 3"]',
+    target_fixture="r2s09_paired_runs",
+)
+def _r2s09_paired_runs() -> dict[str, list[Any]]:
+    result_1 = _run_toy_session(42, _R2S03_FIXED_ACTIONS, sinks=())
+    result_2 = _run_toy_session(42, _R2S03_FIXED_ACTIONS, sinks=())
+    return {
+        "run_1": result_1["debug_events"],
+        "run_2": result_2["debug_events"],
+    }
+
+
+@when("both runs complete")
+def _r2s09_when_runs_complete(r2s09_paired_runs: dict[str, list[Any]]) -> None:
+    # Setup step performed both runs; grammar-requirement noop.
+    assert r2s09_paired_runs["run_1"], "Run 1 produced no events"
+
+
+@then(
+    "for every event index t, the events at index t from run 1 and run 2 have equal internal_state_hash"
+)
+def _r2s09_hashes_identical(r2s09_paired_runs: dict[str, list[Any]]) -> None:
+    run_1 = r2s09_paired_runs["run_1"]
+    run_2 = r2s09_paired_runs["run_2"]
+    assert len(run_1) == len(run_2), (
+        f"Run 1 produced {len(run_1)} events; run 2 produced {len(run_2)}. "
+        f"SC1 violated — same seed + same actions should produce same event count."
+    )
+    for index, (event_1, event_2) in enumerate(zip(run_1, run_2)):
+        assert event_1.internal_state_hash == event_2.internal_state_hash, (
+            f"Event {index} ({type(event_1).__name__}) internal_state_hash "
+            f"differs between runs: "
+            f"run1={event_1.internal_state_hash!r}, run2={event_2.internal_state_hash!r}"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Scenario 10 — R2-S03: rng_cursor is populated on every emitted event
+# ---------------------------------------------------------------------------
+
+
+@given(
+    'Game(seed=42, cave="toy") driven through ["move 2", "move 3"]',
+    target_fixture="r2s10_full_event_log",
+)
+def _r2s10_run_session() -> list[Any]:
+    result = _run_toy_session(42, _R2S03_FIXED_ACTIONS, sinks=())
+    return result["debug_events"]
+
+
+@when("the engine's full event log is inspected")
+def _r2s10_when_inspected(r2s10_full_event_log: list[Any]) -> None:
+    assert r2s10_full_event_log, (
+        "Engine emitted zero events for the R2-S03 fixture sequence."
+    )
+
+
+@then("every emitted event has a non-empty rng_cursor field")
+def _r2s10_rng_cursor_populated(r2s10_full_event_log: list[Any]) -> None:
+    for index, event in enumerate(r2s10_full_event_log):
+        assert event.rng_cursor, (
+            f"Event {index} ({type(event).__name__}) has empty rng_cursor. "
+            f"R2-S03 contract: every emitted event MUST carry the engine's "
+            f"post-effect RNG state. Placeholder values are a bug."
+        )
+
+
+@then("every emitted event has a non-empty internal_state_hash field")
+def _r2s10_internal_state_hash_populated(
+    r2s10_full_event_log: list[Any],
+) -> None:
+    for index, event in enumerate(r2s10_full_event_log):
+        assert event.internal_state_hash, (
+            f"Event {index} ({type(event).__name__}) has empty "
+            f"internal_state_hash. R0/R2-S03 contract violated."
+        )
