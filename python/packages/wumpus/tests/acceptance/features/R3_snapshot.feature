@@ -49,3 +49,37 @@ Feature: R3 snapshot — full-state capture + round-trip
     Then the resurrected game's world has pending_arrow_path=[7, 14]
     And the resurrected game's world has pending_path_length=3
     And the resurrected game prompts for ROOM #? at slot 3 on next step
+
+  # ---------------------------------------------------------------------------
+  # R3-S02 — Scenario 3: Six fixture snapshots round-trip through JSON
+  # byte-identically. This is the SC6 snapshot-serializability gate (K-5).
+  # The canonical 6-fixture suite lives in
+  # tests/audits/test_snapshot_serializability.py (the path audits.yml runs);
+  # this scenario does a representative round-trip inline and references the
+  # fixture suite conceptually.
+  # ---------------------------------------------------------------------------
+
+  Scenario: Six fixture snapshots round-trip through JSON byte-identically
+    Given the six canonical snapshot fixtures (turn-0, mid-arrow-path, post-bat-teleport, post-startle, terminal-win, terminal-lose)
+    When each is serialized to JSON and deserialized back
+    Then each round-tripped snapshot equals the original (deep equality including rng_cursor and initial_layout)
+    And a step against the round-tripped snapshot produces the same event as a step against the in-memory snapshot
+
+  # ---------------------------------------------------------------------------
+  # R3-S02 — Scenario 4: Snapshot holds no live RNG object
+  # ---------------------------------------------------------------------------
+
+  Scenario: Snapshot holds no live RNG object
+    Given any Snapshot instance
+    Then no field (recursively) holds a random.Random instance
+    And the rng_cursor field is a base64-encoded string
+
+  # ---------------------------------------------------------------------------
+  # R3-S02 — Scenario 5: Cross-process JSON round-trip preserves the next event.
+  # The SC6 cross-process proof: JSON actually crosses a process boundary.
+  # ---------------------------------------------------------------------------
+
+  Scenario: Cross-process JSON round-trip preserves the next event
+    Given Game(seed=42) snapshotted after a sequence of actions, written to a temp JSON file
+    When a separate Python process reads the JSON, reconstructs the Game, and steps once
+    Then the event produced by the separate process equals the event an in-process from_snapshot would produce for the same action

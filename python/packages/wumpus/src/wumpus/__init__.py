@@ -35,7 +35,12 @@ from wumpus.events import (
     WumpusStartled,
 )
 from wumpus.replay import Replay, VersionCompatibilityError, replay
-from wumpus.serialization import event_from_dict, event_to_dict
+from wumpus.serialization import (
+    event_from_dict,
+    event_to_dict,
+    snapshot_from_json,
+    snapshot_to_json,
+)
 from wumpus.types import Observation, PromptKind, Snapshot, World
 
 __version__ = "0.0.0"
@@ -70,6 +75,8 @@ __all__ = [
     "SCHEMA_VERSION",
     "event_to_dict",
     "event_from_dict",
+    "snapshot_to_json",
+    "snapshot_from_json",
     "replay",
     "Replay",
     "VersionCompatibilityError",

@@ -24,6 +24,7 @@ shim in a future slice).
 
 from __future__ import annotations
 
+import json
 from dataclasses import fields, is_dataclass
 from typing import Any
 
@@ -90,6 +91,45 @@ def event_to_dict(event: Event) -> dict[str, Any]:
       - None passthrough
     """
     return _dataclass_to_dict(event)
+
+
+def snapshot_to_json(snap: Snapshot) -> str:
+    """Serialize a `Snapshot` to a JSON string (R3-S02 / SC6).
+
+    The Snapshot is a single frozen dataclass (not a union), so — unlike the
+    Event family which dispatches on a `type` discriminator — a module-level
+    function pair (mirroring `event_to_dict` / `event_from_dict`) is the
+    consistent shape for this module. The dict form reuses the existing
+    `_dataclass_to_dict` recursion, which already handles the nested World,
+    initial_layout, and tuple→list coercion.
+
+    Per ADR-007 the encoder is stdlib `json`; `rng_cursor` is already a
+    base64-encoded str (no `random.Random` object in the graph), so the whole
+    Snapshot is JSON-round-trippable. `from_json(to_json(snap)) == snap` is
+    byte-identical (deep dataclass equality including rng_cursor +
+    initial_layout + world).
+
+    `sort_keys=True` makes the encoded form canonical (stable key order across
+    runs / Python builds) so two equal Snapshots produce identical JSON text —
+    useful for cross-process / cross-OS byte-comparison (SC6).
+    """
+    return json.dumps(_dataclass_to_dict(snap), sort_keys=True)
+
+
+def snapshot_from_json(serialized: str) -> Snapshot:
+    """Inverse of `snapshot_to_json`: parse the JSON string and rebuild the
+    frozen `Snapshot` (R3-S02 / SC6).
+
+    Reuses the existing `_dict_to_snapshot` hydrator, which recurses into the
+    nested World + initial_layout and restores tuple-typed fields from the
+    lists `json.loads` produces.
+
+    Raises:
+      json.JSONDecodeError: when `serialized` is not valid JSON.
+      TypeError: when the decoded object is missing required Snapshot fields
+        or carries unexpected ones (the dataclass constructor enforces this).
+    """
+    return _dict_to_snapshot(json.loads(serialized))
 
 
 def event_from_dict(payload: dict[str, Any]) -> Event:
@@ -209,4 +249,9 @@ _TUPLE_FIELDS_BY_CLASS: dict[type, set[str]] = {
 }
 
 
-__all__ = ["event_to_dict", "event_from_dict"]
+__all__ = [
+    "event_to_dict",
+    "event_from_dict",
+    "snapshot_to_json",
+    "snapshot_from_json",
+]
