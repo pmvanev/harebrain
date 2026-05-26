@@ -81,6 +81,18 @@ _CAVE_YOB: str = "yob"
 _CAVE_TOY: str = "toy"
 
 
+def _bootstrap_seed() -> int:
+    # SC1 determinism-source carve-out (R3-S03): this is the ONE permitted
+    # use of `secrets` in engine code. `Game(seed=None)` calls this once to
+    # roll a concrete OS-entropy integer seed; that seed is then FIXED on the
+    # instance and logged in `GameStarted.seed`, so determinism is preserved
+    # from this point forward (replay reuses the logged seed). `secrets`
+    # appearing in any OTHER function fails the determinism-source audit.
+    import secrets
+
+    return secrets.randbits(63)
+
+
 class _HazardOutcome(enum.Enum):
     """Tri-valued result of `_resolve_post_move_hazards`.
 
@@ -112,11 +124,11 @@ class Game:
         # R2-S02: seed=None → roll an OS-entropy seed so the ledger header
         # carries a concrete integer the replay path can reuse. Without
         # this, replay would have no way to reconstruct the initial
-        # layout (the seed IS the contract).
+        # layout (the seed IS the contract). The roll is delegated to the
+        # dedicated `_bootstrap_seed` helper — the ONLY place `secrets` may
+        # appear in engine code (SC1 determinism-source audit carve-out).
         if seed is None:
-            import secrets
-
-            seed = secrets.randbits(63)
+            seed = _bootstrap_seed()
         self._seed: int = seed
         self._random: random.Random = random.Random(seed)
         self._cave: str = cave

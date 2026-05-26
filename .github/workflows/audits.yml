@@ -51,22 +51,15 @@ jobs:
         working-directory: python
       - name: Determinism-source audit (R3-S03)
         run: |
-          if uv run python -c "import wumpus.audits.determinism_source" 2>/dev/null; then
-            uv run python -m wumpus.audits.determinism_source \
-              python/packages/wumpus/src/wumpus/engine \
-              python/packages/wumpus/src/wumpus/surfaces
-          else
-            echo "Determinism-source audit not yet present (lands at R3-S03). Skipping."
-          fi
+          uv run --project python python -m wumpus.audits.determinism_source \
+            python/packages/wumpus/src/wumpus/engine \
+            python/packages/wumpus/src/wumpus/surfaces
         shell: bash
         working-directory: ${{ github.workspace }}
       - name: Self-test
         run: |
-          if [ -f python/packages/wumpus/tests/audits/test_determinism_source_self.py ]; then
-            uv run pytest python/packages/wumpus/tests/audits/test_determinism_source_self.py -v
-          else
-            echo "Determinism-source self-test not yet present. Skipping."
-          fi
+          uv run --project python pytest \
+            python/packages/wumpus/tests/audits/test_determinism_source_self.py -v
         shell: bash
         working-directory: ${{ github.workspace }}
 
@@ -80,21 +73,14 @@ jobs:
         working-directory: python
       - name: Module-state audit (R3-S03)
         run: |
-          if uv run python -c "import wumpus.audits.module_state" 2>/dev/null; then
-            uv run python -m wumpus.audits.module_state \
-              python/packages/wumpus/src/wumpus
-          else
-            echo "Module-state audit not yet present (lands at R3-S03). Skipping."
-          fi
+          uv run --project python python -m wumpus.audits.module_state \
+            python/packages/wumpus/src/wumpus
         shell: bash
         working-directory: ${{ github.workspace }}
       - name: Self-test
         run: |
-          if [ -f python/packages/wumpus/tests/audits/test_module_state_self.py ]; then
-            uv run pytest python/packages/wumpus/tests/audits/test_module_state_self.py -v
-          else
-            echo "Module-state self-test not yet present. Skipping."
-          fi
+          uv run --project python pytest \
+            python/packages/wumpus/tests/audits/test_module_state_self.py -v
         shell: bash
         working-directory: ${{ github.workspace }}
 
