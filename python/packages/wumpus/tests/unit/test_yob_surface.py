@@ -130,6 +130,5 @@ def test_yob_surface_same_setup_prompt_renders_yob_verbatim_string() -> None:
     """The post-terminal SAME SET-UP prompt renders to its verbatim Yob line."""
     rendered = yob_surface.render_same_setup_prompt()
     assert rendered == ("SAME SET-UP (Y-N)?",), (
-        f"render_same_setup_prompt() was {rendered!r}; "
-        f"expected ('SAME SET-UP (Y-N)?',)"
+        f"render_same_setup_prompt() was {rendered!r}; expected ('SAME SET-UP (Y-N)?',)"
     )

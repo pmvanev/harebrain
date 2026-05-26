@@ -25,7 +25,11 @@ def load_schema(version: int) -> dict[str, Any]:
     package = "wumpus.schemas"
     filename = f"v{version}.json"
     try:
-        with resources.files(package).joinpath(filename).open("r", encoding="utf-8") as fh:
+        with (
+            resources.files(package)
+            .joinpath(filename)
+            .open("r", encoding="utf-8") as fh
+        ):
             return json.load(fh)  # type: ignore[no-any-return]
     except (FileNotFoundError, ModuleNotFoundError) as exc:
         raise FileNotFoundError(

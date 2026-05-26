@@ -99,9 +99,7 @@ def test_game_ended_synthesizes_same_setup_prompt() -> None:
     # immediately precedes it.
     types = [type(e).__name__ for e in sink.events]
     assert "GameEnded" in types, f"Expected GameEnded in events: {types}"
-    ended_index = max(
-        i for i, e in enumerate(sink.events) if isinstance(e, GameEnded)
-    )
+    ended_index = max(i for i, e in enumerate(sink.events) if isinstance(e, GameEnded))
     # Find the PromptIssued AFTER the GameEnded; the kind must be "same_setup".
     same_setup_prompts = [
         e

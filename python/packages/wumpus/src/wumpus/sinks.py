@@ -199,9 +199,7 @@ class JsonlSink:
             self._file.write("\n")
             self._file.flush()
         except OSError as exc:
-            raise SinkIOError(
-                f"JsonlSink({self._path!r}) write failed: {exc}"
-            ) from exc
+            raise SinkIOError(f"JsonlSink({self._path!r}) write failed: {exc}") from exc
 
     def close(self) -> None:
         """Flush and close the underlying file. Idempotent."""

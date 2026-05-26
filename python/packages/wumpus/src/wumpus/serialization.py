@@ -172,6 +172,11 @@ def _coerce_field_value(field_name: str, raw_value: Any, owner_cls: type) -> Any
     # Snapshot.world — dict → World
     if owner_cls is Snapshot and field_name == "world":
         return _dict_to_world(raw_value)
+    # R3-S01: Snapshot.initial_layout — dict → World (or None passthrough).
+    # The `raw_value is None` early-exit above already handles None; a
+    # dict here is the round-tripped initial-layout World.
+    if owner_cls is Snapshot and field_name == "initial_layout":
+        return _dict_to_world(raw_value)
     # Tuple fields land as lists from json.loads; restore the tuple shape
     # so the frozen-dataclass equality (tuple == tuple) stays consistent.
     if field_name in _TUPLE_FIELDS_BY_CLASS.get(owner_cls, set()):

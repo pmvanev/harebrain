@@ -44,8 +44,7 @@ def test_cli_emits_instructions_prompt_before_reading_input() -> None:
     output = stdout.getvalue()
     prompt_index = output.find(yob_surface.INSTRUCTIONS_PROMPT)
     assert prompt_index >= 0, (
-        f"Expected the verbatim Yob INSTRUCTIONS prompt on stdout; got: "
-        f"{output!r}"
+        f"Expected the verbatim Yob INSTRUCTIONS prompt on stdout; got: {output!r}"
     )
 
 
@@ -106,9 +105,7 @@ def test_cli_exits_cleanly_on_session_ended() -> None:
     # Extra lines after the final N must not deadlock — the loop breaks on
     # SessionEnded (alive=False AND pending_prompt is None) and discards the
     # trailing input.
-    stdin = io.StringIO(
-        _FORCED_LOSS_STDIN + "extra-line-that-should-be-ignored\n"
-    )
+    stdin = io.StringIO(_FORCED_LOSS_STDIN + "extra-line-that-should-be-ignored\n")
     stdout = io.StringIO()
 
     cli.main(

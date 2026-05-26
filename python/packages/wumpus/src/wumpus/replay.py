@@ -154,9 +154,7 @@ class Replay:
             pending_path_length=None,
         )
         # Iterator over the post-header events.
-        self._tail_events: Iterator[Event] = iter(
-            _deserialize_tail(raw_lines[1:])
-        )
+        self._tail_events: Iterator[Event] = iter(_deserialize_tail(raw_lines[1:]))
         # Bookkeeping for the "consumed but not yet beyond target" lookahead.
         self._pending_event: Event | None = None
 

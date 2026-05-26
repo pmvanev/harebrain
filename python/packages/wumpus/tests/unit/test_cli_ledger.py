@@ -35,9 +35,12 @@ def test_ledger_flag_writes_jsonl_lines_during_session(
     stdout = io.StringIO()
     cli_main(
         argv=[
-            "--seed", "42",
-            "--cave", "toy",
-            "--ledger", str(ledger),
+            "--seed",
+            "42",
+            "--cave",
+            "toy",
+            "--ledger",
+            str(ledger),
         ],
         stdin=stdin,
         stdout=stdout,

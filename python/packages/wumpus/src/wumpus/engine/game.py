@@ -452,6 +452,14 @@ class Game:
         Per SC6 the snapshot is fully serializable (no `random.Random` object;
         the RNG state is base64-encoded). Calling `snapshot()` is side-effect-
         free: no RNG consumption, no event emission.
+
+        R3-S01: the snapshot now carries `initial_layout` (the World at
+        construction-time, pinned for SAME SET-UP=Y restore) and `cave` (the
+        toy/yob discriminator). Without these the snapshot/restore round-trip
+        was broken for SAME SET-UP=Y after a snapshot-restore: `from_snapshot`
+        used to set `_initial_layout = world` (the mid-game world), so a
+        subsequent SAME SET-UP=Y would restore the mid-game cave, not the
+        original new-game layout.
         """
         return Snapshot(
             schema_version=SCHEMA_VERSION,
@@ -461,6 +469,8 @@ class Game:
             surface_id=_R0_SURFACE_ID,
             world=self._world,
             active_escalation_rules=(),
+            initial_layout=self._initial_layout,
+            cave=self._cave,
         )
 
     def world_state(self) -> World:
@@ -1011,15 +1021,21 @@ class Game:
         game = cls.__new__(cls)
         game._seed = snapshot.seed
         game._random = _decode_rng_cursor(snapshot.rng_cursor)
-        game._cave = _CAVE_YOB
+        # R3-S01: cave topology now round-trips. Snapshots from pre-R3-S01
+        # call sites (constructed without `cave`) default to "yob" per the
+        # Snapshot dataclass default — the historical behavior.
+        game._cave = snapshot.cave
         game._world = snapshot.world
-        # R1-S07: snapshots do NOT yet carry _initial_layout (R3 territory).
-        # For now we treat the resurrected world as both the current and the
-        # initial layout — SAME SET-UP=Y on a resurrected mid-game would
-        # restore the mid-game world, not the original new-game world. The
-        # R3 ledger-replay slice will add an `_initial_layout` field to
-        # Snapshot.
-        game._initial_layout = snapshot.world
+        # R3-S01: initial_layout now round-trips. The Snapshot dataclass
+        # default is `None` for back-compat with pre-R3-S01 fixtures; when
+        # absent we fall back to the resurrected world (matching the
+        # pre-R3-S01 behavior — broken for SAME SET-UP=Y after a
+        # snapshot/restore, but no worse than what shipped at R1-S07).
+        game._initial_layout = (
+            snapshot.initial_layout
+            if snapshot.initial_layout is not None
+            else snapshot.world
+        )
         game._step_events = []
         game._subscribers = []
         game._debug_events = []

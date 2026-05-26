@@ -1175,9 +1175,7 @@ def _build_default_shoot_world() -> Any:
     )
 
 
-def _capture_post_step_events(
-    game: Any, sink: Any, action: str
-) -> list[Any]:
+def _capture_post_step_events(game: Any, sink: Any, action: str) -> list[Any]:
     """Run a single `step(action)` and return only the events emitted by
     that step (not the historical replay the sink received on subscribe)."""
     pre_count = len(sink.events)
@@ -1243,8 +1241,7 @@ def _r1s05_path_len_zero_reprompt(
     )
     # pending_prompt must still be the path-length prompt — not advanced.
     assert (
-        r1s05_after_S_state["game"].world_state().pending_prompt
-        == "shoot_path_len"
+        r1s05_after_S_state["game"].world_state().pending_prompt == "shoot_path_len"
     ), (
         "After rejecting an out-of-range path length, pending_prompt should "
         "still be 'shoot_path_len'; got "
@@ -1311,9 +1308,7 @@ def _r1s05_crooked_event_fires(
 ) -> None:
     from wumpus.events import CrookedPathRejected
 
-    crooked = [
-        e for e in r1s05_crooked_events if isinstance(e, CrookedPathRejected)
-    ]
+    crooked = [e for e in r1s05_crooked_events if isinstance(e, CrookedPathRejected)]
     assert crooked, (
         "No CrookedPathRejected event emitted. "
         f"Events seen: {[type(e).__name__ for e in r1s05_crooked_events]}"
@@ -1335,17 +1330,13 @@ def _r1s05_reprompt_slot_3_only(
     from wumpus.events import PromptIssued
 
     prompts = [e for e in r1s05_crooked_events if isinstance(e, PromptIssued)]
-    assert prompts, (
-        "No PromptIssued event emitted after crooked path rejection."
-    )
+    assert prompts, "No PromptIssued event emitted after crooked path rejection."
     last = prompts[-1]
     assert last.kind == "shoot_path_room", (
-        f"Re-prompt PromptIssued.kind was {last.kind!r}; "
-        f"expected 'shoot_path_room'."
+        f"Re-prompt PromptIssued.kind was {last.kind!r}; expected 'shoot_path_room'."
     )
     assert last.context is not None and last.context.get("slot") == 3, (
-        f"Re-prompt PromptIssued.context.slot was {last.context}; "
-        f"expected slot=3."
+        f"Re-prompt PromptIssued.context.slot was {last.context}; expected slot=3."
     )
 
 
@@ -1590,9 +1581,7 @@ def _r1s06_arrow_hit_wumpus_17(r1s06_scenario_state: dict[str, Any]) -> None:
 
     hits = [e for e in r1s06_scenario_state["events"] if isinstance(e, ArrowHitWumpus)]
     assert hits, "No ArrowHitWumpus event emitted."
-    assert hits[0].room == 17, (
-        f"ArrowHitWumpus.room was {hits[0].room}; expected 17."
-    )
+    assert hits[0].room == 17, f"ArrowHitWumpus.room was {hits[0].room}; expected 17."
 
 
 @then("GameEnded(outcome=wumpus_shot) fires")
@@ -1724,9 +1713,7 @@ def _r1s06_selfshot_setup() -> dict[str, Any]:
         wumpus_rooms=(17,),  # parked away — not on path
         arrows=5,
     )
-    events = _drive_shoot_through_path(
-        world=world, path=(7, 8), scripted_randint=[]
-    )
+    events = _drive_shoot_through_path(world=world, path=(7, 8), scripted_randint=[])
     return {"events": events}
 
 
@@ -1812,9 +1799,7 @@ def _r1s06_deflected_step(
 ) -> None:
     from wumpus.events import ArrowPathStep
 
-    steps = [
-        e for e in r1s06_deflect_state["events"] if isinstance(e, ArrowPathStep)
-    ]
+    steps = [e for e in r1s06_deflect_state["events"] if isinstance(e, ArrowPathStep)]
     assert steps, "No ArrowPathStep emitted under deflection scenario."
     first = steps[0]
     expected = r1s06_deflect_state["expected_deflect_room"]
@@ -1833,9 +1818,7 @@ def _r1s06_remaining_slots_discarded(
 ) -> None:
     from wumpus.events import ArrowPathStep
 
-    steps = [
-        e for e in r1s06_deflect_state["events"] if isinstance(e, ArrowPathStep)
-    ]
+    steps = [e for e in r1s06_deflect_state["events"] if isinstance(e, ArrowPathStep)]
     # Exactly ONE ArrowPathStep should fire — the deflection. Remaining
     # path slots [17, 5] are discarded.
     assert len(steps) == 1, (
@@ -1861,9 +1844,7 @@ def _r1s06_miss_setup() -> dict[str, Any]:
         wumpus_rooms=(17,),
         arrows=5,
     )
-    events = _drive_shoot_through_path(
-        world=world, path=(7,), scripted_randint=[4]
-    )
+    events = _drive_shoot_through_path(world=world, path=(7,), scripted_randint=[4])
     return {"events": events, "prev_arrows": 5}
 
 
@@ -1887,8 +1868,7 @@ def _r1s06_arrow_missed(request: Any) -> None:
     events = _pull_r1s06_miss_or_oom_events(request)
     missed = [e for e in events if isinstance(e, ArrowMissed)]
     assert missed, (
-        f"No ArrowMissed event emitted. Events: "
-        f"{[type(e).__name__ for e in events]}"
+        f"No ArrowMissed event emitted. Events: {[type(e).__name__ for e in events]}"
     )
 
 
@@ -1898,9 +1878,7 @@ def _r1s06_startled_no_move(
 ) -> None:
     from wumpus.events import WumpusStartled
 
-    startled = [
-        e for e in r1s06_miss_state["events"] if isinstance(e, WumpusStartled)
-    ]
+    startled = [e for e in r1s06_miss_state["events"] if isinstance(e, WumpusStartled)]
     assert startled, "No WumpusStartled event emitted on arrow miss."
     # K=4 in FNC(0) means from_room == to_room (stay-put).
     assert startled[0].from_room == startled[0].to_room, (
@@ -1946,9 +1924,7 @@ def _r1s06_out_of_arrows_setup() -> dict[str, Any]:
         wumpus_rooms=(17,),
         arrows=1,
     )
-    events = _drive_shoot_through_path(
-        world=world, path=(7,), scripted_randint=[4]
-    )
+    events = _drive_shoot_through_path(world=world, path=(7,), scripted_randint=[4])
     return {"events": events}
 
 
@@ -1965,8 +1941,7 @@ def _r1s06_arrow_count_zero(
     ]
     assert changes, "No ArrowCountChanged event emitted on out-of-arrows path."
     assert changes[-1].new_count == 0, (
-        f"Final ArrowCountChanged.new_count was {changes[-1].new_count}; "
-        f"expected 0."
+        f"Final ArrowCountChanged.new_count was {changes[-1].new_count}; expected 0."
     )
 
 
@@ -1976,9 +1951,7 @@ def _r1s06_game_ended_out_of_arrows(
 ) -> None:
     from wumpus.events import GameEnded
 
-    ended = [
-        e for e in r1s06_out_of_arrows_state["events"] if isinstance(e, GameEnded)
-    ]
+    ended = [e for e in r1s06_out_of_arrows_state["events"] if isinstance(e, GameEnded)]
     assert ended, "No GameEnded event emitted after out-of-arrows."
     assert ended[0].outcome == "out_of_arrows", (
         f"GameEnded.outcome was {ended[0].outcome!r}; expected 'out_of_arrows'."
@@ -2087,7 +2060,9 @@ def _r1s07_win_game_ended(r1s07_win_state: dict[str, Any]) -> None:
     from wumpus.events import GameEnded
 
     ended = [
-        e for e in r1s07_win_state["post_construction_events"] if isinstance(e, GameEnded)
+        e
+        for e in r1s07_win_state["post_construction_events"]
+        if isinstance(e, GameEnded)
     ]
     assert ended, "No GameEnded event emitted after wumpus shot."
     assert ended[0].outcome == "wumpus_shot", (
@@ -2108,7 +2083,7 @@ def _r1s07_win_contains_aha(r1s07_win_state: dict[str, Any]) -> None:
 
 
 @then(
-    'the rendered_lines for the win turn contain '
+    "the rendered_lines for the win turn contain "
     '"HEE HEE HEE - THE WUMPUS\'LL GETCHA NEXT TIME!!"'
 )
 def _r1s07_win_contains_hee_hee(r1s07_win_state: dict[str, Any]) -> None:
@@ -2143,7 +2118,9 @@ def _r1s07_pit_game_ended(r1s07_pit_state: dict[str, Any]) -> None:
     from wumpus.events import GameEnded
 
     ended = [
-        e for e in r1s07_pit_state["post_construction_events"] if isinstance(e, GameEnded)
+        e
+        for e in r1s07_pit_state["post_construction_events"]
+        if isinstance(e, GameEnded)
     ]
     assert ended, "No GameEnded event emitted after pit fall."
     assert ended[0].outcome == "fell_in_pit", (
@@ -2207,9 +2184,7 @@ def _r1s07_finished_game_for_same_setup() -> dict[str, Any]:
     game.subscribe(sink)
 
     # Capture the original GameStarted layout_hash + the Game._initial_layout.
-    original_started = next(
-        e for e in sink.events if isinstance(e, GameStarted)
-    )
+    original_started = next(e for e in sink.events if isinstance(e, GameStarted))
     original_layout_hash = original_started.layout_hash
     original_initial_layout = game._initial_layout  # noqa: SLF001 — test-only
 
@@ -2261,9 +2236,7 @@ def _r1s07_new_game_started_fires(
     )
 
 
-@then(
-    "the new game's _initial_layout equals the just-finished game's _initial_layout"
-)
+@then("the new game's _initial_layout equals the just-finished game's _initial_layout")
 def _r1s07_initial_layout_matches(
     r1s07_same_setup_after_Y: dict[str, Any],
     r1s07_same_setup_finished_game: dict[str, Any],
@@ -2296,9 +2269,7 @@ def _r1s07_initial_layout_matches(
     )
 
 
-@then(
-    "the new game's layout_hash equals the just-finished game's layout_hash"
-)
+@then("the new game's layout_hash equals the just-finished game's layout_hash")
 def _r1s07_layout_hash_matches(
     r1s07_same_setup_after_Y: dict[str, Any],
     r1s07_same_setup_finished_game: dict[str, Any],

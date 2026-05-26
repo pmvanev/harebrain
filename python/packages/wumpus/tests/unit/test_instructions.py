@@ -71,17 +71,14 @@ def test_instructions_block_is_multi_line() -> None:
         f"instructions_block() must return a tuple; got {type(block)}."
     )
     assert len(block) >= 30, (
-        f"Instructions block should have ~39 lines from BASIC source; "
-        f"got {len(block)}."
+        f"Instructions block should have ~39 lines from BASIC source; got {len(block)}."
     )
     # Sanity: welcome line + warnings header should be present.
     full_text = "\n".join(block)
     assert "WELCOME TO 'HUNT THE WUMPUS'" in full_text, (
         "Instructions block missing welcome line."
     )
-    assert "WARNINGS:" in full_text, (
-        "Instructions block missing warnings section."
-    )
+    assert "WARNINGS:" in full_text, "Instructions block missing warnings section."
 
 
 # ---------------------------------------------------------------------------
@@ -359,8 +356,7 @@ def test_layout_hash_is_pre_instructions_world() -> None:
     game = Game(seed=42)
     started_events = [e for e in game._debug_events if isinstance(e, GameStarted)]
     assert len(started_events) == 1, (
-        f"Expected exactly one GameStarted at construction; "
-        f"got {len(started_events)}"
+        f"Expected exactly one GameStarted at construction; got {len(started_events)}"
     )
     # The layout_hash should match the _initial_layout's hash (which has
     # pending_prompt=None, NOT "instructions"). Pin the invariant via the

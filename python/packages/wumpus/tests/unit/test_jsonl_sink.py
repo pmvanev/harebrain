@@ -240,9 +240,7 @@ def test_jsonl_sink_writes_schema_version_one_on_every_event(
     path = tmp_path / "out.jsonl"
     sink = JsonlSink(path)
     sink.emit(MoveAttempted(**_base_kwargs(), target_room=5, accepted=True))
-    sink.emit(
-        PromptIssued(**_base_kwargs(), kind="action", context=None)
-    )
+    sink.emit(PromptIssued(**_base_kwargs(), kind="action", context=None))
     sink.close()
     for line in (ln for ln in path.read_text(encoding="utf-8").split("\n") if ln):
         payload = json.loads(line)

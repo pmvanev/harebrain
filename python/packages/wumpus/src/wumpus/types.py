@@ -102,6 +102,22 @@ class Snapshot:
 
     R0 carries `variant_config=None` (R4-S01 ships the parametric type) and
     `surface_id="<placeholder>"` (R4-S03 ships the real Yob surface).
+
+    R3-S01 extends the shape with everything a `Game.from_snapshot(snap)`
+    needs to reconstruct an observationally-equivalent Game instance:
+
+      - `initial_layout: World` — the original layout at construction-time
+        (Game._initial_layout). Restored on SAME SET-UP=Y; pre R3-S01,
+        `from_snapshot` set `_initial_layout = world` which broke
+        SAME SET-UP=Y after a snapshot-restore (it would restore the
+        mid-game world instead of the original layout).
+      - `cave: str` — toy/yob distinguisher (Game._cave). R0's toy cave
+        bypasses hazard_resolve + the Yob-cave pre-game INSTRUCTIONS state;
+        a resurrected Game must know which mode to run in.
+
+    Both fields land with a sensible default for backward-compat: existing
+    Snapshot constructors that don't pass them still build, but the Game
+    round-trip is only correct when they're populated by `Game.snapshot()`.
     """
 
     schema_version: int
@@ -111,6 +127,15 @@ class Snapshot:
     surface_id: str
     world: World
     active_escalation_rules: tuple[str, ...] = ()
+    # R3-S01: full round-trip fields. `initial_layout` defaults to a sentinel
+    # `None` so existing test fixtures still construct; the round-trip path
+    # in `Game.from_snapshot` falls back to `world` when the field is None
+    # (matching the pre-R3-S01 behavior — broken for SAME SET-UP=Y after a
+    # snapshot/restore, but no worse than what shipped at R1-S07).
+    initial_layout: World | None = None
+    # R3-S01: cave topology selector. Defaults to "yob" (the Yob-default
+    # cave from R1-S01); explicit "toy" is required for toy-cave snapshots.
+    cave: str = "yob"
 
 
 # ---------------------------------------------------------------------------

@@ -125,7 +125,9 @@ def test_b2_hit_wumpus_emits_hit_then_game_ended_no_arrow_decrement() -> None:
     counts = [e for e in events if isinstance(e, ArrowCountChanged)]
 
     assert hit and hit[0].room == 17, "Expected ArrowHitWumpus(room=17)."
-    assert ended and ended[0].outcome == "wumpus_shot", "Expected GameEnded(wumpus_shot)."
+    assert ended and ended[0].outcome == "wumpus_shot", (
+        "Expected GameEnded(wumpus_shot)."
+    )
     assert ended[0].message_kind == "win", "Expected message_kind='win'."
     assert counts == [], (
         f"Yob bug-for-bug: ArrowCountChanged MUST NOT fire on wumpus hit. "
@@ -239,7 +241,11 @@ def test_b6_miss_emits_missed_startle_and_decrement() -> None:
     assert counts and counts[0].new_count == 4, "Expected arrow decrement to 4."
     # Event order: ArrowMissed → WumpusStartled → ArrowCountChanged.
     indices = {type(e).__name__: i for i, e in enumerate(events)}
-    assert indices["ArrowMissed"] < indices["WumpusStartled"] < indices["ArrowCountChanged"]
+    assert (
+        indices["ArrowMissed"]
+        < indices["WumpusStartled"]
+        < indices["ArrowCountChanged"]
+    )
     assert new_world.arrows == 4
     assert new_world.alive is True
 

@@ -32,7 +32,18 @@
         "rng_cursor": {"type": "string"},
         "surface_id": {"type": "string"},
         "world": {"$ref": "#/$defs/World"},
-        "active_escalation_rules": {"type": "array", "items": {"type": "string"}}
+        "active_escalation_rules": {"type": "array", "items": {"type": "string"}},
+        "initial_layout": {
+          "description": "R3-S01: the World at construction-time, pinned for SAME SET-UP=Y restore across snapshot/restore boundaries. Additive (ADR-002).",
+          "oneOf": [
+            {"$ref": "#/$defs/World"},
+            {"type": "null"}
+          ]
+        },
+        "cave": {
+          "description": "R3-S01: cave topology selector ('yob' or 'toy'). Additive (ADR-002).",
+          "type": "string"
+        }
       },
       "required": ["schema_version", "engine_version", "seed", "rng_cursor", "surface_id", "world"]
     },
