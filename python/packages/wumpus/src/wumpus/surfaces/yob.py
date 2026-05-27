@@ -67,6 +67,12 @@ ARROW_MISSED: str = "MISSED"
 # Crooked-arrow rejection line (path entry where P(K) == P(K-2)).
 CROOKED_REJECTION: str = "ARROWS AREN'T THAT CROOKED - TRY ANOTHER ROOM"
 
+# Off-graph move line (player tried to move to a non-adjacent room). Verbatim
+# from `wumpus.gwbasic.bas` line 4100 (`PRINT "NOT POSSIBLE -";`). Yob then
+# GOTO 4020 to re-print the WHERE TO? prompt without consuming the turn (G6 /
+# goals.md § Goal 1 "off-graph moves re-prompt without consuming the turn").
+OFF_GRAPH_MOVE: str = "NOT POSSIBLE -"
+
 # ---------------------------------------------------------------------------
 # R4-S03 — sense lines + prompt text + command tokens.
 #
@@ -177,6 +183,15 @@ PROMPT_SAME_SETUP: str = "SAME SET-UP (Y-N)?"
 def render_same_setup_prompt() -> tuple[str, ...]:
     """Translate the post-terminal SAME SET-UP prompt to its Yob line."""
     return (PROMPT_SAME_SETUP,)
+
+
+def render_off_graph_move() -> tuple[str, ...]:
+    """Translate a rejected (off-graph) move to its Yob `NOT POSSIBLE -` line.
+
+    Emitted on a `MoveAttempted(accepted=False)` event in the yob cave (the
+    player typed a non-adjacent room at the WHERE TO? prompt). Yob prints this
+    then re-prompts WHERE TO? without consuming the turn (G6)."""
+    return (OFF_GRAPH_MOVE,)
 
 
 # ---------------------------------------------------------------------------
@@ -455,6 +470,7 @@ class YobSurface:
             LOSE_TAG,
             ARROW_MISSED,
             CROOKED_REJECTION,
+            OFF_GRAPH_MOVE,
         )
 
 
@@ -469,6 +485,7 @@ __all__ = [
     "LOSE_TAG",
     "ARROW_MISSED",
     "CROOKED_REJECTION",
+    "OFF_GRAPH_MOVE",
     "SENSE_WUMPUS_SMELL",
     "SENSE_PIT_DRAFT",
     "SENSE_BAT_NEARBY",
@@ -490,6 +507,7 @@ __all__ = [
     "render_hazard",
     "render_terminal",
     "render_same_setup_prompt",
+    "render_off_graph_move",
     "render_instructions",
     "render_instructions_prompt",
     "render_banner_only",

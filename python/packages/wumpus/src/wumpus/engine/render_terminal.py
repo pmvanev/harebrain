@@ -38,10 +38,28 @@ from wumpus.events import (
     HazardTriggered,
     InstructionsShown,
     LocationReported,
+    MoveAttempted,
     PromptIssued,
     SenseEmitted,
 )
 from wumpus.surfaces import yob as yob_surface
+
+# PromptKind values the renderer maps to a single surface prompt line. Every
+# kind the engine parks at must render so the prompt is observable before the
+# engine awaits input (SC3). R1-S07 shipped same_setup + instructions; R1-S11
+# adds the top-level action prompt, the WHERE TO? move-target prompt, and the
+# two shoot sub-prompts (NO. OF ROOMS(1-5)? / ROOM #?) which were emitted at
+# R1-S05 but never rendered (G3).
+_RENDERED_PROMPT_KINDS: frozenset[str] = frozenset(
+    {
+        "action",
+        "move_target",
+        "shoot_path_len",
+        "shoot_path_room",
+        "same_setup",
+        "instructions",
+    }
+)
 
 if TYPE_CHECKING:
     from wumpus.types import Surface
@@ -119,10 +137,19 @@ def _render_event(event: Event, surface: "Surface") -> tuple[str, ...]:
         return yob_surface.render_hazard(event)
     if isinstance(event, GameEnded):
         return yob_surface.render_terminal(event)
-    if isinstance(event, PromptIssued) and event.kind == "same_setup":
-        return (surface.prompt_text("same_setup"),)
-    if isinstance(event, PromptIssued) and event.kind == "instructions":
-        return (surface.prompt_text("instructions"),)
+    if isinstance(event, MoveAttempted) and not event.accepted:
+        # Off-graph move (G6): render Yob's "NOT POSSIBLE -" line. The engine
+        # re-prompts WHERE TO? / the action prompt right after (a separate
+        # PromptIssued event), so the rendered turn reads "NOT POSSIBLE -"
+        # then the re-prompt. An accepted MoveAttempted renders nothing
+        # (LocationReported carries the per-turn location lines).
+        return yob_surface.render_off_graph_move()
+    if isinstance(event, PromptIssued) and event.kind in _RENDERED_PROMPT_KINDS:
+        # Every parked prompt renders through the Surface Protocol's
+        # `prompt_text` so a non-Yob surface renders prompts without touching
+        # this module (SC8). R1-S11 generalized this from the same_setup /
+        # instructions special-cases to the full PromptKind set.
+        return (surface.prompt_text(event.kind),)
     if isinstance(event, InstructionsShown):
         return yob_surface.render_instructions(event)
     return ()

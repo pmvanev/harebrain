@@ -256,4 +256,50 @@ Feature: R1 Yob fidelity — dodecahedron cave + Yob mechanics
 
   Scenario: Moving into a room adjacent to a wumpus and a pit renders senses then location in order
     Given the player moves into room 1 (neighbors 2, 5, 8) adjacent to a wumpus and a pit
-    Then the rendered_lines for that turn are exactly "I SMELL A WUMPUS!", "I FEEL A DRAFT", "YOU ARE IN ROOM  1", "TUNNELS LEAD TO  2  5  8"
+    Then the rendered_lines for that turn are exactly "I SMELL A WUMPUS!", "I FEEL A DRAFT", "YOU ARE IN ROOM  1", "TUNNELS LEAD TO  2  5  8", "SHOOT OR MOVE (S-M)?"
+
+  # ---------------------------------------------------------------------------
+  # R1-S11 — Yob-faithful input protocol + robust re-prompt (G2 / G3 / G5 / G6)
+  # ---------------------------------------------------------------------------
+  #
+  # The interactive CLI input flow matches Yob exactly: single-letter S/M/Y/N
+  # and bare integers only. After instructions and after every non-terminal
+  # turn the engine parks at the top-level "SHOOT OR MOVE (S-M)?" action prompt
+  # and RENDERS it (SC3). "M" begins a two-step move ("WHERE TO?" then a room
+  # number); "S" enters the shoot machine (whose NO. OF ROOMS / ROOM # prompts
+  # now render). Off-graph or unrecognized input re-prompts WITHOUT consuming
+  # the turn and NEVER crashes the CLI (the G6 bug fix). All strings come from
+  # the Surface (SC8 — no Yob literals in wumpus.engine.*).
+
+  Scenario: After instructions the awaited prompt is the action prompt
+    Given a fresh Yob game past the instructions answer
+    Then the rendered output ends with the action prompt "SHOOT OR MOVE (S-M)?"
+    And the engine is parked awaiting the action prompt
+
+  Scenario: M then a room number resolves a two-step move
+    Given a fresh Yob game parked at the action prompt
+    When the player chooses M
+    Then "WHERE TO?" is shown and the engine awaits a move target
+    When the player enters an adjacent room number
+    Then the move resolves and the location of the new room renders
+    And the engine parks at the action prompt again
+
+  Scenario: Off-graph move re-prompts without consuming the turn
+    Given a fresh Yob game parked at the action prompt
+    When the player chooses M
+    And the player enters a non-adjacent room number
+    Then "NOT POSSIBLE -" is rendered and "WHERE TO?" is re-prompted
+    And the turn counter has not advanced and no exception is raised
+
+  Scenario: Unrecognized input re-prompts and never crashes
+    Given a fresh Yob game parked at the action prompt
+    When the player enters an unrecognized token
+    Then the action prompt is re-issued and no exception is raised
+    And the turn counter has not advanced
+
+  Scenario: S enters the shoot machine and its prompts render
+    Given a fresh Yob game parked at the action prompt
+    When the player chooses S
+    Then the shoot length prompt "NO. OF ROOMS(1-5)?" renders
+    When the player enters a shoot path length of 2
+    Then the room prompt "ROOM #?" renders

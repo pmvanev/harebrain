@@ -36,12 +36,24 @@ def test_construction_emits_game_started() -> None:
         "go 2",
     ],
 )
-def test_step_rejects_malformed_action(bad_action: str) -> None:
-    """The engine supports `move <int>` ONLY; everything else raises ValueError
-    so no R1+ action types accidentally execute before their slice lands."""
+def test_step_never_raises_on_unrecognized_action(bad_action: str) -> None:
+    """R1-S11 (G6): unrecognized input must NEVER raise an uncaught exception
+    to the caller — it re-prompts without consuming the turn. This replaces
+    the R0 contract (which raised ValueError on non-`move <N>` input); raising
+    crashed `python -m wumpus` whenever the player typed a bare letter.
+
+    The behavioral assertion is observable through the driving port: the call
+    returns an Observation (no exception) and the turn counter does not
+    advance (the input was not an action-completing event)."""
     game = Game(seed=42, cave="toy")
-    with pytest.raises(ValueError):
-        game.step(bad_action)
+    turn_before = game.world_state().turn
+    observation = game.step(bad_action)  # must not raise (G6)
+    assert observation is not None
+    assert game.world_state().turn == turn_before, (
+        f"Unrecognized input {bad_action!r} advanced the turn counter from "
+        f"{turn_before} to {game.world_state().turn}; G6 requires the turn "
+        f"to be unconsumed on unrecognized input."
+    )
 
 
 def test_subscribe_replays_history_to_late_sink() -> None:

@@ -122,13 +122,24 @@ def test_seed3_forced_pit_fall_run_is_pinned() -> None:
     Pins the emitted-event count, the terminal state, and the final
     ``internal_state_hash`` — so any drift in the layout, the move/hazard
     resolution, or the event chain surfaces here.
+
+    Re-blessed 2026-05-27 (R1-S11): the event count rose 8 -> 9. R1-S11 (G2)
+    parks the engine at the top-level ``SHOOT OR MOVE (S-M)?`` action prompt
+    after instructions, so a ``PromptIssued(kind="action")`` now fires between
+    ``InstructionsShown`` (index 2) and ``MoveAttempted`` (index 4). The
+    terminal ``internal_state_hash`` is UNCHANGED (cfbbdcd4...): the action
+    prompt does not alter the terminal World (player in the pit, alive=False,
+    pending_prompt="same_setup"), and the hash is taken over World fields. The
+    seed=42 layout / ``layout_hash`` (a pure RNG product) are likewise
+    untouched — confirmed by ``test_seed42_layout_hash_is_pinned`` above and
+    the determinism property suite (paired-run + cross-run equality).
     """
     game = Game(seed=3)
     for action in ("N", "move 19"):
         game.step(action)
 
     events = game._debug_events
-    assert len(events) == 8
+    assert len(events) == 9
     assert type(events[-1]).__name__ == "PromptIssued"
     assert events[-1].internal_state_hash == "cfbbdcd4fcae8e4369ff9a2bce7aed9c"
     assert game.world_state().alive is False

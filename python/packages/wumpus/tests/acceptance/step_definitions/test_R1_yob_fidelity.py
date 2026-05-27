@@ -2609,19 +2609,240 @@ def _r1s02render_mixed_room_lines() -> tuple[str, ...]:
 
 @then(
     'the rendered_lines for that turn are exactly "I SMELL A WUMPUS!", '
-    '"I FEEL A DRAFT", "YOU ARE IN ROOM  1", "TUNNELS LEAD TO  2  5  8"'
+    '"I FEEL A DRAFT", "YOU ARE IN ROOM  1", "TUNNELS LEAD TO  2  5  8", '
+    '"SHOOT OR MOVE (S-M)?"'
 )
 def _r1s02render_mixed_exact_order(
     r1s02render_mixed_lines: tuple[str, ...],
 ) -> None:
+    # R1-S11 (G2): a non-terminal turn now parks at the top-level action
+    # prompt and RENDERS it, so the per-turn render ends with
+    # "SHOOT OR MOVE (S-M)?" after the senses + location + tunnels lines.
     expected = (
         "I SMELL A WUMPUS!",
         "I FEEL A DRAFT",
         "YOU ARE IN ROOM  1",
         "TUNNELS LEAD TO  2  5  8",
+        "SHOOT OR MOVE (S-M)?",
     )
     assert r1s02render_mixed_lines == expected, (
         f"Expected the per-turn render to be senses (SENSE_ORDER: wumpus then "
-        f"pit) followed by location then tunnels, in Yob's spacing; got: "
-        f"{r1s02render_mixed_lines!r}"
+        f"pit) followed by location then tunnels then the action prompt "
+        f"(R1-S11 G2), in Yob's spacing; got: {r1s02render_mixed_lines!r}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# R1-S11 — Yob-faithful input protocol + robust re-prompt (G2 / G3 / G5 / G6)
+# ---------------------------------------------------------------------------
+#
+# Strategy: drive the Game(seed=k) production driving port end-to-end through
+# the pre-game INSTRUCTIONS answer into the base playable state, capturing each
+# step's Observation.rendered_lines (the player-facing render the CLI shows)
+# and the post-step World via world_state(). Port-to-port: enter through
+# Game.step(...), assert on the rendered output + observable pending_prompt /
+# turn — never on internal classes. A fixed seed keeps the layout deterministic
+# (seed=42: player starts in room 18, neighbors 9/17/19 per the golden master).
+#
+# The "no exception" claims are observed by calling step(...) inside the step
+# function: if the engine raised, the step would error and the scenario fails.
+
+_R1S11_SEED = 42  # player starts in room 18 (neighbors 9, 17, 19); 17 is safe.
+_R1S11_ADJACENT_ROOM = 17  # adjacent to room 18, hazard-free for seed=42.
+_R1S11_NON_ADJACENT_ROOM = 5  # NOT adjacent to room 18 → off-graph.
+
+
+def _fresh_yob_game_past_instructions() -> Any:
+    """Construct Game(seed=42) and answer N at the INSTRUCTIONS prompt so the
+    engine enters the base playable state. Returns the live Game (parked at the
+    action prompt after R1-S11). The last step's Observation is captured on the
+    Game via a `_last_rendered_lines` attribute the steps read."""
+    from wumpus import Game
+
+    game = Game(seed=_R1S11_SEED)
+    observation = game.step("N")
+    game._last_rendered_lines = observation.rendered_lines  # type: ignore[attr-defined]
+    return game
+
+
+@given(
+    "a fresh Yob game past the instructions answer",
+    target_fixture="r1s11_game",
+)
+def _r1s11_game_past_instructions() -> Any:
+    return _fresh_yob_game_past_instructions()
+
+
+@given(
+    "a fresh Yob game parked at the action prompt",
+    target_fixture="r1s11_game",
+)
+def _r1s11_game_parked_at_action() -> Any:
+    return _fresh_yob_game_past_instructions()
+
+
+@then('the rendered output ends with the action prompt "SHOOT OR MOVE (S-M)?"')
+def _r1s11_render_ends_with_action_prompt(r1s11_game: Any) -> None:
+    lines = r1s11_game._last_rendered_lines
+    assert lines and lines[-1] == "SHOOT OR MOVE (S-M)?", (
+        f"Expected the post-instructions render to end with the verbatim Yob "
+        f"action prompt 'SHOOT OR MOVE (S-M)?'; got: {lines!r}"
+    )
+
+
+@then("the engine is parked awaiting the action prompt")
+def _r1s11_parked_action(r1s11_game: Any) -> None:
+    assert r1s11_game.world_state().pending_prompt == "action", (
+        f"Expected pending_prompt='action' after instructions; "
+        f"got {r1s11_game.world_state().pending_prompt!r}."
+    )
+
+
+@when("the player chooses M")
+def _r1s11_choose_m(r1s11_game: Any) -> None:
+    observation = r1s11_game.step("M")
+    r1s11_game._last_rendered_lines = observation.rendered_lines
+
+
+@then('"WHERE TO?" is shown and the engine awaits a move target')
+def _r1s11_where_to_shown(r1s11_game: Any) -> None:
+    lines = r1s11_game._last_rendered_lines
+    assert "WHERE TO?" in lines, (
+        f"Expected 'WHERE TO?' in the render after choosing M; got: {lines!r}"
+    )
+    assert r1s11_game.world_state().pending_prompt == "move_target", (
+        f"Expected pending_prompt='move_target' after M; "
+        f"got {r1s11_game.world_state().pending_prompt!r}."
+    )
+
+
+@when("the player enters an adjacent room number")
+def _r1s11_enter_adjacent(r1s11_game: Any) -> None:
+    observation = r1s11_game.step(str(_R1S11_ADJACENT_ROOM))
+    r1s11_game._last_rendered_lines = observation.rendered_lines
+
+
+@then("the move resolves and the location of the new room renders")
+def _r1s11_move_resolves(r1s11_game: Any) -> None:
+    lines = r1s11_game._last_rendered_lines
+    assert any("YOU ARE IN ROOM" in line for line in lines), (
+        f"Expected a 'YOU ARE IN ROOM' location line after a valid move; got: {lines!r}"
+    )
+    assert r1s11_game.world_state().player_room == _R1S11_ADJACENT_ROOM, (
+        f"Expected player to have moved to room {_R1S11_ADJACENT_ROOM}; "
+        f"got {r1s11_game.world_state().player_room}."
+    )
+
+
+@then("the engine parks at the action prompt again")
+def _r1s11_parks_action_again(r1s11_game: Any) -> None:
+    lines = r1s11_game._last_rendered_lines
+    assert lines and lines[-1] == "SHOOT OR MOVE (S-M)?", (
+        f"Expected the post-move render to end with the action prompt; got: {lines!r}"
+    )
+    assert r1s11_game.world_state().pending_prompt == "action", (
+        f"Expected pending_prompt='action' after a resolved move; "
+        f"got {r1s11_game.world_state().pending_prompt!r}."
+    )
+
+
+@when("the player enters a non-adjacent room number")
+def _r1s11_enter_non_adjacent(r1s11_game: Any) -> None:
+    # Record the turn BEFORE the off-graph attempt so the turn-not-consumed
+    # assertion can compare. The step must not raise (G6).
+    r1s11_game._turn_before_offgraph = r1s11_game.world_state().turn
+    observation = r1s11_game.step(str(_R1S11_NON_ADJACENT_ROOM))
+    r1s11_game._last_rendered_lines = observation.rendered_lines
+
+
+@then('"NOT POSSIBLE -" is rendered and "WHERE TO?" is re-prompted')
+def _r1s11_off_graph_rendered(r1s11_game: Any) -> None:
+    lines = r1s11_game._last_rendered_lines
+    assert "NOT POSSIBLE -" in lines, (
+        f"Expected the verbatim Yob off-graph line 'NOT POSSIBLE -' after a "
+        f"non-adjacent move; got: {lines!r}"
+    )
+    assert lines[-1] == "WHERE TO?", (
+        f"Expected the off-graph render to re-prompt 'WHERE TO?' after "
+        f"'NOT POSSIBLE -'; got: {lines!r}"
+    )
+    assert r1s11_game.world_state().pending_prompt == "move_target", (
+        f"Expected pending_prompt to stay 'move_target' after an off-graph "
+        f"move; got {r1s11_game.world_state().pending_prompt!r}."
+    )
+
+
+@then("the turn counter has not advanced and no exception is raised")
+def _r1s11_offgraph_turn_unchanged(r1s11_game: Any) -> None:
+    # Reaching this step means no exception was raised by the When step (G6).
+    assert r1s11_game.world_state().turn == r1s11_game._turn_before_offgraph, (
+        f"Off-graph move consumed the turn: was "
+        f"{r1s11_game._turn_before_offgraph}, now "
+        f"{r1s11_game.world_state().turn}. Yob re-prompt semantics violated."
+    )
+
+
+@when("the player enters an unrecognized token")
+def _r1s11_enter_unrecognized(r1s11_game: Any) -> None:
+    r1s11_game._turn_before_unknown = r1s11_game.world_state().turn
+    observation = r1s11_game.step("bogus")  # must not raise (G6)
+    r1s11_game._last_rendered_lines = observation.rendered_lines
+
+
+@then("the action prompt is re-issued and no exception is raised")
+def _r1s11_unknown_reprompts_action(r1s11_game: Any) -> None:
+    lines = r1s11_game._last_rendered_lines
+    assert lines and lines[-1] == "SHOOT OR MOVE (S-M)?", (
+        f"Expected unrecognized input to re-issue the action prompt; got: {lines!r}"
+    )
+    assert r1s11_game.world_state().pending_prompt == "action", (
+        f"Expected pending_prompt to stay 'action' after unrecognized input; "
+        f"got {r1s11_game.world_state().pending_prompt!r}."
+    )
+
+
+@then("the turn counter has not advanced")
+def _r1s11_unknown_turn_unchanged(r1s11_game: Any) -> None:
+    assert r1s11_game.world_state().turn == r1s11_game._turn_before_unknown, (
+        f"Unrecognized input consumed the turn: was "
+        f"{r1s11_game._turn_before_unknown}, now "
+        f"{r1s11_game.world_state().turn}."
+    )
+
+
+@when("the player chooses S")
+def _r1s11_choose_s(r1s11_game: Any) -> None:
+    observation = r1s11_game.step("S")
+    r1s11_game._last_rendered_lines = observation.rendered_lines
+
+
+@then('the shoot length prompt "NO. OF ROOMS(1-5)?" renders')
+def _r1s11_shoot_len_prompt_renders(r1s11_game: Any) -> None:
+    lines = r1s11_game._last_rendered_lines
+    assert "NO. OF ROOMS(1-5)?" in lines, (
+        f"Expected the shoot-length prompt 'NO. OF ROOMS(1-5)?' to render "
+        f"after S (G3); got: {lines!r}"
+    )
+    assert r1s11_game.world_state().pending_prompt == "shoot_path_len", (
+        f"Expected pending_prompt='shoot_path_len' after S; "
+        f"got {r1s11_game.world_state().pending_prompt!r}."
+    )
+
+
+@when("the player enters a shoot path length of 2")
+def _r1s11_enter_shoot_len_2(r1s11_game: Any) -> None:
+    observation = r1s11_game.step("2")
+    r1s11_game._last_rendered_lines = observation.rendered_lines
+
+
+@then('the room prompt "ROOM #?" renders')
+def _r1s11_room_prompt_renders(r1s11_game: Any) -> None:
+    lines = r1s11_game._last_rendered_lines
+    assert "ROOM #?" in lines, (
+        f"Expected the per-slot room prompt 'ROOM #?' to render after the "
+        f"path length (G3); got: {lines!r}"
+    )
+    assert r1s11_game.world_state().pending_prompt == "shoot_path_room", (
+        f"Expected pending_prompt='shoot_path_room' after the path length; "
+        f"got {r1s11_game.world_state().pending_prompt!r}."
     )

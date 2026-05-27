@@ -295,12 +295,25 @@ class Game:
     def step(self, action: str) -> Observation:
         """Apply `action` to the engine.
 
-        R0 supported only `move <N>` actions. R1-S05 extends `step` with the
+        R0 supported only `move <N>` actions. R1-S05 extended `step` with the
         shoot sub-state-machine: `step("S")` enters shoot mode, after which
         the engine awaits a path length (1..5), then per-slot rooms. The
         shoot sub-state-machine is driven entirely through follow-up `step`
         calls that supply the next bare integer; the engine routes on the
         World's `pending_prompt` field.
+
+        R1-S11 completes the Yob-faithful input protocol (G2/G5/G6). After
+        every non-terminal turn in the yob cave the engine parks at the
+        top-level `SHOOT OR MOVE (S-M)?` prompt (`pending_prompt="action"`).
+        From there `M` begins a two-step move — `step("M")` emits
+        `ActionChosen("M")` + `WHERE TO?` and parks at `move_target`; the next
+        `step("<int>")` resolves the move (validating adjacency). `S` enters
+        the shoot machine. An off-graph move renders `NOT POSSIBLE -` and
+        re-prompts WITHOUT consuming the turn; any unrecognized input
+        re-prompts the awaiting prompt and NEVER raises to the caller (G6).
+        `step("move <N>")` is retained as a programmatic-only alias that
+        resolves a move in one call (see `_parse_move_alias`); the interactive
+        CLI never uses it.
 
         Returns an `Observation` describing the post-step view. Events are
         emitted to all subscribed sinks (and to `_debug_events`) in the order
@@ -363,17 +376,52 @@ class Game:
         if not self._world.alive and self._world.pending_prompt is None:
             return self._render_observation()
 
-        # Route on pending_prompt FIRST: if the engine is mid-shoot, the
-        # action is a path-length or room-slot integer string, not a move.
+        # Route on pending_prompt FIRST. The engine may be mid-shoot (path
+        # length / room slot), at the top-level action prompt (S/M), or
+        # awaiting a move target (WHERE TO?). `_step_pending` dispatches on
+        # the pending_prompt discriminator — invalid input re-prompts without
+        # consuming the turn and NEVER raises to the caller (G6 / SC3).
         if self._world.pending_prompt is not None:
-            return self._step_shoot_subroutine(action)
-        # Top-level: "S" enters the shoot sub-state-machine; everything else
-        # goes through the existing move parser (which also defends the
-        # action-grammar invariants — see `_parse_move_action`).
+            return self._step_pending(action)
+        # Top-level with NO pending prompt. This is the programmatic-only
+        # entry point: the interactive CLI is always two-step (it parks in
+        # "action" after each turn), so it never reaches here for moves.
+        # "S" enters the shoot sub-state-machine; "move <N>" is the documented
+        # programmatic-only alias (see `_parse_move_alias`). Anything else
+        # re-prompts the action prompt rather than crashing (G6).
         if action == "S":
             return self._enter_shoot_mode()
+        target_room = self._parse_move_alias(action)
+        if target_room is None:
+            # Unrecognized programmatic input — issue the action prompt so the
+            # caller learns what is awaited, and do not advance the turn.
+            self._reissue_prompt("action", context=None)
+            return self._render_observation()
+        return self._resolve_move_action(target_room)
 
-        target_room = self._parse_move_action(action)
+    def _resolve_move_action(self, target_room: int) -> Observation:
+        """Resolve a move to `target_room`: adjacency check, hazard resolution,
+        sense+location emission, and — on a non-terminal outcome in the yob
+        cave — the per-turn `SHOOT OR MOVE (S-M)?` action prompt (G2).
+
+        Off-graph targets emit `MoveAttempted(accepted=False)` and re-prompt
+        WITHOUT consuming the turn (Yob re-prompt semantics + G6); a rejected
+        move from the interactive `move_target` state re-issues `WHERE TO?`,
+        a rejected programmatic move re-issues the action prompt.
+        """
+        # Remember whether the move came from the interactive WHERE TO? state
+        # so an off-graph target re-prompts the right prompt (move_target vs
+        # action). The off-graph branch below reads this BEFORE clearing.
+        entered_from_move_target = self._world.pending_prompt == "move_target"
+        # Clear any pending prompt before resolving so a successful move starts
+        # from a clean state; `resolve_move` copies pending_prompt forward, and
+        # the per-turn action prompt is re-issued explicitly below.
+        if self._world.pending_prompt is not None:
+            self._world = self._with_pending(
+                pending_prompt=None,
+                pending_arrow_path=(),
+                pending_path_length=None,
+            )
         rng_cursor = self._encode_rng_cursor()
         next_world, events = resolve_move(
             self._world, target_room, rng_cursor, self._random, cave=self._cave
@@ -383,19 +431,35 @@ class Game:
             self._emit(event)
 
         move_resolved = any(isinstance(event, MoveResolved) for event in events)
-        if not (self._cave == _CAVE_YOB and move_resolved):
+        if self._cave != _CAVE_YOB:
+            # Toy cave: no hazard resolution, no per-turn action prompt, and
+            # no off-graph re-prompt — a rejected move emits only
+            # MoveAttempted(accepted=False) exactly as before. This preserves
+            # the R2-S03 / R3-S01 toy-cave determinism substrate byte-for-byte.
+            return self._render_observation()
+        if not move_resolved:
+            # Off-graph / rejected move in the yob cave. The turn was not
+            # consumed; re-prompt so the caller can try again (G6). The
+            # interactive WHERE TO? state re-issues move_target; a programmatic
+            # / action-state rejected move re-issues the action prompt.
+            self._reissue_move_reprompt(entered_from_move_target)
             return self._render_observation()
 
         hazard_outcome = self._resolve_post_move_hazards()
         if hazard_outcome == _HazardOutcome.NONE:
             self._emit_senses_and_location(target_room)
+            self._issue_action_prompt()
             return self._render_observation()
         if hazard_outcome == _HazardOutcome.TERMINAL:
-            # GameEnded fired (eaten_after_bump or fell_in_pit). No sense+location.
+            # GameEnded fired (eaten_after_bump or fell_in_pit). No sense+
+            # location, no action prompt — the engine is parked in same_setup
+            # by the `_emit` post-terminal hook.
             return self._render_observation()
         # SAFE_TELEPORT — bat snatch landed the player in a hazard-free
-        # room. Re-emit sense+location for the new room (Yob 4280-4290).
+        # room. Re-emit sense+location for the new room (Yob 4280-4290), then
+        # the per-turn action prompt.
         self._emit_senses_and_location(self._world.player_room)
+        self._issue_action_prompt()
         return self._render_observation()
 
     def _resolve_post_move_hazards(self) -> _HazardOutcome:
@@ -492,6 +556,44 @@ class Game:
             adjacencies=(adjacencies[0], adjacencies[1], adjacencies[2]),
         )
         self._emit(location_event)
+
+    def _issue_action_prompt(self) -> None:
+        """Park the engine at the top-level `SHOOT OR MOVE (S-M)?` prompt (G2).
+
+        Called after a non-terminal turn's LocationReported in the yob cave.
+        Sets `pending_prompt="action"` and emits `PromptIssued(kind="action")`
+        so the caller (CLI / harness / agent) sees what input is awaited and
+        the surface renders the prompt (SC3). The turn counter is unchanged —
+        issuing a prompt is not an action-completing event."""
+        self._world = self._with_pending(
+            pending_prompt="action",
+            pending_arrow_path=(),
+            pending_path_length=None,
+        )
+        self._reissue_prompt("action", context=None)
+
+    def _reissue_move_reprompt(self, entered_from_move_target: bool) -> None:
+        """Re-prompt after an off-graph / rejected move WITHOUT consuming the
+        turn (G6). The `NOT POSSIBLE -` line is the verbatim Yob off-graph
+        message — emitted as a structured `MoveAttempted(accepted=False)` event
+        (already emitted by the caller) that the surface translates (SC8); this
+        method only re-issues the awaiting prompt AFTER it.
+
+        `entered_from_move_target` selects which prompt to re-issue: the
+        interactive two-step move re-issues `WHERE TO?` and stays parked there;
+        a programmatic / action-state rejected move parks back at the action
+        prompt so the caller can retry."""
+        if entered_from_move_target:
+            self._world = self._with_pending(
+                pending_prompt="move_target",
+                pending_arrow_path=(),
+                pending_path_length=None,
+            )
+            self._reissue_prompt("move_target", context=None)
+            return
+        # Programmatic / action-state rejected move: park back at the action
+        # prompt so the caller can retry.
+        self._issue_action_prompt()
 
     def snapshot(self) -> Snapshot:
         """Return a serializable Snapshot of the current engine state.
@@ -675,13 +777,15 @@ class Game:
         return self._render_observation()
 
     def _reveal_instructions(self, *, lines: tuple[str, ...]) -> Observation:
-        """Emit InstructionsShown and clear `pending_prompt` so the engine
-        leaves the pre-game state.
+        """Emit InstructionsShown, then park at the top-level action prompt so
+        the engine enters the base playable state ready for the first turn.
 
         On Y the `lines` payload carries the full verbatim Yob block; on N
-        it is empty (the surface renders just the banner). After emission
-        the engine is in its normal turn-zero state ready for the first
-        player action; the first-turn sense+location lands at R4-S03.
+        it is empty (the surface renders just the banner). R1-S11 (G2): after
+        instructions Yob shows `SHOOT OR MOVE (S-M)?` and awaits the player's
+        first S/M choice — so `_issue_action_prompt` parks at "action" here,
+        making the two-step move (`M` then a room number) usable from turn 1.
+        The starting-room render (G1) is a separate downstream slice (R1-S12).
         """
         new_world = World(
             player_room=self._world.player_room,
@@ -706,6 +810,8 @@ class Game:
                 lines=lines,
             )
         )
+        # Enter the base playable state at the top-level action prompt (G2).
+        self._issue_action_prompt()
         return self._render_observation()
 
     # ---- R1-S07 SAME SET-UP state machine --------------------------------
@@ -766,13 +872,16 @@ class Game:
         return self._render_observation()
 
     def _restore_initial_layout(self) -> Observation:
-        """Restore `_initial_layout` and emit a fresh `GameStarted` with the
-        same `layout_hash`. The RNG is NOT reseeded — Yob's same-setup replay
-        continues the RNG cursor where the prior game left it (subsequent
-        startle / bat-teleport draws differ across replays).
+        """Restore `_initial_layout`, emit a fresh `GameStarted` with the same
+        `layout_hash`, then park at the top-level action prompt (G2) so the
+        restarted game enters the base playable state. The RNG is NOT reseeded
+        — Yob's same-setup replay continues the RNG cursor where the prior game
+        left it (subsequent startle / bat-teleport draws differ across replays).
 
         Per the R1-S07 brief: turn counter zeroed, arrow count restored to
-        the initial, alive=True, no pending prompt.
+        the initial, alive=True. R1-S11: the restarted game awaits the player's
+        S/M choice at `SHOOT OR MOVE (S-M)?`, exactly like a fresh game does
+        after instructions.
         """
         self._world = self._initial_layout
         self._emit(
@@ -790,6 +899,8 @@ class Game:
                 active_escalation_rules=self._active_escalation_rules,
             )
         )
+        # Re-enter the base playable state at the top-level action prompt (G2).
+        self._issue_action_prompt()
         return self._render_observation()
 
     def _end_session(self) -> Observation:
@@ -856,24 +967,29 @@ class Game:
         raise ValueError(f"Unknown cave topology: {cave!r}. Expected 'yob' or 'toy'.")
 
     @staticmethod
-    def _parse_move_action(action: str) -> int:
-        """Parse a `move <N>` action string into the target room int.
+    def _parse_move_alias(action: str) -> int | None:
+        """Parse the `move <N>` programmatic-only convenience alias into the
+        target room int, or return None when `action` is not the alias form.
 
-        R0 accepts only the literal prefix `"move "` followed by a positive
-        integer. Anything else raises ValueError — this is the engine's
-        defense against R1+ action types leaking back into R0.
-        """
+        R1-S11 decision: the interactive CLI is strictly two-step (`M` then a
+        bare integer at `WHERE TO?`), which happens naturally since the CLI
+        feeds one stdin line per `step()`. `move <N>` is retained ONLY as a
+        programmatic convenience that resolves a move in a single call — it
+        preserves the existing test corpus and the determinism golden master's
+        `['N', 'move 19']` script. It is NOT part of the player-facing input
+        protocol; production CLI users never type it.
+
+        Returns None (rather than raising) for any non-alias token so the
+        caller re-prompts instead of crashing the CLI (G6). A malformed alias
+        target (e.g. `"move foo"`) also returns None — the engine treats it as
+        unrecognized input and re-prompts."""
         parts = action.split()
         if len(parts) != 2 or parts[0] != "move":
-            raise ValueError(
-                f"R0 engine accepts only 'move <N>' actions; got: {action!r}"
-            )
+            return None
         try:
             return int(parts[1])
-        except ValueError as exc:
-            raise ValueError(
-                f"R0 move action target must be an integer; got: {parts[1]!r}"
-            ) from exc
+        except ValueError:
+            return None
 
     # ---- R1-S05 shoot sub-state-machine ----------------------------------
 
@@ -915,14 +1031,91 @@ class Game:
         )
         return self._render_observation()
 
-    def _step_shoot_subroutine(self, action: str) -> Observation:
-        """Dispatch a shoot-mode `step(action)` based on `pending_prompt`."""
+    def _step_pending(self, action: str) -> Observation:
+        """Dispatch a `step(action)` while the engine has a pending prompt.
+
+        Routes on the `pending_prompt` discriminator across the full input
+        state machine:
+          - "action"          → top-level S/M choice (R1-S11)
+          - "move_target"     → WHERE TO? room-number entry (R1-S11)
+          - "shoot_path_len"  → NO. OF ROOMS(1-5)? entry (R1-S05)
+          - "shoot_path_room" → per-slot ROOM #? entry (R1-S05)
+
+        Any unrecognized input at a prompt re-prompts that same prompt without
+        consuming the turn and never raises (G6 / SC3)."""
         pending = self._world.pending_prompt
+        if pending == "action":
+            return self._handle_action_choice(action)
+        if pending == "move_target":
+            return self._handle_move_target_entry(action)
         if pending == "shoot_path_len":
             return self._handle_path_length_entry(action)
         if pending == "shoot_path_room":
             return self._handle_room_slot_entry(action)
-        raise ValueError(f"Unknown pending_prompt {pending!r}; engine routing bug.")
+        # Defensive: an unknown pending_prompt re-prompts the action prompt
+        # rather than crashing the CLI (G6). This should be unreachable given
+        # the dispatch arms above, but the engine never raises to the caller.
+        self._reissue_prompt("action", context=None)
+        return self._render_observation()
+
+    def _handle_action_choice(self, action: str) -> Observation:
+        """Handle input at the top-level `SHOOT OR MOVE (S-M)?` prompt (G2).
+
+        Single-letter `S` enters the shoot sub-state-machine; `M` enters the
+        two-step move (emits `ActionChosen("M")` + `WHERE TO?` and parks at
+        `move_target`). The `move <N>` programmatic alias is also accepted here
+        so the existing test corpus + the determinism golden master script
+        (`['N', 'move 19']`) keep resolving a move in one call. Any other token
+        re-prompts the action prompt without consuming the turn (G6)."""
+        token = action.strip().upper()
+        if token == "S":
+            return self._enter_shoot_mode()
+        if token == "M":
+            return self._enter_move_target_mode()
+        target_room = self._parse_move_alias(action)
+        if target_room is not None:
+            return self._resolve_move_action(target_room)
+        # Unrecognized — re-prompt the action prompt; turn not consumed.
+        self._reissue_prompt("action", context=None)
+        return self._render_observation()
+
+    def _enter_move_target_mode(self) -> Observation:
+        """Handle `M` at the action prompt: emit `ActionChosen("M")` +
+        `PromptIssued("move_target")` (WHERE TO?) and park at `move_target`.
+
+        The turn counter does NOT advance — picking M is not an action-
+        completing event; the action completes when the move resolves."""
+        self._world = self._with_pending(
+            pending_prompt="move_target",
+            pending_arrow_path=(),
+            pending_path_length=None,
+        )
+        rng_cursor = self._encode_rng_cursor()
+        self._emit(
+            ActionChosen(
+                schema_version=SCHEMA_VERSION,
+                turn=self._world.turn,
+                surface_variant=_R0_SURFACE_VARIANT,
+                internal_state_hash=internal_state_hash(self._world),
+                rng_cursor=rng_cursor,
+                action="M",
+            )
+        )
+        self._reissue_prompt("move_target", context=None)
+        return self._render_observation()
+
+    def _handle_move_target_entry(self, action: str) -> Observation:
+        """Handle a room number at the `WHERE TO?` prompt (two-step move, G5).
+
+        A valid integer resolves the move via `_resolve_move_action` (which
+        clears the pending state on a successful move and re-issues WHERE TO?
+        on an off-graph target). A non-integer re-prompts WHERE TO? without
+        consuming the turn and never raises (G6)."""
+        target_room = _parse_int_or_none(action)
+        if target_room is None:
+            self._reissue_prompt("move_target", context=None)
+            return self._render_observation()
+        return self._resolve_move_action(target_room)
 
     def _handle_path_length_entry(self, action: str) -> Observation:
         """Validate a NO. OF ROOMS(1-5)? entry. Out-of-range re-prompts;
@@ -1190,6 +1383,22 @@ class Game:
                     internal_state_hash=internal_state_hash(game._world),
                     rng_cursor=game._encode_rng_cursor(),
                     kind="shoot_path_len",
+                    context=None,
+                )
+            )
+        elif game._world.pending_prompt in ("action", "move_target"):
+            # R1-S11: a snapshot taken at the top-level action prompt or the
+            # WHERE TO? move-target prompt re-emits the awaiting PromptIssued so
+            # the resurrected event stream tells a downstream consumer what
+            # input the engine awaits next (same contract as the shoot arms).
+            game._emit(
+                PromptIssued(
+                    schema_version=SCHEMA_VERSION,
+                    turn=game._world.turn,
+                    surface_variant=_R0_SURFACE_VARIANT,
+                    internal_state_hash=internal_state_hash(game._world),
+                    rng_cursor=game._encode_rng_cursor(),
+                    kind=game._world.pending_prompt,  # type: ignore[arg-type]
                     context=None,
                 )
             )

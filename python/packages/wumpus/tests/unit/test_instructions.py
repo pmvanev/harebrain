@@ -226,13 +226,15 @@ def _build_pregame_world() -> World:
         ("n", False),  # case-insensitive
     ],
 )
-def test_pregame_y_or_n_emits_instructions_shown_and_clears_pending(
+def test_pregame_y_or_n_emits_instructions_shown_and_enters_action_prompt(
     answer: str, expect_nonempty_lines: bool
 ) -> None:
     """`step("Y")` (or "y") emits `InstructionsShown` with the full Yob
     lines block; `step("N")` (or "n") emits `InstructionsShown` with an
-    empty lines payload. Either way, `pending_prompt` clears to None and
-    the engine is ready for the first turn."""
+    empty lines payload. Either way the engine then enters the base playable
+    state parked at the top-level action prompt (R1-S11 G2 — Yob shows
+    `SHOOT OR MOVE (S-M)?` after instructions and awaits the first S/M
+    choice), ready for the first turn."""
     game = Game._from_world(_build_pregame_world(), seed=0)
     sink = InMemorySink()
     game.subscribe(sink)
@@ -258,9 +260,12 @@ def test_pregame_y_or_n_emits_instructions_shown_and_clears_pending(
             f"step({answer!r}) should emit InstructionsShown with EMPTY lines "
             f"(N skips the block); got {shown[0].lines!r}."
         )
-    # In both arms, pending_prompt clears to None.
-    assert game.world_state().pending_prompt is None, (
-        f"After step({answer!r}), pending_prompt should be None; "
+    # In both arms, the engine enters the base playable state at the top-level
+    # action prompt (R1-S11 G2). Pre-S11 this cleared to None; the engine now
+    # parks at "action" so the player's first S/M choice is awaited.
+    assert game.world_state().pending_prompt == "action", (
+        f"After step({answer!r}), pending_prompt should be 'action' (the "
+        f"top-level SHOOT OR MOVE prompt, R1-S11 G2); "
         f"got {game.world_state().pending_prompt!r}."
     )
 
