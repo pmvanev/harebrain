@@ -143,12 +143,58 @@ def test_default_variant_layout_matches_no_arg(seed: int) -> None:
         {"wumpus_move_prob": -0.1},
         {"topology": "complete"},
         {"room_count": 4, "wumpus_count": 2, "pit_count": 1, "bat_count": 1},
+        # R5-S02: the sweep surfaced that room_count != 20 breaks against the
+        # fixed 20-room dodecahedron (KeyError above 20; bat teleport out of
+        # range + off-graph play below 20). Validation now rejects it.
+        {"room_count": 10},
+        {"room_count": 30},
+        # R5-S02: wumpus_count=0 was accepted (non-negative) but the engine
+        # indexes wumpus_rooms[0] in the startle + arrow-hit paths → IndexError
+        # on the first shoot/startle. A zero-wumpus game has no kill condition.
+        {"wumpus_count": 0},
     ],
 )
 def test_variant_config_rejects_invalid(overrides: dict[str, object]) -> None:
     """VariantConfig.__post_init__ rejects out-of-range / unsupported configs
     with a ValueError. Input variations of the SAME behavior (validation) are
-    parametrized per Mandate 5. The last case is the occupants-fit invariant
-    (2 wumpus + 1 pit + 1 bat + 1 player = 5 > room_count=4)."""
+    parametrized per Mandate 5. The occupants-fit case is the cave-fit
+    invariant (2 wumpus + 1 pit + 1 bat + 1 player = 5 > room_count=4).
+
+    R5-S02 added the room_count != 20 and wumpus_count < 1 cases: the variant
+    sweep surfaced both as engine-breaking values that the prior validation
+    silently accepted (see types.VariantConfig.__post_init__ for the
+    crash-mode rationale)."""
     with pytest.raises(ValueError):
         VariantConfig(**overrides)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {},  # Yob default
+        {"arrow_count": 3},  # R4-S01 smoke variant
+        {"wumpus_count": 2},  # R4-S01 multi-wumpus
+        {"wumpus_count": 3, "pit_count": 3, "bat_count": 3},
+        {"pit_count": 0, "bat_count": 0},  # zero hazards (still has a wumpus)
+        {"arrow_max_range": 1},
+        {"arrow_max_range": 10},
+        {"wumpus_move_prob": 0.0},
+        {"wumpus_move_prob": 1.0},
+    ],
+)
+def test_variant_config_accepts_supported_space(overrides: dict[str, object]) -> None:
+    """The supported sweep space constructs without error and reports back the
+    requested values. This is the positive counterpart to the rejection test:
+    it pins that the R5-S02 validation tightening did NOT over-reject the
+    genuinely supported configs (the Yob default + the R4-S01 smoke variants
+    + the swept dimensions that ARE wired). Input variations of the SAME
+    behavior (acceptance) are parametrized per Mandate 5."""
+    config = VariantConfig(**overrides)  # type: ignore[arg-type]
+    # Observable outcome: the config round-trips the requested overrides
+    # (the dataclass is the driving port; as_dict() is its public projection).
+    projected = config.as_dict()
+    for key, value in overrides.items():
+        assert projected[key] == value, (
+            f"VariantConfig({overrides!r}).as_dict()[{key!r}] was "
+            f"{projected[key]!r}; expected {value!r}."
+        )

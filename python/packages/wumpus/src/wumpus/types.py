@@ -116,11 +116,18 @@ class VariantConfig:
     Snapshot (SC6) and carries no hidden state.
 
     Fields (Yob defaults from goals.md § Goal 2):
-      - room_count: number of rooms in the cave (>= 4).
-      - topology: cave topology. R4-S01 supports only "dodecahedron"; other
-        3-regular topologies arrive at R5-S02.
+      - room_count: number of rooms in the cave. For the 'dodecahedron'
+        topology this MUST be 20 (the adjacency table is the fixed 20-room Yob
+        dodecahedron); R5-S02 tightened this from the prior `>= 4` check after
+        the variant sweep surfaced that `room_count != 20` breaks against the
+        fixed graph. A parametric room_count needs a parametric topology
+        (future L4 slice).
+      - topology: cave topology. Only "dodecahedron" is wired; other 3-regular
+        / arbitrary topologies are a future L4 slice (goals.md § Goal 2).
       - wumpus_count / pit_count / bat_count: hazard placement counts. They
         size the corresponding `World.*_rooms` tuples; they never add fields.
+        wumpus_count MUST be >= 1 (the engine indexes wumpus_rooms[0] in the
+        startle + arrow-hit paths); pit_count / bat_count may be 0.
       - arrow_count: starting arrow count; wired to `World.arrows` and the
         out-of-arrows terminal (>= 1).
       - arrow_max_range: max rooms an arrow path may span (Yob: 5).
@@ -159,9 +166,29 @@ class VariantConfig:
             )
         if self.topology != "dodecahedron":
             raise ValueError(
-                f"VariantConfig.topology {self.topology!r} is unsupported at "
-                f"R4-S01; only 'dodecahedron' is wired (other topologies are "
-                f"R5-S02)."
+                f"VariantConfig.topology {self.topology!r} is unsupported; "
+                f"only 'dodecahedron' is wired (other 3-regular / arbitrary "
+                f"topologies are a future L4 slice — goals.md § Goal 2 "
+                f"'arbitrary adjacency for n != 20')."
+            )
+        # R5-S02: the dodecahedron adjacency table (`wumpus.constants.DODECAHEDRON`)
+        # is hard-coded to exactly 20 rooms. `room_count != 20` was accepted by
+        # the `>= 4` check above but BREAKS against the fixed graph: rooms
+        # > 20 raise KeyError on every adjacency lookup (move sense/location,
+        # arrow walk), and rooms < 20 leave the engine playing on the full
+        # 20-node graph (bat teleport draws `randint(1, 20)`, so the player is
+        # snatched outside the intended room range). The R5-S02 variant sweep
+        # surfaced this as a genuine bug; until a real `room_count`-parametric
+        # topology lands (the future L4 topology slice — AC scenario 4),
+        # `room_count` is pinned to the dodecahedron's 20. The Yob default
+        # (`room_count=20`) and every R4-S01 fixture already use 20, so this
+        # rejects only the never-supported off-graph values.
+        if self.topology == "dodecahedron" and self.room_count != 20:
+            raise ValueError(
+                f"VariantConfig.room_count must be 20 for the 'dodecahedron' "
+                f"topology (the adjacency table is the fixed 20-room Yob "
+                f"dodecahedron); got {self.room_count}. A parametric "
+                f"room_count needs a parametric topology (future L4 slice)."
             )
         for name in ("wumpus_count", "pit_count", "bat_count", "arrow_max_range"):
             value = getattr(self, name)
@@ -169,6 +196,22 @@ class VariantConfig:
                 raise ValueError(
                     f"VariantConfig.{name} must be non-negative; got {value}."
                 )
+        # R5-S02: the engine's wumpus paths index `World.wumpus_rooms[0]`
+        # unconditionally — the startle (`engine.startle`) and the arrow-hit
+        # check (`engine.arrow_walk`). `wumpus_count=0` was accepted by the
+        # non-negative check above but raises IndexError the moment an arrow
+        # is fired or the wumpus is startled. The sweep surfaced this as a
+        # genuine bug; a zero-wumpus variant is a different game (no kill
+        # condition) and is out of scope for the Yob-faithful core. Yob's
+        # default is 1 wumpus and the AC's swept range is {1, 2, 3} — all
+        # >= 1 — so this rejects only the never-supported zero-wumpus case.
+        if self.wumpus_count < 1:
+            raise ValueError(
+                f"VariantConfig.wumpus_count must be >= 1; got "
+                f"{self.wumpus_count}. The engine's startle + arrow-hit paths "
+                f"index wumpus_rooms[0]; a zero-wumpus game has no kill "
+                f"condition and is out of scope."
+            )
         if self.arrow_count < 1:
             raise ValueError(
                 f"VariantConfig.arrow_count must be >= 1; got {self.arrow_count}."
