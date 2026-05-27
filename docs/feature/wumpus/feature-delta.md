@@ -1038,7 +1038,7 @@ Goal of release: a human at a terminal can run `wumpus` and play Yob's 1973 game
 
 **R1-S10** — *Byte-identical BASIC transcript regression fixture suite*
 
-- **Pitch:** Capture N (suggest: 10) PC-BASIC + GW-BASIC transcripts for `wumpus.gwbasic.bas` driven by deterministic input scripts and fixed seeds. Engine output for the same seed + input MUST match byte-for-byte. **This slice is the goals-doc done-criterion #1.**
+- **Pitch:** Capture N (suggest: 10) PC-BASIC + GW-BASIC transcripts for `wumpus.gwbasic.bas` driven by deterministic input scripts and fixed seeds. Engine output for the same seed + input MUST match byte-for-byte. **This slice is the goals-doc done-criterion #1.** *(SUPERSEDED → ADR-011 in `## Wave: DELIVER / [REF] Determinism Decision`: byte-parity dropped; R1-S10 redefined as the determinism golden-master suite — `tests/regression/test_determinism_golden_master.py`.)*
 - **Demo:** All N fixtures pass byte-comparison in CI.
 - **Learning hypothesis:** every Yob mechanic R1-S01 through R1-S08 has been gotten right; if any failed, this slice surfaces it precisely.
 - **AC sketch:** *Given* fixture `f_i` with seed `s_i` and inputs `I_i`, *When* engine runs with the same `(s_i, I_i)`, *Then* stdout equals `f_i.stdout` byte-for-byte.
@@ -1261,6 +1261,8 @@ The engine's only entropy source is the integer `seed` passed to (or drawn at) `
 ### SC2 — Faithful surface defaults (Yob fidelity)
 
 The default `Surface` is `YobSurface`; the default `VariantConfig` is Yob 1973. With both defaults active, the engine MUST produce stdout byte-identical to a captured `wumpus.gwbasic.bas` transcript driven by the same `(seed, action_sequence)`. **Enforced by:** R1-S10 fixture suite (10 captured BASIC transcripts, byte-compared in CI).
+
+> **SUPERSEDED → ADR-011 (`## Wave: DELIVER / [REF] Determinism Decision`).** Byte-parity with PC-BASIC is unattainable (engine = Python `random.Random`, PC-BASIC = GW-BASIC `RND`). SC2 is now: with both defaults active the engine is *deterministic* (same seed+actions → identical events/hash) and *structurally* faithful to Yob (rules, fixed text, topology, ordering) — verified by `R1_yob_fidelity.feature` + the `wumpus.gwbasic.bas` source audit, not by byte-comparison against a running interpreter.
 
 ### SC3 — Subprocess-safe CLI
 
@@ -1710,6 +1712,8 @@ Scenario: Prompt is observable before input is awaited
 ---
 
 ### Story R1-S10 — Byte-identical BASIC transcript regression fixture suite
+
+> **SUPERSEDED → ADR-011 (`## Wave: DELIVER / [REF] Determinism Decision`).** Byte-parity with PC-BASIC is unattainable; this story is redefined as the *determinism golden-master* suite (`tests/regression/test_determinism_golden_master.py`). The byte-comparison AC below is retained as the audit trail.
 
 **Pitch.** Capture 10 PC-BASIC / GW-BASIC transcripts for `wumpus.gwbasic.bas` driven by deterministic input scripts and fixed seeds. Engine output for the same `(seed, input)` MUST match byte-for-byte. **This slice realizes goals-doc done-criterion #1.**
 
@@ -2284,7 +2288,7 @@ Scenario: Determinism holds across operating systems
   Then all three OSes produce equal artifacts
 ```
 
-Spans: every story. **Concretely enforced by:** R2-S03 (paired-sink property test), R3-S01 (snapshot round-trip property test), R1-S10 (BASIC-fixture byte-comparison in CI matrix).
+Spans: every story. **Concretely enforced by:** R2-S03 (paired-sink property test), R3-S01 (snapshot round-trip property test), R1-S10 (BASIC-fixture byte-comparison in CI matrix). *(SUPERSEDED → ADR-011: R1-S10's contribution is now the determinism golden master, not BASIC byte-comparison.)*
 
 ### CC-AC-2 — Schema evolution contract (cross-cutting; SC5)
 
@@ -2344,7 +2348,7 @@ Scenario: Done-criterion #3 (host-import) does not break done-criteria #1 + #2
   And R4-S05 paired-hash equality still passes
 ```
 
-Spans: every release boundary. **Concretely enforced by:** CI matrix that runs R1-S10 + R4-S05 + R3 property tests on every PR.
+Spans: every release boundary. **Concretely enforced by:** CI matrix that runs R1-S10 + R4-S05 + R3 property tests on every PR. *(SUPERSEDED → ADR-011: R1-S10 is now the determinism golden-master + K-2 cross-run property, not a BASIC byte-comparison.)*
 
 ### CC-AC-5 — Audit gates pass at every release
 
@@ -2397,7 +2401,7 @@ Measurable targets aligned with the goals-doc's five done-criteria. Each KPI has
 
 | KPI | Target | Measured by | First measurable at |
 |---|---|---|---|
-| **K-1 — Yob byte-fidelity** | 10/10 BASIC fixtures byte-identical | R1-S10 fixture suite in CI | end of R1 |
+| **K-1 — ~~Yob byte-fidelity~~ → determinism reliability** | ~~10/10 BASIC fixtures byte-identical~~ **SUPERSEDED → ADR-011:** determinism golden master + K-2 100×50 cross-run property; structural Yob fidelity via acceptance suite + source audit | determinism suite in CI | end of R1 |
 | **K-2 — Determinism reliability** | 100% paired-process equality across 100 random `(seed, action_sequence)` × 3 platforms (Linux/macOS/Windows) | CI matrix + property test in R2-S03 | end of R2 |
 | **K-3 — Mystery seam structurality** | 100% turn-level internal_state_hash equality across 100 seeds × 50 turns × Yob-vs-Mystery paired runs | R4-S05 property test | end of R4 |
 | **K-4 — Snapshot round-trip reliability** | 100% byte-identical round-trip across 6 fixture states × in-memory + JSON encodings | R3-S01 + R3-S02 fixture suites | end of R3 |
@@ -2412,7 +2416,7 @@ Each goals-doc done-criterion has a corresponding KPI + the release that complet
 
 | goals-doc done-criterion | KPI(s) | Release |
 |---|---|---|
-| #1 — Cell A scripted plays Yob from seed, ledger byte-identical to BASIC transcript | K-1 + K-2 | end of R1 + R2 |
+| #1 — ~~Cell A scripted plays Yob from seed, ledger byte-identical to BASIC transcript~~ **SUPERSEDED → ADR-011:** deterministic ledger (same seed+actions → identical events/hash across runs, processes, snapshot splits) + structural Yob fidelity | K-1 + K-2 | end of R1 + R2 |
 | #2 — Config switch produces Mystery Wumpus on same engine, same seed, only surface changed | K-3 + K-5 (surface-leak audit) | end of R4 |
 | #3 — MPL spike imports engine and round-trips a turn through host import | K-4 + (R5-S01 acceptance) | R5 (blocked-on-spike) |
 | #4 — L2/L3 drop in as configuration, not rewrites | K-5 (snapshot-serializability holds for variants) + R4-S02 escalation_rules slot | end of R4 |
@@ -2536,7 +2540,7 @@ Definition of Ready — 9 items, applied across all 25 stories. A story is **Rea
 
 **C-R1-S09 — Wexpect on Windows.** D6 + D7 caveat: `wexpect` is known finicky on Windows. Effort may stretch to >1 day if Windows-specific stdio quirks surface. Mitigation: get pexpect (Linux/macOS) working first; document Windows status separately. If Windows blocks, the story is split into R1-S09a (pexpect, linux+mac) and R1-S09b (wexpect, windows) — neither blocks the other.
 
-**C-R1-S10 — BASIC transcript capture pre-requisite.** D8 = ✗ today: the 10 captured BASIC transcripts do NOT exist yet as byte-pinned files. **This must be resolved before R1-S10 can start.** Resolution: pre-R1-S10 task — capture 10 PC-BASIC sessions with `5 RANDOMIZE <seed>` patch (per `wumpus/experiments/g_wild_baseline/README.md` caveat) for 10 deterministic input scripts. Each capture stores: `(seed_i, input_script_i, expected_stdout_i)`. Estimate: 0.5–1 day for the capture session itself. **Action**: surface this as a pre-requisite slice (R1-S00 or as a one-time setup task in `[REF] Pre-requisites`); do NOT start R1-S10 until done.
+**C-R1-S10 — BASIC transcript capture pre-requisite.** **WITHDRAWN → ADR-011** (the capture session is no longer required; R1-S10 is redefined as the determinism golden master, shipped at `tests/regression/test_determinism_golden_master.py`). Original text retained below as audit trail. ~~D8 = ✗ today: the 10 captured BASIC transcripts do NOT exist yet as byte-pinned files.~~ **This must be resolved before R1-S10 can start.** Resolution: pre-R1-S10 task — capture 10 PC-BASIC sessions with `5 RANDOMIZE <seed>` patch (per `wumpus/experiments/g_wild_baseline/README.md` caveat) for 10 deterministic input scripts. Each capture stores: `(seed_i, input_script_i, expected_stdout_i)`. Estimate: 0.5–1 day for the capture session itself. **Action**: surface this as a pre-requisite slice (R1-S00 or as a one-time setup task in `[REF] Pre-requisites`); do NOT start R1-S10 until done.
 
 **C-R3-S03 — Audit-finding overflow.** D6 caveat: if the audit finds >2 violations in existing engine code, fixing them in-place would stretch the slice >1 day. Mitigation: time-box. If audit finds 0–2 violations, fix in-place; if 3+, split the cleanup into a follow-up slice (R3-S03b) and ship R3-S03 with the audit script + tracking issues.
 
@@ -5037,6 +5041,8 @@ When DELIVER accepts handoff:
 
 **Status:** R1-S10 is **deferred, not dropped.** Recorded 2026-05-27, mid-R4. This is the first DELIVER-wave section in this file — DELIVER slice progress is otherwise tracked by git commits (`DELIVER R<N>-S<NN>: ...`), not by per-slice edits to the Story Map. This section exists because R1-S10's deferral crosses slice boundaries and gates a goals-doc done-criterion, so it needs a durable home rather than living only in commit history.
 
+> **⮕ RESOLVED — superseded the same day (2026-05-27) by ADR-011.** Scaffolding the R1-S10 prerequisite surfaced that the **byte-identical-to-BASIC premise is unattainable** with the current engine (engine uses Python `random.Random`; PC-BASIC uses GW-BASIC `RND` — different algorithms, so a shared seed cannot match). Per user decision, **BASIC byte-parity is dropped**; R1-S10 is **redefined** as a *determinism* regression suite (now shipped at `tests/regression/test_determinism_golden_master.py`); done-criterion #1 / KPI K-1 are reworded. **The byte-parity-premised narrative and checklist below are retained as the audit trail of how this surfaced; for the live state read `## Wave: DELIVER / [REF] Determinism Decision (ADR-011)` immediately after this section.** The PC-BASIC capture session is no longer required.
+
 ### What R1-S10 is
 
 R1-S10 — *Byte-identical BASIC transcript regression fixture suite* (see `[REF] Story Map` § R1-S10 and `[REF] User Stories` § Story R1-S10). It captures N≈10 PC-BASIC / GW-BASIC transcripts of `wumpus.gwbasic.bas` driven by deterministic input scripts + fixed seeds, and asserts the engine's stdout matches byte-for-byte for the same `(seed, input)`. It **is goals-doc done-criterion #1** and carries **KPI K-1** (`[REF] Outcome KPIs`: "10/10 BASIC fixtures byte-identical"). It is the strongest *external* validation of Yob fidelity in the whole feature.
@@ -5063,3 +5069,57 @@ These are the points in the *current (DELIVER) wave* that lean on R1-S10 and wer
 ### Suggested resolution path
 
 Schedule the **BASIC transcript capture session** as a standalone setup task (own commit, e.g. `DELIVER R1-S00: BASIC transcript capture prerequisite`), then implement **R1-S10** against the captured fixtures, then walk the checklist above. The capture session can happen any time before R4-S03 without further reordering; doing it before R4-S03 restores that slice's intended safety net.
+
+---
+
+## Wave: DELIVER / [REF] Determinism Decision (ADR-011)
+
+**Recorded 2026-05-27.** This section is the live state; it supersedes the byte-parity framing in the R1-S10 deferral section above and the prior-wave clauses listed under "Supersedes" below.
+
+### ADR-011 — Determinism source is stdlib `random.Random`; BASIC byte-parity is out of scope
+
+**Status:** Accepted (DELIVER wave).
+
+**Context.** Goals-doc done-criterion #1 / KPI K-1 demanded the engine's stdout be *byte-identical to a PC-BASIC transcript* run from the same seed. Scaffolding that check (the R1-S10 prerequisite) surfaced a contradiction the prior waves did not catch:
+
+- The engine draws **all** randomness from Python's `random.Random` (Mersenne Twister): `cave_gen` (`randrange`), `startle` (`randint(1,4)`, Yob FNC), `hazard_resolve` bat-teleport (`randint(1,20)`, FNB), `arrow_walk` deflection (`randint(1,3)`, FNB). It faithfully reproduces Yob's distribution *shapes, draw counts, and draw order* — but not GW-BASIC's `RND` *algorithm*.
+- PC-BASIC uses GW-BASIC `RND`, a different generator. Same seed ⇒ different number stream ⇒ different cave layout, and divergence on the first in-game draw thereafter. There is no GW-BASIC RND reimplementation in the engine.
+- Therefore byte-identical transcripts from a shared seed are **structurally impossible** without the engine reimplementing GW-BASIC's RND end-to-end. The design's "`Game(seed=42)` works like `random.Random(42)`" mental model (DISCUSS journeys) is incompatible with byte-matching PC-BASIC.
+
+**Decision.**
+1. **Keep `random.Random(seed)` as the engine's sole entropy source.** No algorithm change — re-seeding to a custom PRNG now would invalidate every seed-pinned fixture (e.g. `seed=3`'s forced pit-fall, all R1 forced fixtures, the snapshot cursor encoding). The injected-`rng` parameter threaded through the pure engine functions remains the determinism seam, so a future swap to a version-stable PRNG stays localized if ever needed.
+2. **Drop BASIC byte-parity** as a requirement. The engine's fidelity to Yob is *structural* — rules, fixed text (incl. the `RAMDOM` typo), the 20×3 dodecahedron topology, sense/hazard ordering, distribution shapes — enforced by the acceptance/unit suites and the audit of `wumpus.gwbasic.bas`. A one-time manual cross-check of the RNG-free surfaces (instructions block, prompts, win/lose swap, topology) against PC-BASIC remains *optional*, not a gated regression suite.
+3. **Guard cross-version RNG stability with a golden master** rather than trusting CPython's (unguaranteed) integer-draw stability. `tests/regression/test_determinism_golden_master.py` pins the four `random.Random` streams the engine consumes plus `Game(seed=42)` layout/`layout_hash` and a `seed=3` scripted-run terminal hash. Verified byte-identical on CPython 3.12.13 and 3.14.3 (`requires-python >= 3.11`); any future drift fails CI loudly.
+
+**Consequences.**
+- The harness keeps everything it actually needs — deterministic seeded replay (J3), snapshot/restore round-trip (J4), and the obfuscation-gap measurement (J2, `internal_state_hash` equality between Yob and Mystery surfaces, both on the same Python RNG). None of these required BASIC parity.
+- The project loses the "byte-proven against a running PC-BASIC interpreter" external-validation claim. The fidelity claim is now "structurally faithful to Yob + deterministic," which is weaker as marketing but is what the engine can actually support.
+- No PC-BASIC capture session; the `tests/regression/` BASIC-fixture dir is never created.
+
+### R1-S10 redefined
+
+R1-S10 is no longer "byte-identical BASIC transcript suite." It is the **determinism regression suite**:
+- **Layer 1 — RNG-stability canary:** the four `random.Random` streams the engine consumes, frozen as golden constants (catches CPython cross-version drift).
+- **Layer 2 — engine characterization:** `Game(seed=42)` pinned layout + `layout_hash`; `seed=3` + `[N, move 19]` pinned terminal `internal_state_hash`.
+- **Properties (already green, elsewhere):** paired-sink emission equality + 100×50 cross-run hash equality (`tests/property/test_determinism.py`), parallel-instance isolation (`tests/property/test_parallel_isolation.py`), snapshot round-trip (`tests/property/test_snapshot.py`).
+
+Shipped at `tests/regression/test_determinism_golden_master.py` (7 tests, green). The pre-R1-S10 PC-BASIC capture prerequisite (C-R1-S10) is **withdrawn**.
+
+### Done-criterion #1 / KPI K-1 — reworded
+
+- **Was:** "cell A scripted plays Yob from a seed → ledger byte-identical to BASIC transcript"; KPI K-1 = "10/10 BASIC fixtures byte-identical."
+- **Now:** **Done-criterion #1 (determinism):** for any `(seed, action_sequence)`, two independent runs (and a snapshot-split run) produce byte-identical event sequences + final `internal_state_hash`; the golden-master constants hold across the supported CPython matrix. **KPI K-1 (determinism reliability):** golden-master suite + the K-2 100×50 cross-run property pass on every PR; structural Yob fidelity is covered by the acceptance suite (`R1_yob_fidelity.feature`) and the `wumpus.gwbasic.bas` source audit.
+
+### Supersedes (prior-wave clauses now reworded by this ADR)
+
+Each carries an inline `> SUPERSEDED → ADR-011` redirect; the originals are retained as the audit trail:
+- `[REF] Outcome KPIs` — KPI K-1 row
+- `[REF] Outcome KPIs` — goals-doc done-criterion mapping (#1 row)
+- `[REF] User Stories` § Story R1-S10 — AC (byte-comparison Gherkin)
+- `[REF] Story Map` § R1-S10 — pitch ("realizes done-criterion #1")
+- `[REF] System Constraints` SC2 / SC8 — byte-fidelity clauses
+- `[REF] DoR Validation` C-R1-S10 — prerequisite (withdrawn)
+
+### Forced-termination seed placeholders
+
+`tests/conftest.py` `forced_loss_seed → 17` / `forced_win_seed → 99` were flagged "pinned during R1-S10 BASIC capture." With no capture session, **pin them to engine-discovered seeds instead** (run the engine to find seeds that force a loss/win) — tracked as a small follow-up, not a blocker. `seed=3` is already engine-verified as a forced pit-fall (see the golden-master suite) and can replace the `forced_loss_seed` placeholder.
