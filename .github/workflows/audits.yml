@@ -22,22 +22,15 @@ jobs:
         working-directory: python
       - name: Surface-leak audit (R4-S04)
         run: |
-          if uv run python -c "import wumpus.audits.surface_leak" 2>/dev/null; then
-            uv run python -m wumpus.audits.surface_leak \
-              python/packages/wumpus/src/wumpus/engine \
-              python/packages/wumpus/src/wumpus/types
-          else
-            echo "Surface-leak audit module not yet present (lands at R4-S04). Skipping."
-          fi
+          uv run --project python python -m wumpus.audits.surface_leak \
+            python/packages/wumpus/src/wumpus/engine \
+            python/packages/wumpus/src/wumpus/types
         shell: bash
         working-directory: ${{ github.workspace }}
       - name: Self-test
         run: |
-          if [ -f python/packages/wumpus/tests/audits/test_surface_leak_self.py ]; then
-            uv run pytest python/packages/wumpus/tests/audits/test_surface_leak_self.py -v
-          else
-            echo "Surface-leak self-test not yet present. Skipping."
-          fi
+          uv run --project python pytest \
+            python/packages/wumpus/tests/audits/test_surface_leak_self.py -v
         shell: bash
         working-directory: ${{ github.workspace }}
 
