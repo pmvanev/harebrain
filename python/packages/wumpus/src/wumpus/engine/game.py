@@ -136,6 +136,11 @@ class Game:
         self._variant: VariantConfig = (
             variant if variant is not None else VariantConfig()
         )
+        # R4-S02: the ordered names of the active escalation rules, recorded
+        # in every GameStarted + Snapshot so the consultation order survives
+        # the JSON round-trip even though the rule OBJECTS themselves cannot
+        # be reconstructed from a snapshot (they are arbitrary callables).
+        self._active_escalation_rules: tuple[str, ...] = self._variant.rule_names()
         self._seed: int = seed
         self._random: random.Random = random.Random(seed)
         self._cave: str = cave
@@ -181,7 +186,7 @@ class Game:
             surface_id=_R0_SURFACE_ID,
             layout_hash=internal_state_hash(self._initial_layout),
             variant_config=self._variant.as_dict(),
-            active_escalation_rules=(),
+            active_escalation_rules=self._active_escalation_rules,
         )
         self._emit(start_event)
         # R1-S08: if production (yob) pre-game state is active, emit
@@ -243,6 +248,7 @@ class Game:
         # Default VariantConfig() (Yob) is correct — the World already carries
         # whatever tuple shapes the test specified.
         game._variant = VariantConfig()
+        game._active_escalation_rules = game._variant.rule_names()
         game._world = world
         # R1-S07: pin the initial layout for SAME SET-UP=Y restore. See
         # `__init__` for the field's contract.
@@ -262,7 +268,7 @@ class Game:
             surface_id=_R0_SURFACE_ID,
             layout_hash=internal_state_hash(game._world),
             variant_config=game._variant.as_dict(),
-            active_escalation_rules=(),
+            active_escalation_rules=game._active_escalation_rules,
         )
         game._emit(start_event)
         return game
@@ -492,7 +498,7 @@ class Game:
             rng_cursor=self._encode_rng_cursor(),
             surface_id=_R0_SURFACE_ID,
             world=self._world,
-            active_escalation_rules=(),
+            active_escalation_rules=self._active_escalation_rules,
             initial_layout=self._initial_layout,
             cave=self._cave,
         )
@@ -538,7 +544,33 @@ class Game:
         R1-S07: also appends to `_step_events` (the per-step buffer feeding
         `Observation.rendered_lines` via the surface seam). The buffer is
         cleared at the top of every `step()` call.
+
+        R4-S02: the engine consults `VariantConfig.escalation_rules` here, the
+        single event-emission funnel. Each rule's `filter_events` hook is
+        applied in left-to-right order; a rule may rewrite/drop/augment the
+        event stream. This is the smallest honest wiring of the escalation
+        slot (caveat C-R4-S02): the funnel is the one place every event
+        passes through, so consultation order is observable and survives the
+        snapshot round-trip via `active_escalation_rules`. With the default
+        (no rules) or `IdentityRule`, the stream is unchanged — a no-rules run
+        is byte-identical to an `IdentityRule` run (R4-S02 interim gate).
+        Downstream L3/L4 features own the real rule logic.
         """
+        for emitted in self._apply_escalation_rules(event):
+            self._emit_one(emitted)
+
+    def _apply_escalation_rules(self, event: Event) -> list[Event]:
+        """Fold the active escalation rules over `[event]` left-to-right via
+        their `filter_events` hook. Returns the (possibly rewritten) event
+        list to actually emit. No rules → the single-element list unchanged."""
+        events: list[Event] = [event]
+        for rule in self._variant.escalation_rules:
+            events = list(rule.filter_events(events, self._world))
+        return events
+
+    def _emit_one(self, event: Event) -> None:
+        """Deliver a single (post-rule) event to subscribers + the internal
+        logs, and run the R1-S07 post-terminal SAME SET-UP hook."""
         for sink in self._subscribers:
             sink.emit(event)
         self._debug_events.append(event)
@@ -731,7 +763,7 @@ class Game:
                 surface_id=_R0_SURFACE_ID,
                 layout_hash=internal_state_hash(self._world),
                 variant_config=self._variant.as_dict(),
-                active_escalation_rules=(),
+                active_escalation_rules=self._active_escalation_rules,
             )
         )
         return self._render_observation()
@@ -1056,6 +1088,13 @@ class Game:
         # carries whatever tuple shapes the variant produced (the variant
         # never adds fields, so the restored World is complete on its own).
         game._variant = VariantConfig()
+        # R4-S02: the rule OBJECTS cannot be reconstructed from a snapshot
+        # (they are arbitrary callables), but the engine preserves their
+        # ordered NAMES so the consultation-order contract survives the
+        # round-trip. A resurrected Game reports the same active rule names in
+        # its header + subsequent snapshots. (Re-attaching live rule objects
+        # to a resurrected Game is a downstream-feature concern.)
+        game._active_escalation_rules = snapshot.active_escalation_rules
         # R3-S01: cave topology now round-trips. Snapshots from pre-R3-S01
         # call sites (constructed without `cave`) default to "yob" per the
         # Snapshot dataclass default — the historical behavior.

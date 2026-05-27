@@ -21,7 +21,69 @@ R0 does NOT ship VariantConfig parametric handling (R4-S01), Surface Protocol
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Literal, Protocol
+from typing import TYPE_CHECKING, Literal, Protocol, Sequence, runtime_checkable
+
+if TYPE_CHECKING:
+    from wumpus.events import Event
+
+# ---------------------------------------------------------------------------
+# A7 — EscalationRule (Protocol — per Decision 4 + ADR-005, R4-S02)
+# ---------------------------------------------------------------------------
+#
+# The public extension slot for downstream L3 (partial observability) and L4
+# (graph-variant) features. Rules are pure functions on values; the engine
+# composes them left-to-right at its event-emission funnel (see
+# `Game._emit`). R4-S02 ships the Protocol + the no-op `IdentityRule`; the
+# real rule logic is owned by the first downstream L3/L4 feature
+# (caveat C-R4-S02 — "punch the hole" is acceptable).
+#
+# `runtime_checkable` so harness-side code may `isinstance(rule, EscalationRule)`
+# at composition boundaries. Per ADR-005 rules MUST NOT consume RNG; if a
+# downstream rule needs entropy the engine will thread a RuleContext via an
+# additive Protocol extension.
+
+
+@runtime_checkable
+class EscalationRule(Protocol):
+    """Hook surface for downstream L3/L4 features (ADR-005 / Tier A7).
+
+    Rules are pure functions on values; composition is left-to-right. Both
+    hooks default to identity (see `IdentityRule`). Implementations duck-type
+    this Protocol — they need not inherit it (composition over inheritance).
+    """
+
+    name: str  # for ledger logging in GameStarted.active_escalation_rules
+
+    def filter_observation(self, obs: "Observation", world: "World") -> "Observation":
+        """Modify what the player sees this turn. L3 implements this.
+        Default: identity."""
+        ...
+
+    def filter_events(
+        self, events: "Sequence[Event]", world: "World"
+    ) -> "Sequence[Event]":
+        """Modify the event stream emitted this turn. Allows adding/dropping/
+        rewriting events. Default: identity."""
+        ...
+
+
+class IdentityRule:
+    """No-op default escalation rule; explicitly identity on both hooks.
+
+    Structurally satisfies `EscalationRule` without inheriting it. A
+    `VariantConfig(escalation_rules=(IdentityRule(),))` run is byte-identical
+    to a no-rules run (R4-S02 interim byte-fidelity gate)."""
+
+    name = "identity"
+
+    def filter_observation(self, obs: "Observation", world: "World") -> "Observation":
+        return obs
+
+    def filter_events(
+        self, events: "Sequence[Event]", world: "World"
+    ) -> "Sequence[Event]":
+        return events
+
 
 # ---------------------------------------------------------------------------
 # A5 — VariantConfig (R4-S01)
@@ -77,10 +139,18 @@ class VariantConfig:
     arrow_count: int = 5
     arrow_max_range: int = 5
     wumpus_move_prob: float = 0.75
-    # R4-S01: empty-tuple placeholder. The EscalationRule Protocol + slot wiring
-    # land at R4-S02; at R4-S01 this is a typed-but-inert field so the schema
-    # (and GameStarted.variant_config) can carry it additively.
-    escalation_rules: tuple[object, ...] = ()
+    # R4-S02: the public extension slot now carries `EscalationRule`s (the
+    # R4-S01 `tuple[object, ...]` placeholder is replaced by the real type).
+    #
+    # The AC ("VariantConfig.escalation_rules: list[EscalationRule]") names a
+    # `list`, but the codebase models frozen configs with TUPLES (every other
+    # VariantConfig collection field, and `World.*_rooms`, are tuples). A
+    # `list` would break `VariantConfig`'s `frozen=True` hashability contract
+    # (lists are unhashable) and the Snapshot round-trip (SC6). We therefore
+    # keep this an immutable tuple — matching the R4-S01 style — and treat the
+    # AC's "list" as "ordered collection". Order is load-bearing: rules are
+    # consulted left-to-right (see `Game._emit`).
+    escalation_rules: tuple[EscalationRule, ...] = ()
 
     def __post_init__(self) -> None:
         if self.room_count < 4:
@@ -121,8 +191,9 @@ class VariantConfig:
 
     def as_dict(self) -> dict[str, object]:
         """Serialize to a plain dict for `GameStarted.variant_config` + the
-        ledger schema. `escalation_rules` serializes to its length (R4-S01 it
-        is always 0); the structured rule serialization lands at R4-S02."""
+        ledger schema. `escalation_rules` serializes to the ordered list of
+        rule `name`s (R4-S02) so the ledger header records which rules were
+        active and in what order; an empty config still serializes to `[]`."""
         return {
             "room_count": self.room_count,
             "topology": self.topology,
@@ -132,8 +203,15 @@ class VariantConfig:
             "arrow_count": self.arrow_count,
             "arrow_max_range": self.arrow_max_range,
             "wumpus_move_prob": self.wumpus_move_prob,
-            "escalation_rules": [],
+            "escalation_rules": [rule.name for rule in self.escalation_rules],
         }
+
+    def rule_names(self) -> tuple[str, ...]:
+        """Ordered tuple of the active rules' `name`s — the value the engine
+        records in `GameStarted.active_escalation_rules` /
+        `Snapshot.active_escalation_rules` (left-to-right)."""
+        return tuple(rule.name for rule in self.escalation_rules)
+
 
 # ---------------------------------------------------------------------------
 # PromptKind — the engine's discriminator for which prompt it's awaiting next.

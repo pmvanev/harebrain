@@ -25,10 +25,10 @@ from typing import Any
 
 from pytest_bdd import given, scenarios, then, when
 
-from wumpus import Game, VariantConfig
+from wumpus import Game, IdentityRule, VariantConfig
 from wumpus.events import ArrowMissed, GameEnded
 from wumpus.sinks import InMemorySink, JsonlSink
-from wumpus.types import World
+from wumpus.types import EscalationRule, World
 
 # Bind the .feature file. Path is relative to this step-defs file's parent.
 scenarios("../features/R4_variant_surface.feature")
@@ -109,9 +109,7 @@ def _r4s01_default_config() -> VariantConfig:
     return VariantConfig()
 
 
-@then(
-    "room_count is 20, wumpus_count is 1, pit_count is 2, bat_count is 2"
-)
+@then("room_count is 20, wumpus_count is 1, pit_count is 2, bat_count is 2")
 def _r4s01_counts(r4s01_default_config: VariantConfig) -> None:
     cfg = r4s01_default_config
     assert (cfg.room_count, cfg.wumpus_count, cfg.pit_count, cfg.bat_count) == (
@@ -193,9 +191,7 @@ def _r4s01_out_of_arrows_after_three(
     )
 
 
-@then(
-    "the same scenario with default arrow_count=5 does NOT end after three misses"
-)
+@then("the same scenario with default arrow_count=5 does NOT end after three misses")
 def _r4s01_arrow5_survives_three(
     r4s01_three_miss_runs: dict[str, list[Any]],
 ) -> None:
@@ -205,9 +201,7 @@ def _r4s01_arrow5_survives_three(
         f"Expected three ArrowMissed events with arrow_count=5; got {len(misses)}."
     )
     out_of_arrows = [
-        e
-        for e in events
-        if isinstance(e, GameEnded) and e.outcome == "out_of_arrows"
+        e for e in events if isinstance(e, GameEnded) and e.outcome == "out_of_arrows"
     ]
     assert not out_of_arrows, (
         "arrow_count=5 must still have arrows remaining after three misses; "
@@ -298,9 +292,7 @@ def _r4s01_wumpus_rooms_length_2(r4s01_two_wumpus_snapshot: Any) -> None:
     )
 
 
-@then(
-    "the snapshot's field set is identical to a wumpus_count=1 snapshot's field set"
-)
+@then("the snapshot's field set is identical to a wumpus_count=1 snapshot's field set")
 def _r4s01_field_set_identical(r4s01_two_wumpus_snapshot: Any) -> None:
     """The no-schema-change canary: a wumpus_count=2 game's Snapshot + World
     must have the SAME field set as a wumpus_count=1 game's — only the
@@ -326,4 +318,274 @@ def _r4s01_field_set_identical(r4s01_two_wumpus_snapshot: Any) -> None:
         f"World field set changed under wumpus_count=2.\n"
         f"  wumpus_count=2: {sorted(two_world_fields)}\n"
         f"  wumpus_count=1: {sorted(one_world_fields)}"
+    )
+
+
+# ===========================================================================
+# R4-S02 — escalation_rules extension point
+# ===========================================================================
+#
+# R4-S02 lands the `EscalationRule` Protocol + the no-op `IdentityRule`,
+# re-types `VariantConfig.escalation_rules` to carry rules, serializes their
+# names into the ledger header + `active_escalation_rules`, and consults the
+# rules' `filter_events` hook in left-to-right order at the engine's single
+# event-emission funnel.
+#
+# These scenarios enter through driving ports (`VariantConfig(...)`,
+# `Game(...)`, `Game.snapshot()`, the emitted event stream + rendered
+# Observations) and assert on observable outcomes (byte-equal event streams,
+# Protocol shape, consultation order, round-tripped rule names). No private
+# engine internals are introspected.
+
+# A fixed, validity-agnostic action sequence. The yob Game parks in the
+# pre-game INSTRUCTIONS state, so the first step answers it; the remainder
+# are deterministic regardless of whether each move is accepted — SC1
+# determinism guarantees two same-seed Games walk the identical trajectory.
+_R4S02_ACTIONS: tuple[str, ...] = ("N", "S", "1", "1", "move 1", "move 2")
+
+
+def _events_as_dicts(game: Game) -> list[dict[str, Any]]:
+    """Serialize a Game's full historical event log to JSON-ready dicts via
+    the public `event_to_dict` boundary — the byte-comparison surface.
+
+    The GameStarted header *intentionally* records which rules were active
+    (`active_escalation_rules` + `variant_config.escalation_rules`). Those two
+    bookkeeping fields exist precisely to DIFFER when a rule is attached — an
+    `IdentityRule` run legitimately records `["identity"]` while a no-rules
+    run records `[]`. The R1-S10 byte-fidelity gate (interim engine-self
+    form, per `[REF] R1-S10 Deferral`) is about the *behavioral transcript*
+    being byte-identical — i.e. the rule does not perturb the game the player
+    plays — NOT about suppressing the engine's honest record of rule presence.
+    We therefore normalize ONLY those two recording fields out of the header
+    before comparison; every other byte (including all subsequent events,
+    hashes, rng cursors, and the full game trajectory) must match exactly."""
+    from wumpus import event_to_dict
+
+    sink = InMemorySink()
+    game.subscribe(sink)  # subscribe replays the full historical event log
+    serialized: list[dict[str, Any]] = []
+    for event in sink.events:
+        as_dict = event_to_dict(event)
+        if as_dict.get("type") == "GameStarted":
+            as_dict = dict(as_dict)
+            as_dict.pop("active_escalation_rules", None)
+            variant = as_dict.get("variant_config")
+            if isinstance(variant, dict):
+                variant = dict(variant)
+                variant.pop("escalation_rules", None)
+                as_dict["variant_config"] = variant
+        serialized.append(as_dict)
+    return serialized
+
+
+def _drive_and_capture(rules: tuple[Any, ...]) -> dict[str, Any]:
+    """Construct Game(seed=42, variant=VariantConfig(escalation_rules=rules)),
+    drive the fixed action sequence, and capture both the serialized event
+    stream and the per-step rendered_lines."""
+    game = Game(seed=42, variant=VariantConfig(escalation_rules=rules))
+    rendered: list[tuple[str, ...]] = []
+    for action in _R4S02_ACTIONS:
+        observation = game.step(action)
+        rendered.append(tuple(observation.rendered_lines))
+    return {"events": _events_as_dicts(game), "rendered": rendered}
+
+
+# ---- Scenario: IdentityRule is byte-identical to no-rules ----
+
+
+@given(
+    "two Games on the same seed and action sequence, one with "
+    "escalation_rules=() and one with escalation_rules=(IdentityRule(),)",
+    target_fixture="r4s02_paired_runs",
+)
+def _r4s02_paired_runs() -> dict[str, dict[str, Any]]:
+    return {
+        "no_rules": _drive_and_capture(()),
+        "identity": _drive_and_capture((IdentityRule(),)),
+    }
+
+
+@when("both are driven through the identical action sequence")
+def _r4s02_drive_identical(r4s02_paired_runs: dict[str, dict[str, Any]]) -> None:
+    # Driving happened in the Given (both runs are fully captured). This step
+    # documents the action and asserts both produced a non-empty event stream
+    # so the byte-comparison below is meaningful (guards against an
+    # always-green empty-vs-empty comparison).
+    assert r4s02_paired_runs["no_rules"]["events"], "no-rules run emitted nothing."
+    assert r4s02_paired_runs["identity"]["events"], "identity run emitted nothing."
+
+
+@then("their emitted event sequences are byte-identical")
+def _r4s02_events_byte_identical(
+    r4s02_paired_runs: dict[str, dict[str, Any]],
+) -> None:
+    no_rules = json.dumps(r4s02_paired_runs["no_rules"]["events"], sort_keys=True)
+    identity = json.dumps(r4s02_paired_runs["identity"]["events"], sort_keys=True)
+    assert no_rules == identity, (
+        "IdentityRule must be byte-identical to no-rules on the behavioral "
+        "event stream (R1-S10 byte-fidelity interim gate: engine-self "
+        "comparison). The serialized event sequences diverged."
+    )
+    # Guard against the normalization above masking a non-wired rule: the
+    # IdentityRule run MUST in fact have recorded its presence in the header
+    # (else the byte-identity above would be a trivial pass that proves the
+    # rule was never attached). This makes the gate falsifiable.
+    from wumpus import event_to_dict
+
+    identity_game = Game(
+        seed=42, variant=VariantConfig(escalation_rules=(IdentityRule(),))
+    )
+    identity_sink = InMemorySink()
+    identity_game.subscribe(identity_sink)
+    header = next(
+        event_to_dict(e)
+        for e in identity_sink.events
+        if event_to_dict(e).get("type") == "GameStarted"
+    )
+    assert header["active_escalation_rules"] == ["identity"], (
+        "The IdentityRule run must record its presence in the GameStarted "
+        f"header; got {header['active_escalation_rules']!r}."
+    )
+
+
+@then("their rendered output is byte-identical")
+def _r4s02_rendered_byte_identical(
+    r4s02_paired_runs: dict[str, dict[str, Any]],
+) -> None:
+    assert (
+        r4s02_paired_runs["no_rules"]["rendered"]
+        == r4s02_paired_runs["identity"]["rendered"]
+    ), "IdentityRule must not perturb rendered Observation lines vs. a no-rules run."
+
+
+# ---- Scenario: EscalationRule is a Protocol with named hook methods ----
+
+
+@given(
+    "the wumpus.types.EscalationRule type",
+    target_fixture="r4s02_escalation_rule_type",
+)
+def _r4s02_escalation_rule_type() -> type:
+    return EscalationRule
+
+
+@then("it is a typing.Protocol")
+def _r4s02_is_protocol(r4s02_escalation_rule_type: type) -> None:
+    # `typing.runtime_checkable` Protocols carry `_is_protocol = True`; the
+    # public, supported check is `typing.get_protocol_members` (3.13+) — but
+    # the stable cross-version signal is the `_is_protocol` marker set by the
+    # `Protocol` metaclass. We assert the SHAPE (it is a Protocol) per AC,
+    # not implementation detail.
+    assert getattr(r4s02_escalation_rule_type, "_is_protocol", False), (
+        f"{r4s02_escalation_rule_type!r} is not a typing.Protocol."
+    )
+
+
+@then(
+    "IdentityRule structurally satisfies it with name, filter_observation, "
+    "and filter_events"
+)
+def _r4s02_identity_satisfies(r4s02_escalation_rule_type: type) -> None:
+    rule = IdentityRule()
+    # The named hook surface (ADR-005 / A7): a `name` str + two filter hooks.
+    assert isinstance(rule.name, str) and rule.name == "identity", (
+        f"IdentityRule.name must be the 'identity' string; got {rule.name!r}."
+    )
+    assert callable(getattr(rule, "filter_observation", None)), (
+        "IdentityRule must expose a callable filter_observation hook."
+    )
+    assert callable(getattr(rule, "filter_events", None)), (
+        "IdentityRule must expose a callable filter_events hook."
+    )
+    # Structural (runtime) Protocol satisfaction — IdentityRule duck-types
+    # EscalationRule without inheriting it (ADR: composition, no inheritance).
+    runtime_rule: EscalationRule = rule
+    assert runtime_rule is rule
+
+
+# ---- Scenario: Multiple rules consulted left-to-right; order round-trips ----
+
+
+class _RecordingRule:
+    """A rule that records its own consultation into a shared ledger and
+    leaves the event stream unchanged (identity on filter_events). Used to
+    observe left-to-right consultation order at the engine's emission funnel.
+    """
+
+    def __init__(self, name: str, ledger: list[str]) -> None:
+        self.name = name
+        self._ledger = ledger
+
+    def filter_observation(self, obs: Any, world: Any) -> Any:
+        return obs
+
+    def filter_events(self, events: Any, world: Any) -> Any:
+        # Record one consultation marker per call, then pass events through.
+        self._ledger.append(self.name)
+        return events
+
+
+@given(
+    "Game(seed=42, variant=VariantConfig(escalation_rules=(RuleA(), RuleB())))",
+    target_fixture="r4s02_ordered_game",
+)
+def _r4s02_ordered_game() -> dict[str, Any]:
+    ledger: list[str] = []
+    rule_a = _RecordingRule("a", ledger)
+    rule_b = _RecordingRule("b", ledger)
+    game = Game(
+        seed=42,
+        variant=VariantConfig(escalation_rules=(rule_a, rule_b)),
+    )
+    return {"game": game, "ledger": ledger}
+
+
+@when("the engine consults the rules at an event-emission decision point")
+def _r4s02_consult(r4s02_ordered_game: dict[str, Any]) -> None:
+    # Construction already emits GameStarted (+ the pre-game prompt), so the
+    # emission funnel has been exercised. Drive one more step to be sure the
+    # consultation point is hit at least once during a turn.
+    r4s02_ordered_game["game"].step("N")
+
+
+@then("RuleA is consulted before RuleB")
+def _r4s02_order(r4s02_ordered_game: dict[str, Any]) -> None:
+    ledger = r4s02_ordered_game["ledger"]
+    assert ledger, "No rule was consulted at any emission point."
+    # The first two consultation markers must be a-before-b; every later
+    # emission repeats the same a,b,a,b,... pairing.
+    assert ledger[0] == "a" and ledger[1] == "b", (
+        f"Rules consulted out of order: expected a before b; got {ledger!r}."
+    )
+    # Each emission consults BOTH rules in order — no interleaving.
+    pairs = [ledger[i : i + 2] for i in range(0, len(ledger) - len(ledger) % 2, 2)]
+    assert all(pair == ["a", "b"] for pair in pairs), (
+        f"Consultation order was not consistently left-to-right: {ledger!r}."
+    )
+
+
+@then('active_escalation_rules records ("a", "b") in order')
+def _r4s02_active_names(r4s02_ordered_game: dict[str, Any]) -> None:
+    snapshot = r4s02_ordered_game["game"].snapshot()
+    assert snapshot.active_escalation_rules == ("a", "b"), (
+        f"Snapshot.active_escalation_rules must record rule names left-to-"
+        f"right; got {snapshot.active_escalation_rules!r}."
+    )
+
+
+@then("the order is preserved across a snapshot round-trip")
+def _r4s02_order_round_trips(r4s02_ordered_game: dict[str, Any]) -> None:
+    from wumpus import snapshot_from_json, snapshot_to_json
+
+    snapshot = r4s02_ordered_game["game"].snapshot()
+    round_tripped = snapshot_from_json(snapshot_to_json(snapshot))
+    assert round_tripped.active_escalation_rules == ("a", "b"), (
+        "active_escalation_rules order must survive a snapshot JSON round-"
+        f"trip; got {round_tripped.active_escalation_rules!r}."
+    )
+    # A resurrected Game carries the same active rule names in its header.
+    resurrected = Game.from_snapshot(round_tripped)
+    assert resurrected.snapshot().active_escalation_rules == ("a", "b"), (
+        "A Game resurrected from the round-tripped snapshot must preserve "
+        "active_escalation_rules order."
     )
