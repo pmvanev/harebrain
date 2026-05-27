@@ -232,3 +232,28 @@ Feature: R1 Yob fidelity — dodecahedron cave + Yob mechanics
     When the CLI loop runs with a stdin that answers "N" to the instructions prompt
     Then the captured stdout contains "INSTRUCTIONS (Y-N)?" as a complete newline-terminated line
     And the prompt line appears before any further game text
+
+  # ---------------------------------------------------------------------------
+  # R1-S02-render — Per-turn rendered output (sense lines + location/tunnels)
+  # ---------------------------------------------------------------------------
+  #
+  # R4-S03 landed the Surface Protocol + YobSurface render methods but deferred
+  # wiring per-turn gameplay rendering: the engine emitted SenseEmitted and
+  # LocationReported events but never routed them through the surface into
+  # Observation.rendered_lines. These scenarios close that gap — the rendering
+  # half of R1-S02 (sense-on-entry) + R1 location rendering. The format is the
+  # Yob spec: senses (in SENSE_ORDER) then "YOU ARE IN ROOM  <n>" then
+  # "TUNNELS LEAD TO  <a>  <b>  <c>" (double spaces deliberate; see
+  # wumpus_python_goals.md § Goal 1 + wumpus.gwbasic.bas lines 2060-2140).
+  # Rendering is strictly downstream of event emission: it does NOT change which
+  # events fire, the payloads, internal_state_hash, rng_cursor, or determinism.
+
+  Scenario: Moving into a safe room renders location and tunnels
+    Given the player moves into room 2 (neighbors 1, 3, 10) with no adjacent hazards
+    Then the rendered_lines for that turn contain "YOU ARE IN ROOM  2"
+    And the rendered_lines for that turn contain "TUNNELS LEAD TO  1  3  10"
+    And no sense line precedes the location line
+
+  Scenario: Moving into a room adjacent to a wumpus and a pit renders senses then location in order
+    Given the player moves into room 1 (neighbors 2, 5, 8) adjacent to a wumpus and a pit
+    Then the rendered_lines for that turn are exactly "I SMELL A WUMPUS!", "I FEEL A DRAFT", "YOU ARE IN ROOM  1", "TUNNELS LEAD TO  2  5  8"

@@ -86,13 +86,15 @@ class RendererSink:
     lines_for_events`, which dispatches to `wumpus.surfaces.yob`. No Yob
     literals live in this module.
 
-    Events without an R1-S07 surface mapping (MoveResolved, SenseEmitted,
-    LocationReported, ArrowFired, ...) emit zero lines to the stream — the
-    sink does NOT write the `<placeholder>` fallback that
-    `lines_for_events` uses for whole-turn renders. The fallback would
-    smear the same string across the stream every event; harnesses
-    expecting clean output would have to filter it out. The cleaner
-    contract is "no surface mapping = no output".
+    SenseEmitted + LocationReported now render the per-turn gameplay lines
+    (R1-S02-render), so a Yob CLI session prints "I SMELL A WUMPUS!",
+    "YOU ARE IN ROOM  <n>", "TUNNELS LEAD TO  <a>  <b>  <c>" as the player
+    moves. Events still WITHOUT a surface mapping (MoveResolved, ArrowFired,
+    ...) emit zero lines to the stream — the sink does NOT write the
+    `<placeholder>` fallback that `lines_for_events` uses for whole-turn
+    renders. The fallback would smear the same string across the stream every
+    event; harnesses expecting clean output would have to filter it out. The
+    cleaner contract is "no surface mapping = no output".
     """
 
     name: str = "renderer"

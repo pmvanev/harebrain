@@ -2495,3 +2495,133 @@ def _r1s09_prompt_before_other_text(
             f"INSTRUCTIONS prompt appeared at {prompt_index} after banner at "
             f"{banner_index}; prompt must be flushed BEFORE input is read."
         )
+
+
+# ---------------------------------------------------------------------------
+# R1-S02-render — Per-turn rendered output (sense lines + location/tunnels)
+# ---------------------------------------------------------------------------
+#
+# R4-S03 deferred wiring SenseEmitted / LocationReported through the surface
+# into Observation.rendered_lines. These scenarios assert that a successful
+# move's Observation now carries the player-facing per-turn lines, in Yob's
+# order and spacing: senses (in SENSE_ORDER) then "YOU ARE IN ROOM  <n>" then
+# "TUNNELS LEAD TO  <a>  <b>  <c>" (double spaces deliberate).
+#
+# Strategy mirrors R1-S02's event-stream scenarios: pin a layout via
+# `Game._from_world`, drive the player into the target room with a single
+# `step("move N")`, and read the returned Observation.rendered_lines (the
+# per-turn render the CLI / harness shows the player).
+
+
+def _render_lines_for_move(
+    *,
+    player_start: int,
+    target_room: int,
+    wumpus_rooms: tuple[int, ...],
+    pit_rooms: tuple[int, ...],
+    bat_rooms: tuple[int, ...],
+) -> tuple[str, ...]:
+    """Construct a Game pinned to the given layout, step the player into the
+    target room, and return the Observation.rendered_lines for that turn."""
+    from wumpus import Game
+
+    world = _build_world_for_r1s02(
+        player_room=player_start,
+        wumpus_rooms=wumpus_rooms,
+        pit_rooms=pit_rooms,
+        bat_rooms=bat_rooms,
+    )
+    game = Game._from_world(world, seed=0)
+    observation = game.step(f"move {target_room}")
+    return tuple(observation.rendered_lines)
+
+
+@given(
+    "the player moves into room 2 (neighbors 1, 3, 10) with no adjacent hazards",
+    target_fixture="r1s02render_safe_lines",
+)
+def _r1s02render_safe_room_lines() -> tuple[str, ...]:
+    # Room 2 neighbors {1, 3, 10}. Park every hazard far away (mirrors the
+    # R1-S02 "no adjacent hazard" layout): wumpus@20, pits@15/6, bats@11/12.
+    # Player starts at room 1 (neighbor of 2) and moves to room 2.
+    return _render_lines_for_move(
+        player_start=1,
+        target_room=2,
+        wumpus_rooms=(20,),
+        pit_rooms=(15, 6),
+        bat_rooms=(11, 12),
+    )
+
+
+@then('the rendered_lines for that turn contain "YOU ARE IN ROOM  2"')
+def _r1s02render_safe_contains_location(
+    r1s02render_safe_lines: tuple[str, ...],
+) -> None:
+    assert "YOU ARE IN ROOM  2" in r1s02render_safe_lines, (
+        f"Expected the verbatim Yob location line 'YOU ARE IN ROOM  2' (two "
+        f"spaces before the room number) in rendered_lines; got: "
+        f"{r1s02render_safe_lines!r}"
+    )
+
+
+@then('the rendered_lines for that turn contain "TUNNELS LEAD TO  1  3  10"')
+def _r1s02render_safe_contains_tunnels(
+    r1s02render_safe_lines: tuple[str, ...],
+) -> None:
+    assert "TUNNELS LEAD TO  1  3  10" in r1s02render_safe_lines, (
+        f"Expected the verbatim Yob tunnels line 'TUNNELS LEAD TO  1  3  10' "
+        f"(double spaces, sorted neighbors of room 2) in rendered_lines; got: "
+        f"{r1s02render_safe_lines!r}"
+    )
+
+
+@then("no sense line precedes the location line")
+def _r1s02render_safe_no_sense(
+    r1s02render_safe_lines: tuple[str, ...],
+) -> None:
+    # Room 2 has no adjacent hazards, so none of Yob's sense lines may appear
+    # before the location line.
+    sense_lines = {"I SMELL A WUMPUS!", "I FEEL A DRAFT", "BATS NEARBY!"}
+    leaked = [line for line in r1s02render_safe_lines if line in sense_lines]
+    assert leaked == [], (
+        f"Expected zero sense lines for a hazard-free room; got {leaked!r} in "
+        f"{r1s02render_safe_lines!r}"
+    )
+
+
+@given(
+    "the player moves into room 1 (neighbors 2, 5, 8) adjacent to a wumpus and a pit",
+    target_fixture="r1s02render_mixed_lines",
+)
+def _r1s02render_mixed_room_lines() -> tuple[str, ...]:
+    # Room 1 neighbors {2, 5, 8}. Wumpus@2, pit@5, second pit parked away
+    # (room 11). Bats parked at 14/17. Player starts at 8 and moves to 1.
+    # Mirrors the R1-S02 "adjacent to wumpus AND pit" layout so the senses
+    # fire in SENSE_ORDER (wumpus, then pit).
+    return _render_lines_for_move(
+        player_start=8,
+        target_room=1,
+        wumpus_rooms=(2,),
+        pit_rooms=(5, 11),
+        bat_rooms=(14, 17),
+    )
+
+
+@then(
+    'the rendered_lines for that turn are exactly "I SMELL A WUMPUS!", '
+    '"I FEEL A DRAFT", "YOU ARE IN ROOM  1", "TUNNELS LEAD TO  2  5  8"'
+)
+def _r1s02render_mixed_exact_order(
+    r1s02render_mixed_lines: tuple[str, ...],
+) -> None:
+    expected = (
+        "I SMELL A WUMPUS!",
+        "I FEEL A DRAFT",
+        "YOU ARE IN ROOM  1",
+        "TUNNELS LEAD TO  2  5  8",
+    )
+    assert r1s02render_mixed_lines == expected, (
+        f"Expected the per-turn render to be senses (SENSE_ORDER: wumpus then "
+        f"pit) followed by location then tunnels, in Yob's spacing; got: "
+        f"{r1s02render_mixed_lines!r}"
+    )

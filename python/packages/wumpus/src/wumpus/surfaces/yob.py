@@ -82,6 +82,17 @@ SENSE_WUMPUS_SMELL: str = "I SMELL A WUMPUS!"
 SENSE_PIT_DRAFT: str = "I FEEL A DRAFT"
 SENSE_BAT_NEARBY: str = "BATS NEARBY!"
 
+# Location render prefixes (LocationReported → the per-turn "where am I" lines).
+# Verbatim from `wumpus.gwbasic.bas` line 2130 (`PRINT "YOU ARE IN ROOM "L(1)`)
+# and line 2140 (`PRINT "TUNNELS LEAD TO "S(L,1);S(L,2);S(L,3)`). Each literal
+# carries ONE trailing space; GW-BASIC prefixes a positive number with a second
+# (sign-position) space when PRINTing it, yielding the deliberate DOUBLE space
+# in "YOU ARE IN ROOM  <n>" / "TUNNELS LEAD TO  <a>  <b>  <c>" (goals.md
+# § Goal 1: "the double spaces ... are deliberate"). `render_location` rebuilds
+# that GW-BASIC numeric spacing without embedding the rendered digits here.
+LOCATION_ROOM_PREFIX: str = "YOU ARE IN ROOM "
+LOCATION_TUNNELS_PREFIX: str = "TUNNELS LEAD TO "
+
 # Prompt text (one per PromptKind discriminator). The double space in
 # "YOU ARE IN ROOM  <n>" / "TUNNELS LEAD TO  <a>  <b>  <c>" is deliberate
 # (goals.md § Goal 1); those are LocationReported renders, not prompts.
@@ -351,6 +362,27 @@ class YobSurface:
         """Yob renders rooms as their decimal number (Mystery scrambles this)."""
         return str(room_id)
 
+    def render_location(
+        self, room_id: int, adjacents: tuple[int, ...]
+    ) -> tuple[str, ...]:
+        """Render a LocationReported into Yob's two per-turn lines.
+
+        Produces (verbatim from `wumpus.gwbasic.bas` lines 2130-2140):
+            "YOU ARE IN ROOM  <n>"
+            "TUNNELS LEAD TO  <a>  <b>  <c>"
+
+        The double space before each number reproduces GW-BASIC's `PRINT`
+        numeric format (a positive number is emitted with a leading sign-space):
+        the literal prefix carries one trailing space, then each room label is
+        prefixed with the sign-space. Room labels come from `room_label`, so a
+        Mystery surface that scrambles room ids scrambles these lines too. No
+        trailing punctuation/space follows the last room (goals.md § Goal 1).
+        """
+        room_line = LOCATION_ROOM_PREFIX + " " + self.room_label(room_id)
+        tunnels = " ".join(" " + self.room_label(room) for room in adjacents)
+        tunnels_line = LOCATION_TUNNELS_PREFIX + tunnels
+        return (room_line, tunnels_line)
+
     def sense_string(self, kind: str) -> str:
         """Translate a SenseEmitted.kind to its verbatim Yob sense line."""
         line = _SENSE_LINE_BY_KIND.get(kind)
@@ -440,6 +472,8 @@ __all__ = [
     "SENSE_WUMPUS_SMELL",
     "SENSE_PIT_DRAFT",
     "SENSE_BAT_NEARBY",
+    "LOCATION_ROOM_PREFIX",
+    "LOCATION_TUNNELS_PREFIX",
     "PROMPT_ACTION",
     "PROMPT_MOVE_TARGET",
     "PROMPT_SHOOT_PATH_LEN",

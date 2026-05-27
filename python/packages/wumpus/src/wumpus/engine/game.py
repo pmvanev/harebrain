@@ -618,9 +618,13 @@ class Game:
         R4-S03 routes the render through the injected Surface object
         (`self._surface`) at the output boundary — `render_terminal` dispatches
         each event to the active surface. The terminal + hazard + instructions
-        + prompt arms render; other event kinds (SenseEmitted, LocationReported,
-        MoveResolved, ...) still contribute zero lines (the per-event sense /
-        location rendering expansion is deferred — see the slice report).
+        + prompt arms render; R1-S02-render adds the per-turn gameplay arms
+        (SenseEmitted → sense lines, LocationReported → "YOU ARE IN ROOM  <n>"
+        + "TUNNELS LEAD TO  <a>  <b>  <c>"). Rendering is strictly downstream of
+        event emission: it maps already-emitted events to display lines and
+        does not change which events fire, their payloads, internal_state_hash,
+        rng_cursor, or determinism. Other event kinds (MoveResolved, ...) still
+        contribute zero lines.
 
         Per SC8 (surface seam) no Yob text lives in engine code — the
         translator is `wumpus.engine.render_terminal`, which reads strings from

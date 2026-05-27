@@ -426,6 +426,18 @@ class Surface(Protocol):
         """Player-facing label for a room id (Yob: the decimal number)."""
         ...
 
+    def render_location(
+        self, room_id: int, adjacents: tuple[int, ...]
+    ) -> tuple[str, ...]:
+        """Player-facing per-turn location lines for a LocationReported event
+        (Yob: "YOU ARE IN ROOM  <n>" + "TUNNELS LEAD TO  <a>  <b>  <c>").
+
+        Pure translation of structured room ids → display lines; the surface
+        never reads engine state and never consumes RNG (SC9). `adjacents` is
+        the room's tunnel neighbors in the order the engine emitted them on
+        `LocationReported.adjacencies`."""
+        ...
+
     def sense_string(self, kind: str) -> str:
         """Player-facing line for a SenseEmitted.kind
         ("WUMPUS_SMELL" / "PIT_DRAFT" / "BAT_NEARBY")."""

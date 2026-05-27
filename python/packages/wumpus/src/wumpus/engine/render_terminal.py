@@ -7,9 +7,12 @@ function, accumulating the resulting lines into the
 `Observation.rendered_lines` tuple.
 
 R1-S07 shipped the terminal + hazard arms (HazardTriggered, GameEnded,
-PromptIssued(kind="same_setup"/"instructions"), InstructionsShown). Other
-event kinds yield `("<placeholder>",)` for backwards compatibility with R0's
-render placeholder.
+PromptIssued(kind="same_setup"/"instructions"), InstructionsShown). The
+per-turn gameplay arms (SenseEmitted → "I SMELL A WUMPUS!" etc.,
+LocationReported → "YOU ARE IN ROOM  <n>" + "TUNNELS LEAD TO  <a>  <b>  <c>")
+were deferred at R4-S03 and land here — the engine emits the structured events
+and this translator maps them to display lines through the surface (SC8).
+Other event kinds (MoveResolved, ArrowFired, ...) still contribute zero lines.
 
 R4-S03 routes the dispatch through a `Surface`-Protocol OBJECT
 (`YobSurface()` by default) instead of the module's free functions, so a
@@ -34,7 +37,9 @@ from wumpus.events import (
     GameEnded,
     HazardTriggered,
     InstructionsShown,
+    LocationReported,
     PromptIssued,
+    SenseEmitted,
 )
 from wumpus.surfaces import yob as yob_surface
 
@@ -61,10 +66,11 @@ def lines_for_events(
     if two HazardTriggered events fire in one turn (theoretically
     possible during a bat→pit chain), both reason lines appear.
 
-    Events without a surface mapping (MoveResolved, SenseEmitted,
-    LocationReported, ArrowFired, ...) contribute zero lines. The shell's
-    fallback to `("<placeholder>",)` only fires when the resulting tuple
-    is empty AND the turn had no renderable events at all.
+    Events without a surface mapping (MoveResolved, ArrowFired, ...) contribute
+    zero lines. SenseEmitted + LocationReported now render the per-turn
+    gameplay lines (R1-S02-render). The shell's fallback to `("<placeholder>",)`
+    only fires when the resulting tuple is empty AND the turn had no renderable
+    events at all.
     """
     active_surface = surface if surface is not None else _default_surface()
     rendered: list[str] = []
@@ -93,6 +99,18 @@ def _render_event(event: Event, surface: "Surface") -> tuple[str, ...]:
     through the Surface Protocol's `prompt_text` so a non-Yob surface
     renders prompts without touching this module.
     """
+    if isinstance(event, SenseEmitted):
+        # Per-turn sense line ("I SMELL A WUMPUS!" / "I FEEL A DRAFT" /
+        # "BATS NEARBY!"). The kind→string mapping lives behind the surface
+        # (SC8); rendering is downstream of emission — it does not change which
+        # SenseEmitted events fire or their payloads.
+        return (surface.sense_string(event.kind),)
+    if isinstance(event, LocationReported):
+        # Per-turn location lines ("YOU ARE IN ROOM  <n>" + "TUNNELS LEAD TO
+        # <a>  <b>  <c>"). The surface owns the Yob literals + GW-BASIC numeric
+        # spacing; the engine only forwards the already-emitted room +
+        # adjacencies.
+        return surface.render_location(event.room, event.adjacencies)
     if isinstance(event, HazardTriggered):
         # Delegate to the module free function: it is defensive about
         # variant-config-driven hazard kinds outside the known set (returns
