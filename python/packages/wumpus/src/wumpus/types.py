@@ -363,3 +363,93 @@ class Sink(Protocol):
     name: str
 
     def emit(self, event: object) -> None: ...
+
+
+# ---------------------------------------------------------------------------
+# A5/A6 — CommandVerb + ParsedCommand + Surface (R4-S03)
+# ---------------------------------------------------------------------------
+#
+# CommandVerb is the engine's internal alphabet of player intents. The engine
+# routes on these enum-like tags; the Surface translates between them and the
+# player-facing input tokens ("S", "M", "Y", "N") and back (command_parse).
+# The token<->verb pair is what R4-S05's MysterySurface obfuscates: a Mystery
+# run reads/writes scrambled tokens but the engine sees the identical verbs,
+# so the internal trajectory is byte-identical (SC9).
+#
+# The Yob verbs (the only ones today):
+#   SHOOT / MOVE      — top-level SHOOT OR MOVE (S-M)? answers ("S" / "M")
+#   YES / NO          — the Y/N answers at INSTRUCTIONS + SAME SET-UP prompts
+# Bare integers (room numbers, path lengths) are NOT verbs — they are numeric
+# payloads the engine parses directly; the surface does not translate digits.
+
+CommandVerb = Literal["SHOOT", "MOVE", "YES", "NO"]
+
+
+@dataclass(frozen=True)
+class ParsedCommand:
+    """Result of `Surface.command_parse` — a verb plus optional numeric payload.
+
+    R4-S03 ships the `verb`-only shape (the surface translates the verb token;
+    the engine parses any trailing room number itself). `argument` is reserved
+    for surfaces that fuse a verb + a number into one token (none do today);
+    it defaults to None so the round-trip contract is `verb`-only.
+    """
+
+    verb: CommandVerb
+    argument: int | None = None
+
+
+class Surface(Protocol):
+    """Translation layer between engine internals (IDs, enum tags) and the
+    player-facing strings. The engine reads strings from a Surface at the
+    output boundary; the Surface never reads engine state and never consumes
+    RNG (SC8, SC9).
+
+    Reconciliation note (R4-S03): the DESIGN A6 Protocol sketch listed five
+    GENERIC dispatch methods (`render_room` / `render_sense` / `render_message`
+    / `render_prompt` / `parse_command`). The Story R4-S03 AC (scenario 2) and
+    the earlier A5 artifact sketch instead enumerate SEMANTIC methods
+    (`room_label`, `sense_string`, `hazard_name`, `command_token`,
+    `command_parse`, `prompt_text`, `instructions_block`). We adopt the
+    A5/AC semantic shape: it is the authoritative test contract, it names every
+    surface-form string the engine emits, and it adds the `command_token` /
+    `command_parse` inverse pair R4-S05's Mystery obfuscation needs. The A6
+    generic methods are subsumed — `render_sense`/`render_message` collapse to
+    `sense_string`/`hazard_name`, `render_prompt` to `prompt_text`,
+    `render_room` to `room_label`, and `parse_command` to the
+    `command_token`/`command_parse` pair.
+    """
+
+    surface_id: str  # "yob" | "mystery" | "french" | ...
+
+    def room_label(self, room_id: int) -> str:
+        """Player-facing label for a room id (Yob: the decimal number)."""
+        ...
+
+    def sense_string(self, kind: str) -> str:
+        """Player-facing line for a SenseEmitted.kind
+        ("WUMPUS_SMELL" / "PIT_DRAFT" / "BAT_NEARBY")."""
+        ...
+
+    def hazard_name(self, kind: str) -> str:
+        """Player-facing reason line for a HazardTriggered.kind
+        ("WUMPUS" / "PIT" / "BAT")."""
+        ...
+
+    def command_token(self, verb: CommandVerb) -> str:
+        """Player-facing input token for a CommandVerb (Yob: "S"/"M"/"Y"/"N")."""
+        ...
+
+    def command_parse(self, token: str) -> ParsedCommand:
+        """Inverse of `command_token`: parse a player-supplied token into a
+        ParsedCommand. The contract: `command_parse(command_token(v)).verb == v`
+        for every CommandVerb (inverse-translation completeness)."""
+        ...
+
+    def prompt_text(self, kind: str) -> str:
+        """Player-facing prompt text for a PromptKind discriminator."""
+        ...
+
+    def instructions_block(self) -> tuple[str, ...]:
+        """The verbatim instructions block, one tuple entry per line."""
+        ...

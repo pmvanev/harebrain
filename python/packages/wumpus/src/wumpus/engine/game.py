@@ -51,8 +51,15 @@ from wumpus.events import (
     PromptIssued,
     SessionEnded,
 )
-from wumpus.surfaces import yob as yob_surface
-from wumpus.types import Observation, PromptKind, Snapshot, VariantConfig, World
+from wumpus.surfaces.yob import YobSurface
+from wumpus.types import (
+    Observation,
+    PromptKind,
+    Snapshot,
+    Surface,
+    VariantConfig,
+    World,
+)
 
 if TYPE_CHECKING:
     from wumpus.sinks import Sink
@@ -60,12 +67,12 @@ if TYPE_CHECKING:
 # R0 placeholder constants — see SC8. Real Yob surface text lives in
 # `wumpus.surfaces.yob` (R4-S03), NOT in the engine module.
 _R0_ENGINE_VERSION: str = "0.0.0"
-# R2-S02: surface_id moves from "<placeholder>" to the canonical "yob"
-# string (the only surface that ships today; "mystery" / "french" arrive
-# at R4-S03+). The `<placeholder>` token remains on `surface_variant`
-# (HARNESS_PRIVATE per ADR-004) until R4-S03's surface seam lands the
-# real per-turn variant tagging.
-_R0_SURFACE_ID: str = "yob"
+# R4-S03: `surface_id` is now read from the injected Surface
+# (`self._surface.surface_id`) on every GameStarted + Snapshot, so a non-Yob
+# surface is recorded honestly. For a Yob run the value is "yob" — identical
+# to the prior hardcoded constant. The `<placeholder>` token remains on
+# `surface_variant` (HARNESS_PRIVATE per ADR-004) until per-turn variant
+# tagging lands with the Mystery surface (R4-S05).
 _R0_SURFACE_VARIANT: str = "<placeholder>"
 
 # Cave-topology selector. "yob" is the canonical 20-room dodecahedron + FNB
@@ -120,6 +127,7 @@ class Game:
         seed: int | None = None,
         cave: str = _CAVE_YOB,
         variant: VariantConfig | None = None,
+        surface: Surface | None = None,
     ) -> None:
         # R2-S02: seed=None → roll an OS-entropy seed so the ledger header
         # carries a concrete integer the replay path can reuse. Without
@@ -141,6 +149,13 @@ class Game:
         # the JSON round-trip even though the rule OBJECTS themselves cannot
         # be reconstructed from a snapshot (they are arbitrary callables).
         self._active_escalation_rules: tuple[str, ...] = self._variant.rule_names()
+        # R4-S03: the engine reads player-facing strings from an injected
+        # Surface at the output boundary (SC8). `surface=None` defaults to the
+        # Yob surface — `Game(seed=k)` is equivalent to
+        # `Game(seed=k, surface=YobSurface())`. The surface is RNG-free and
+        # never reads engine state (SC9); the engine only ever asks it to
+        # translate structured tags into strings.
+        self._surface: Surface = surface if surface is not None else YobSurface()
         self._seed: int = seed
         self._random: random.Random = random.Random(seed)
         self._cave: str = cave
@@ -183,7 +198,7 @@ class Game:
             rng_cursor=self._encode_rng_cursor(),
             seed=seed,
             engine_version=_R0_ENGINE_VERSION,
-            surface_id=_R0_SURFACE_ID,
+            surface_id=self._surface.surface_id,
             layout_hash=internal_state_hash(self._initial_layout),
             variant_config=self._variant.as_dict(),
             active_escalation_rules=self._active_escalation_rules,
@@ -249,6 +264,8 @@ class Game:
         # whatever tuple shapes the test specified.
         game._variant = VariantConfig()
         game._active_escalation_rules = game._variant.rule_names()
+        # R4-S03: the test hatch renders through the default Yob surface.
+        game._surface = YobSurface()
         game._world = world
         # R1-S07: pin the initial layout for SAME SET-UP=Y restore. See
         # `__init__` for the field's contract.
@@ -265,7 +282,7 @@ class Game:
             rng_cursor=game._encode_rng_cursor(),
             seed=seed,
             engine_version=_R0_ENGINE_VERSION,
-            surface_id=_R0_SURFACE_ID,
+            surface_id=game._surface.surface_id,
             layout_hash=internal_state_hash(game._world),
             variant_config=game._variant.as_dict(),
             active_escalation_rules=game._active_escalation_rules,
@@ -496,7 +513,7 @@ class Game:
             engine_version=_R0_ENGINE_VERSION,
             seed=self._seed,
             rng_cursor=self._encode_rng_cursor(),
-            surface_id=_R0_SURFACE_ID,
+            surface_id=self._surface.surface_id,
             world=self._world,
             active_escalation_rules=self._active_escalation_rules,
             initial_layout=self._initial_layout,
@@ -598,20 +615,23 @@ class Game:
     def _render_observation(self) -> Observation:
         """Surface-translated rendered lines for THIS step's events.
 
-        R1-S07 wires the YobSurface terminal + hazard subset through
-        `wumpus.engine.render_terminal`. Other event kinds (SenseEmitted,
-        LocationReported, MoveResolved, ...) yield `("<placeholder>",)` until
-        the full Surface Protocol lands at R4-S03.
+        R4-S03 routes the render through the injected Surface object
+        (`self._surface`) at the output boundary — `render_terminal` dispatches
+        each event to the active surface. The terminal + hazard + instructions
+        + prompt arms render; other event kinds (SenseEmitted, LocationReported,
+        MoveResolved, ...) still contribute zero lines (the per-event sense /
+        location rendering expansion is deferred — see the slice report).
 
         Per SC8 (surface seam) no Yob text lives in engine code — the
-        translator is `wumpus.engine.render_terminal`, which calls into
-        `wumpus.surfaces.yob` to produce the actual strings.
+        translator is `wumpus.engine.render_terminal`, which reads strings from
+        the Surface (`wumpus.surfaces.yob.YobSurface` by default).
         """
         adjacencies = _adjacent_rooms_for_cave(self._cave, self._world.player_room)
         # `_step_events` is the per-step emission buffer. May be absent on
         # snapshot-resurrected instances (Game.__new__ path); defensive default.
         step_events = getattr(self, "_step_events", ())
-        rendered_lines = lines_for_events(step_events)
+        surface = getattr(self, "_surface", None)
+        rendered_lines = lines_for_events(step_events, surface)
         return Observation(
             rendered_lines=rendered_lines,
             prompt=None,
@@ -643,7 +663,7 @@ class Game:
         """
         answer = action.strip().upper()
         if answer == "Y":
-            return self._reveal_instructions(lines=yob_surface.instructions_block())
+            return self._reveal_instructions(lines=self._surface.instructions_block())
         if answer == "N":
             return self._reveal_instructions(lines=())
         # Malformed answer — re-prompt by re-emitting the INSTRUCTIONS prompt.
@@ -760,7 +780,7 @@ class Game:
                 rng_cursor=self._encode_rng_cursor(),
                 seed=self._seed,
                 engine_version=_R0_ENGINE_VERSION,
-                surface_id=_R0_SURFACE_ID,
+                surface_id=self._surface.surface_id,
                 layout_hash=internal_state_hash(self._world),
                 variant_config=self._variant.as_dict(),
                 active_escalation_rules=self._active_escalation_rules,
@@ -1095,6 +1115,14 @@ class Game:
         # its header + subsequent snapshots. (Re-attaching live rule objects
         # to a resurrected Game is a downstream-feature concern.)
         game._active_escalation_rules = snapshot.active_escalation_rules
+        # R4-S03: the Snapshot records only the surface_id string (a Surface
+        # object is arbitrary and not serializable, same as escalation rules).
+        # A resurrected Game renders through the default Yob surface; if the
+        # snapshot recorded a non-Yob surface_id, re-attaching the live surface
+        # object is a downstream-feature concern (the engine's internal
+        # trajectory is surface-independent by SC9, so replay determinism does
+        # not depend on it). The header still reports the surface's own id.
+        game._surface = YobSurface()
         # R3-S01: cave topology now round-trips. Snapshots from pre-R3-S01
         # call sites (constructed without `cave`) default to "yob" per the
         # Snapshot dataclass default — the historical behavior.
@@ -1122,7 +1150,7 @@ class Game:
             rng_cursor=game._encode_rng_cursor(),
             seed=snapshot.seed,
             engine_version=_R0_ENGINE_VERSION,
-            surface_id=_R0_SURFACE_ID,
+            surface_id=game._surface.surface_id,
             layout_hash=internal_state_hash(game._world),
             variant_config=game._variant.as_dict(),
             active_escalation_rules=snapshot.active_escalation_rules,

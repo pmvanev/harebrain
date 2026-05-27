@@ -41,12 +41,16 @@ from wumpus.serialization import (
     snapshot_from_json,
     snapshot_to_json,
 )
+from wumpus.surfaces.yob import YobSurface
 from wumpus.types import (
+    CommandVerb,
     EscalationRule,
     IdentityRule,
     Observation,
+    ParsedCommand,
     PromptKind,
     Snapshot,
+    Surface,
     VariantConfig,
     World,
 )
@@ -62,6 +66,10 @@ __all__ = [
     "VariantConfig",
     "EscalationRule",
     "IdentityRule",
+    "Surface",
+    "CommandVerb",
+    "ParsedCommand",
+    "YobSurface",
     "Event",
     "GameStarted",
     "MoveAttempted",

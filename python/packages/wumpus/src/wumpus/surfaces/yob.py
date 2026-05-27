@@ -34,6 +34,7 @@ game. We preserve it bug-for-bug.
 from __future__ import annotations
 
 from wumpus.events import GameEnded, HazardTriggered, InstructionsShown
+from wumpus.types import CommandVerb, ParsedCommand
 
 # ---------------------------------------------------------------------------
 # Verbatim Yob strings — DO NOT edit without consulting
@@ -62,6 +63,38 @@ LOSE_TAG: str = "HA HA HA - YOU LOSE!"
 
 # Miss line (arrow walked the path without hitting wumpus or player).
 ARROW_MISSED: str = "MISSED"
+
+# Crooked-arrow rejection line (path entry where P(K) == P(K-2)).
+CROOKED_REJECTION: str = "ARROWS AREN'T THAT CROOKED - TRY ANOTHER ROOM"
+
+# ---------------------------------------------------------------------------
+# R4-S03 — sense lines + prompt text + command tokens.
+#
+# These complete the Surface seam: every surface-form string the engine emits
+# now lives behind this module (SC8). The sense lines were deferred at R1-S07
+# (the R1-S07 brief recommended deferring them); R4-S03 lands them so the full
+# Surface Protocol covers them. Verbatim from `wumpus_python_goals.md`
+# § Goal 1 "Messages — verbatim".
+# ---------------------------------------------------------------------------
+
+# Sense lines (one per SenseEmitted.kind).
+SENSE_WUMPUS_SMELL: str = "I SMELL A WUMPUS!"
+SENSE_PIT_DRAFT: str = "I FEEL A DRAFT"
+SENSE_BAT_NEARBY: str = "BATS NEARBY!"
+
+# Prompt text (one per PromptKind discriminator). The double space in
+# "YOU ARE IN ROOM  <n>" / "TUNNELS LEAD TO  <a>  <b>  <c>" is deliberate
+# (goals.md § Goal 1); those are LocationReported renders, not prompts.
+PROMPT_ACTION: str = "SHOOT OR MOVE (S-M)?"
+PROMPT_MOVE_TARGET: str = "WHERE TO?"
+PROMPT_SHOOT_PATH_LEN: str = "NO. OF ROOMS(1-5)?"
+PROMPT_SHOOT_PATH_ROOM: str = "ROOM #?"
+
+# Command tokens (one per CommandVerb). Yob's single-letter answers.
+COMMAND_TOKEN_SHOOT: str = "S"
+COMMAND_TOKEN_MOVE: str = "M"
+COMMAND_TOKEN_YES: str = "Y"
+COMMAND_TOKEN_NO: str = "N"
 
 
 # ---------------------------------------------------------------------------
@@ -253,6 +286,146 @@ def render_banner_only() -> tuple[str, ...]:
     return (HUNT_THE_WUMPUS_BANNER,)
 
 
+# ---------------------------------------------------------------------------
+# R4-S03 — YobSurface: the Surface-Protocol object form.
+#
+# Per ADR-001 (hybrid paradigm) the surface strings are module-level constants
+# + free functions (above); `YobSurface` is the thin OOP shell that satisfies
+# the Tier-A5 `Surface` Protocol by delegating to those module-level tables.
+# It carries NO mutable state, holds NO engine reference, and never touches an
+# RNG (SC9). The Mystery (R4-S05) and French (R4-S06) surfaces will be sibling
+# classes with the same shape but different backing tables.
+#
+# The class duck-types `wumpus.types.Surface` (composition over inheritance —
+# it does NOT subclass the Protocol).
+# ---------------------------------------------------------------------------
+
+_SENSE_LINE_BY_KIND: dict[str, str] = {
+    "WUMPUS_SMELL": SENSE_WUMPUS_SMELL,
+    "PIT_DRAFT": SENSE_PIT_DRAFT,
+    "BAT_NEARBY": SENSE_BAT_NEARBY,
+}
+
+_HAZARD_NAME_BY_KIND: dict[str, str] = {
+    "WUMPUS": HAZARD_BUMP_WUMPUS,
+    "PIT": HAZARD_PIT,
+    "BAT": HAZARD_BAT,
+}
+
+_PROMPT_TEXT_BY_KIND: dict[str, str] = {
+    "action": PROMPT_ACTION,
+    "move_target": PROMPT_MOVE_TARGET,
+    "shoot_path_len": PROMPT_SHOOT_PATH_LEN,
+    "shoot_path_room": PROMPT_SHOOT_PATH_ROOM,
+    "same_setup": PROMPT_SAME_SETUP,
+    "instructions": INSTRUCTIONS_PROMPT,
+}
+
+_TOKEN_BY_VERB: dict[str, str] = {
+    "SHOOT": COMMAND_TOKEN_SHOOT,
+    "MOVE": COMMAND_TOKEN_MOVE,
+    "YES": COMMAND_TOKEN_YES,
+    "NO": COMMAND_TOKEN_NO,
+}
+
+# Inverse map, derived once from _TOKEN_BY_VERB so the round-trip is
+# guaranteed-consistent (no hand-maintained second table to drift). Tokens are
+# matched case-insensitively on parse (the engine accepts "y"/"Y"); the
+# verbatim token table itself is upper-case to match Yob's prompts.
+_VERB_BY_TOKEN: dict[str, str] = {
+    token.upper(): verb for verb, token in _TOKEN_BY_VERB.items()
+}
+
+
+class YobSurface:
+    """Yob 1973 surface — the Surface-Protocol object form (R4-S03).
+
+    Pure translation layer: structured engine tags → verbatim Yob strings, and
+    the inverse for command tokens. No engine state, no RNG (SC9). Delegates to
+    this module's verbatim constant tables; the class is a thin Protocol shell.
+    """
+
+    surface_id: str = "yob"
+
+    def room_label(self, room_id: int) -> str:
+        """Yob renders rooms as their decimal number (Mystery scrambles this)."""
+        return str(room_id)
+
+    def sense_string(self, kind: str) -> str:
+        """Translate a SenseEmitted.kind to its verbatim Yob sense line."""
+        line = _SENSE_LINE_BY_KIND.get(kind)
+        if line is None:
+            raise ValueError(
+                f"YobSurface.sense_string: unknown sense kind {kind!r}. "
+                f"Expected one of {tuple(_SENSE_LINE_BY_KIND)!r}."
+            )
+        return line
+
+    def hazard_name(self, kind: str) -> str:
+        """Translate a HazardTriggered.kind to its verbatim Yob reason line."""
+        name = _HAZARD_NAME_BY_KIND.get(kind)
+        if name is None:
+            raise ValueError(
+                f"YobSurface.hazard_name: unknown hazard kind {kind!r}. "
+                f"Expected one of {tuple(_HAZARD_NAME_BY_KIND)!r}."
+            )
+        return name
+
+    def command_token(self, verb: CommandVerb) -> str:
+        """Translate a CommandVerb to its player-facing Yob input token."""
+        token = _TOKEN_BY_VERB.get(verb)
+        if token is None:
+            raise ValueError(
+                f"YobSurface.command_token: unknown verb {verb!r}. "
+                f"Expected one of {tuple(_TOKEN_BY_VERB)!r}."
+            )
+        return token
+
+    def command_parse(self, token: str) -> ParsedCommand:
+        """Inverse of `command_token` — parse a player token to a ParsedCommand.
+
+        Round-trip contract: `command_parse(command_token(v)).verb == v` for
+        every CommandVerb. Case-insensitive (Yob's INPUT accepts "y" and "Y").
+        """
+        verb = _VERB_BY_TOKEN.get(token.strip().upper())
+        if verb is None:
+            raise ValueError(
+                f"YobSurface.command_parse: unrecognized token {token!r}. "
+                f"Expected one of {tuple(_TOKEN_BY_VERB.values())!r}."
+            )
+        return ParsedCommand(verb=verb)  # type: ignore[arg-type]
+
+    def prompt_text(self, kind: str) -> str:
+        """Translate a PromptKind discriminator to its verbatim Yob prompt."""
+        text = _PROMPT_TEXT_BY_KIND.get(kind)
+        if text is None:
+            raise ValueError(
+                f"YobSurface.prompt_text: unknown prompt kind {kind!r}. "
+                f"Expected one of {tuple(_PROMPT_TEXT_BY_KIND)!r}."
+            )
+        return text
+
+    def instructions_block(self) -> tuple[str, ...]:
+        """Return Yob's verbatim instructions block (delegates to the module
+        free function so the R1-S08 strings have a single home)."""
+        return instructions_block()
+
+    def terminal_strings(self) -> tuple[str, ...]:
+        """Every terminal / miss / self-shot / swap-tag string the surface can
+        emit. Used by the R4-S03 acceptance fidelity check (and harmless for
+        the engine, which renders terminals via `render_terminal`). NOT part of
+        the Surface Protocol — a convenience aggregator for the canary."""
+        return (
+            TERMINAL_WUMPUS_SHOT,
+            TERMINAL_WUMPUS_GOT_YOU,
+            TERMINAL_SELF_SHOT,
+            WIN_TAG,
+            LOSE_TAG,
+            ARROW_MISSED,
+            CROOKED_REJECTION,
+        )
+
+
 __all__ = [
     "HAZARD_BUMP_WUMPUS",
     "HAZARD_PIT",
@@ -263,9 +436,22 @@ __all__ = [
     "WIN_TAG",
     "LOSE_TAG",
     "ARROW_MISSED",
+    "CROOKED_REJECTION",
+    "SENSE_WUMPUS_SMELL",
+    "SENSE_PIT_DRAFT",
+    "SENSE_BAT_NEARBY",
+    "PROMPT_ACTION",
+    "PROMPT_MOVE_TARGET",
+    "PROMPT_SHOOT_PATH_LEN",
+    "PROMPT_SHOOT_PATH_ROOM",
     "PROMPT_SAME_SETUP",
     "INSTRUCTIONS_PROMPT",
     "HUNT_THE_WUMPUS_BANNER",
+    "COMMAND_TOKEN_SHOOT",
+    "COMMAND_TOKEN_MOVE",
+    "COMMAND_TOKEN_YES",
+    "COMMAND_TOKEN_NO",
+    "YobSurface",
     "instructions_block",
     "render_hazard",
     "render_terminal",
