@@ -126,20 +126,33 @@ def test_seed3_forced_pit_fall_run_is_pinned() -> None:
     Re-blessed 2026-05-27 (R1-S11): the event count rose 8 -> 9. R1-S11 (G2)
     parks the engine at the top-level ``SHOOT OR MOVE (S-M)?`` action prompt
     after instructions, so a ``PromptIssued(kind="action")`` now fires between
-    ``InstructionsShown`` (index 2) and ``MoveAttempted`` (index 4). The
-    terminal ``internal_state_hash`` is UNCHANGED (cfbbdcd4...): the action
-    prompt does not alter the terminal World (player in the pit, alive=False,
-    pending_prompt="same_setup"), and the hash is taken over World fields. The
-    seed=42 layout / ``layout_hash`` (a pure RNG product) are likewise
-    untouched — confirmed by ``test_seed42_layout_hash_is_pinned`` above and
-    the determinism property suite (paired-run + cross-run equality).
+    ``InstructionsShown`` (index 2) and ``MoveAttempted``.
+
+    Re-blessed again 2026-05-27 (R1-S12 / G1): the event count rose 9 -> 11.
+    G1 makes the engine show the CURRENT (starting) room immediately, before
+    the first action prompt. So after ``InstructionsShown`` (index 2) the
+    engine now emits the starting room's senses + location: for seed=3 the
+    player starts in room 20 (neighbors {13, 16, 19}) with a pit in room 19,
+    so a single ``SenseEmitted(PIT_DRAFT)`` (index 3) + ``LocationReported``
+    (index 4, room=20) fire BEFORE the ``PromptIssued(kind="action")`` (index
+    5). The two new events are the only delta (9 -> 11).
+
+    The terminal ``internal_state_hash`` is UNCHANGED (cfbbdcd4...): the new
+    start-of-game events fire BEFORE the move, so the terminal World (player
+    in the pit, alive=False, pending_prompt="same_setup") is byte-identical;
+    the hash is taken over World fields, not the event count. The seed=42
+    layout / ``layout_hash`` (a pure RNG product) are likewise untouched —
+    confirmed by ``test_seed42_layout_hash_is_pinned`` above and the
+    determinism property suite (paired-run + cross-run equality + snapshot
+    round-trip), all of which exercise the toy cave or non-stepped yob
+    construction and so are unaffected by the yob-only G1 emission.
     """
     game = Game(seed=3)
     for action in ("N", "move 19"):
         game.step(action)
 
     events = game._debug_events
-    assert len(events) == 9
+    assert len(events) == 11
     assert type(events[-1]).__name__ == "PromptIssued"
     assert events[-1].internal_state_hash == "cfbbdcd4fcae8e4369ff9a2bce7aed9c"
     assert game.world_state().alive is False

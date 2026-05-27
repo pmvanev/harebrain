@@ -303,3 +303,49 @@ Feature: R1 Yob fidelity — dodecahedron cave + Yob mechanics
     Then the shoot length prompt "NO. OF ROOMS(1-5)?" renders
     When the player enters a shoot path length of 2
     Then the room prompt "ROOM #?" renders
+
+  # ---------------------------------------------------------------------------
+  # R1-S12 — Starting-room render (G1) + outcome/hazard messages (G4)
+  # ---------------------------------------------------------------------------
+  #
+  # G1: Yob shows the current room immediately. After the INSTRUCTIONS answer
+  # the engine must render the STARTING room's senses (in SENSE_ORDER) then the
+  # location/tunnels lines BEFORE the first "SHOOT OR MOVE (S-M)?" action prompt
+  # — not only after the first move. The engine emits a start-of-game
+  # SenseEmitted* + LocationReported at the point the player enters the playable
+  # state (entering the starting room IS an entry).
+  #
+  # G4: the existing arrow-outcome + hazard events route through YobSurface into
+  # rendered_lines. Win (AHA!) / wumpus-kill (TSK TSK TSK) / pit (FELL IN PIT) /
+  # wumpus-bump (OOPS) / bat-snatch (ZAP) already render via GameEnded /
+  # HazardTriggered. The two gaps are ArrowMissed -> "MISSED" and
+  # ArrowHitPlayer -> "OUCH! ARROW GOT YOU!". All strings come from the Surface
+  # (SC8 — no Yob literals in wumpus.engine.*).
+
+  Scenario: Game start renders the starting room before the action prompt
+    Given a fresh Yob game whose starting room is adjacent to a pit
+    When the player answers N at the instructions prompt
+    Then the starting room's pit sense "I FEEL A DRAFT" renders before the location line
+    And the starting-room location line "YOU ARE IN ROOM" renders before the action prompt
+    And the rendered output ends with the action prompt "SHOOT OR MOVE (S-M)?"
+    And the engine is parked awaiting the action prompt
+
+  Scenario: A missed shot renders MISSED
+    Given the player shoots and misses the wumpus
+    Then the rendered_lines for the shot turn contain "MISSED"
+
+  Scenario: A successful shot renders AHA YOU GOT THE WUMPUS
+    Given the player shoots and kills the wumpus
+    Then the rendered_lines for the shot turn contain "AHA! YOU GOT THE WUMPUS!"
+
+  Scenario: A self-shot renders OUCH ARROW GOT YOU
+    Given the player shoots and the arrow's final room is the player's room
+    Then the rendered_lines for the shot turn contain "OUCH! ARROW GOT YOU!"
+
+  Scenario: A wumpus bump renders the OOPS line
+    Given the player walks into the wumpus and is not eaten
+    Then the rendered_lines for the bump turn contain "...OOPS! BUMPED A WUMPUS!"
+
+  Scenario: A bat snatch renders the ZAP line
+    Given the player walks into a bat that teleports them to a safe room
+    Then the rendered_lines for the snatch turn contain "ZAP--SUPER BAT SNATCH! ELSEWHEREVILLE FOR YOU!"

@@ -54,14 +54,19 @@ TERMINAL_WUMPUS_GOT_YOU: str = "TSK TSK TSK- WUMPUS GOT YOU!"
 # Win reason (arrow hits wumpus) — paired with the swapped win tag below.
 TERMINAL_WUMPUS_SHOT: str = "AHA! YOU GOT THE WUMPUS!"
 
-# Self-shot reason (arrow's final room == player's room).
+# Self-shot reason (arrow's final room == player's room). Verbatim from
+# `wumpus.gwbasic.bas` line 3350 (`PRINT "OUCH! ARROW GOT YOU!"`). Rendered on
+# an ArrowHitPlayer event (R1-S12 G4); also the eventual self-shot terminal
+# narration if the decrement runs the player out of arrows.
 TERMINAL_SELF_SHOT: str = "OUCH! ARROW GOT YOU!"
 
 # Win/lose swap tags — D11 "the swap is the recognition signal".
 WIN_TAG: str = "HEE HEE HEE - THE WUMPUS'LL GETCHA NEXT TIME!!"
 LOSE_TAG: str = "HA HA HA - YOU LOSE!"
 
-# Miss line (arrow walked the path without hitting wumpus or player).
+# Miss line (arrow walked the path without hitting wumpus or player). Verbatim
+# from `wumpus.gwbasic.bas` line 3220 (`PRINT "MISSED"`). Rendered on an
+# ArrowMissed event (R1-S12 G4).
 ARROW_MISSED: str = "MISSED"
 
 # Crooked-arrow rejection line (path entry where P(K) == P(K-2)).
@@ -338,6 +343,18 @@ _HAZARD_NAME_BY_KIND: dict[str, str] = {
     "BAT": HAZARD_BAT,
 }
 
+# Per-turn arrow-outcome lines that are NOT terminal narration. The miss
+# ("MISSED", `bas` 3220) and self-shot ("OUCH! ARROW GOT YOU!", `bas` 3350)
+# lines are printed during the arrow walk regardless of whether the game ends;
+# they correspond to the ArrowMissed / ArrowHitPlayer events (R1-S12 G4). The
+# wumpus-hit narration is the WIN terminal line and is rendered via
+# `render_terminal` (GameEnded(wumpus_shot) -> TERMINAL_WUMPUS_SHOT), so it is
+# intentionally absent here to avoid a double-render.
+_ARROW_OUTCOME_BY_KIND: dict[str, str] = {
+    "MISSED": ARROW_MISSED,
+    "SELF_SHOT": TERMINAL_SELF_SHOT,
+}
+
 _PROMPT_TEXT_BY_KIND: dict[str, str] = {
     "action": PROMPT_ACTION,
     "move_target": PROMPT_MOVE_TARGET,
@@ -417,6 +434,21 @@ class YobSurface:
                 f"Expected one of {tuple(_HAZARD_NAME_BY_KIND)!r}."
             )
         return name
+
+    def arrow_outcome_string(self, kind: str) -> str:
+        """Translate a non-terminal arrow-walk outcome to its Yob line (R1-S12).
+
+        `kind` is "MISSED" (ArrowMissed -> "MISSED", `bas` 3220) or "SELF_SHOT"
+        (ArrowHitPlayer -> "OUCH! ARROW GOT YOU!", `bas` 3350). The wumpus-hit
+        WIN line is rendered via `render_terminal` (GameEnded(wumpus_shot)), so
+        it is deliberately NOT a valid kind here (a double-render guard)."""
+        line = _ARROW_OUTCOME_BY_KIND.get(kind)
+        if line is None:
+            raise ValueError(
+                f"YobSurface.arrow_outcome_string: unknown arrow outcome "
+                f"{kind!r}. Expected one of {tuple(_ARROW_OUTCOME_BY_KIND)!r}."
+            )
+        return line
 
     def command_token(self, verb: CommandVerb) -> str:
         """Translate a CommandVerb to its player-facing Yob input token."""

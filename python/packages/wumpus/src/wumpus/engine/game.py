@@ -785,7 +785,15 @@ class Game:
         instructions Yob shows `SHOOT OR MOVE (S-M)?` and awaits the player's
         first S/M choice — so `_issue_action_prompt` parks at "action" here,
         making the two-step move (`M` then a room number) usable from turn 1.
-        The starting-room render (G1) is a separate downstream slice (R1-S12).
+
+        R1-S12 (G1): Yob shows the CURRENT room immediately — so before the
+        first action prompt the engine emits the starting room's sense events
+        (in Yob L-array order) and a single LocationReported. Entering the
+        starting room IS an entry, so this reuses `_emit_senses_and_location`
+        (the same path a successful move takes). The render order becomes:
+        banner -> senses -> `YOU ARE IN ROOM`/`TUNNELS LEAD TO` -> action prompt
+        — matching Yob, where the player sees the opening room before being
+        asked to act.
         """
         new_world = World(
             player_room=self._world.player_room,
@@ -810,6 +818,12 @@ class Game:
                 lines=lines,
             )
         )
+        # R1-S12 (G1): emit the starting room's senses + location BEFORE the
+        # action prompt, so the player sees the opening room immediately (Yob
+        # shows the current room before asking for an action). The starting
+        # room is entered at construction; this is the entry's sense+location
+        # emission, identical to a successful move's.
+        self._emit_senses_and_location(new_world.player_room)
         # Enter the base playable state at the top-level action prompt (G2).
         self._issue_action_prompt()
         return self._render_observation()

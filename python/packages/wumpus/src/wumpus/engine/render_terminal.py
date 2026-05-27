@@ -33,6 +33,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Iterable
 
 from wumpus.events import (
+    ArrowHitPlayer,
+    ArrowMissed,
     Event,
     GameEnded,
     HazardTriggered,
@@ -129,6 +131,19 @@ def _render_event(event: Event, surface: "Surface") -> tuple[str, ...]:
         # spacing; the engine only forwards the already-emitted room +
         # adjacencies.
         return surface.render_location(event.room, event.adjacencies)
+    if isinstance(event, ArrowMissed):
+        # R1-S12 (G4): the arrow walked its path without hitting the wumpus or
+        # the player. Render Yob's "MISSED" line through the surface (SC8). The
+        # wumpus-hit WIN line and any out-of-arrows terminal render via the
+        # GameEnded arm, so this arm renders ONLY the per-turn miss narration.
+        return (surface.arrow_outcome_string("MISSED"),)
+    if isinstance(event, ArrowHitPlayer):
+        # R1-S12 (G4): the arrow's FINAL room was the player's room (Yob D11
+        # self-shot). Render "OUCH! ARROW GOT YOU!" through the surface. The
+        # arrow-count decrement / out-of-arrows terminal (if any) renders via
+        # the ArrowCountChanged / GameEnded arms, so this arm renders ONLY the
+        # per-turn self-shot narration.
+        return (surface.arrow_outcome_string("SELF_SHOT"),)
     if isinstance(event, HazardTriggered):
         # Delegate to the module free function: it is defensive about
         # variant-config-driven hazard kinds outside the known set (returns

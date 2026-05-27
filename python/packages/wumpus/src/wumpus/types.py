@@ -448,6 +448,13 @@ class Surface(Protocol):
         ("WUMPUS" / "PIT" / "BAT")."""
         ...
 
+    def arrow_outcome_string(self, kind: str) -> str:
+        """Player-facing line for a non-terminal arrow-walk outcome (R1-S12):
+        "MISSED" (ArrowMissed) or "SELF_SHOT" (ArrowHitPlayer). The wumpus-hit
+        WIN line renders via the terminal path (GameEnded(wumpus_shot)), so it
+        is NOT a valid kind here."""
+        ...
+
     def command_token(self, verb: CommandVerb) -> str:
         """Player-facing input token for a CommandVerb (Yob: "S"/"M"/"Y"/"N")."""
         ...

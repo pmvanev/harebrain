@@ -2846,3 +2846,292 @@ def _r1s11_room_prompt_renders(r1s11_game: Any) -> None:
         f"Expected pending_prompt='shoot_path_room' after the path length; "
         f"got {r1s11_game.world_state().pending_prompt!r}."
     )
+
+
+# ---------------------------------------------------------------------------
+# R1-S12 — Starting-room render (G1) + outcome/hazard messages (G4)
+# ---------------------------------------------------------------------------
+#
+# Strategy: drive the production Game._from_world driving port end-to-end and
+# read Observation.rendered_lines (the player-facing render). Port-to-port:
+# enter through step(...), assert on rendered output + observable
+# pending_prompt — never on internal classes. The win / pit / bump / snatch
+# layouts reuse the R1-S06/S07 pinned-fixture patterns.
+#
+# G1 exercises the yob production pre-game INSTRUCTIONS path: a Game pinned to
+# a starting room adjacent to a pit must render that room's sense + location
+# lines on the step("N") observation, BEFORE the action prompt.
+
+
+def _build_r1s12_pregame_world_adjacent_to_pit() -> Any:
+    """Pin a yob pre-game world whose starting room (1, neighbors {2, 5, 8}) is
+    adjacent to a pit (room 5) and no other hazard. Mirrors the R1-S08 pre-game
+    fixture but places a pit adjacent to the start so the start render carries
+    exactly one sense line (I FEEL A DRAFT)."""
+    from wumpus.types import World
+
+    return World(
+        player_room=1,
+        wumpus_rooms=(11,),  # not adjacent to room 1's neighbors {2, 5, 8}
+        pit_rooms=(5, 14),  # pit 5 is adjacent to room 1; pit 14 parked away
+        bat_rooms=(15, 19),  # parked away from room 1's neighbors
+        arrows=5,
+        turn=0,
+        alive=True,
+        pending_prompt="instructions",
+        pending_arrow_path=(),
+    )
+
+
+# NB: the G1 scenario reuses the R1-S11 fixture name `r1s11_game` + the
+# `_last_rendered_lines` attribute convention so the SHARED "Then" step texts
+# ('the rendered output ends with the action prompt "SHOOT OR MOVE (S-M)?"' and
+# "the engine is parked awaiting the action prompt") resolve to the existing
+# R1-S11 step definitions. Only the two ordering-specific Then steps below are
+# new. This avoids re-registering a duplicate step-text (which pytest-bdd would
+# alias to a `_1` fixture, breaking the R1-S11 scenarios that share the text).
+
+
+@given(
+    "a fresh Yob game whose starting room is adjacent to a pit",
+    target_fixture="r1s11_game",
+)
+def _r1s12_pregame_game() -> Any:
+    from wumpus import Game
+
+    return Game._from_world(_build_r1s12_pregame_world_adjacent_to_pit(), seed=0)
+
+
+@when("the player answers N at the instructions prompt")
+def _r1s12_answer_n(r1s11_game: Any) -> None:
+    observation = r1s11_game.step("N")
+    r1s11_game._last_rendered_lines = observation.rendered_lines
+
+
+@then(
+    'the starting room\'s pit sense "I FEEL A DRAFT" renders before the location line'
+)
+def _r1s12_start_pit_sense_before_location(r1s11_game: Any) -> None:
+    lines = r1s11_game._last_rendered_lines
+    assert "I FEEL A DRAFT" in lines, (
+        f"Expected the starting room's pit sense 'I FEEL A DRAFT' to render at "
+        f"game start (G1); got: {lines!r}"
+    )
+    sense_index = list(lines).index("I FEEL A DRAFT")
+    location_indices = [
+        i for i, line in enumerate(lines) if line.startswith("YOU ARE IN ROOM")
+    ]
+    assert location_indices, (
+        f"Expected a 'YOU ARE IN ROOM' starting-room location line; got: {lines!r}"
+    )
+    assert sense_index < location_indices[0], (
+        f"Starting-room sense must precede the location line (Yob order); "
+        f"sense at {sense_index}, location at {location_indices[0]}: {lines!r}"
+    )
+
+
+@then(
+    'the starting-room location line "YOU ARE IN ROOM" renders before the action prompt'
+)
+def _r1s12_start_location_before_action(r1s11_game: Any) -> None:
+    lines = r1s11_game._last_rendered_lines
+    location_indices = [
+        i for i, line in enumerate(lines) if line.startswith("YOU ARE IN ROOM")
+    ]
+    action_indices = [
+        i for i, line in enumerate(lines) if line == "SHOOT OR MOVE (S-M)?"
+    ]
+    assert location_indices, (
+        f"Expected a starting-room 'YOU ARE IN ROOM' line at game start (G1); "
+        f"got: {lines!r}"
+    )
+    assert action_indices, (
+        f"Expected the action prompt 'SHOOT OR MOVE (S-M)?' at game start; "
+        f"got: {lines!r}"
+    )
+    assert location_indices[0] < action_indices[0], (
+        f"Starting-room location must render BEFORE the action prompt (G1); "
+        f"location at {location_indices[0]}, action at {action_indices[0]}: "
+        f"{lines!r}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# R1-S12 — G4: arrow-outcome + hazard message rendering
+# ---------------------------------------------------------------------------
+
+
+@given(
+    "the player shoots and misses the wumpus",
+    target_fixture="r1s12_miss_observation",
+)
+def _r1s12_miss_observation() -> Any:
+    """Player at 8, wumpus at 17. Shoot path [7] → final = 7 (miss). Startle
+    K=4 keeps the wumpus at 17 (no eat); arrows 5→4 (no terminal). The shot
+    turn's Observation must render the verbatim Yob 'MISSED' line."""
+    from wumpus import Game
+    from wumpus.sinks import InMemorySink
+
+    world = _build_shoot_world(player_room=8, wumpus_rooms=(17,), arrows=5)
+    game = Game._from_world(world, seed=0)
+    game._random = _MockRandom([4])  # type: ignore[assignment]
+    sink = InMemorySink()
+    game.subscribe(sink)
+    game.step("S")
+    game.step("1")
+    return game.step("7")  # final-slot step fires ArrowFired + walk
+
+
+@then('the rendered_lines for the shot turn contain "MISSED"')
+def _r1s12_miss_renders(r1s12_miss_observation: Any) -> None:
+    lines = r1s12_miss_observation.rendered_lines
+    assert "MISSED" in lines, (
+        f"Expected the verbatim Yob 'MISSED' line in rendered_lines on a missed "
+        f"shot (G4); got: {lines!r}"
+    )
+
+
+@given(
+    "the player shoots and kills the wumpus",
+    target_fixture="r1s12_win_observation",
+)
+def _r1s12_win_observation() -> Any:
+    """Player at 8, wumpus at 17, path 7→17 (both adjacency hops). Final = 17 =
+    wumpus → ArrowHitWumpus + GameEnded(wumpus_shot). The shot turn's
+    Observation must render 'AHA! YOU GOT THE WUMPUS!' (via the GameEnded arm —
+    confirms it already renders, no double-render)."""
+    from wumpus import Game
+    from wumpus.sinks import InMemorySink
+
+    world = _build_shoot_world(player_room=8, wumpus_rooms=(17,), arrows=5)
+    game = Game._from_world(world, seed=0)
+    sink = InMemorySink()
+    game.subscribe(sink)
+    game.step("S")
+    game.step("2")
+    game.step("7")
+    return game.step("17")
+
+
+@then('the rendered_lines for the shot turn contain "AHA! YOU GOT THE WUMPUS!"')
+def _r1s12_win_renders(r1s12_win_observation: Any) -> None:
+    lines = r1s12_win_observation.rendered_lines
+    assert any("AHA! YOU GOT THE WUMPUS!" in line for line in lines), (
+        f"Expected 'AHA! YOU GOT THE WUMPUS!' in rendered_lines on a wumpus-kill "
+        f"shot (G4); got: {lines!r}"
+    )
+
+
+@given(
+    "the player shoots and the arrow's final room is the player's room",
+    target_fixture="r1s12_selfshot_observation",
+)
+def _r1s12_selfshot_observation() -> Any:
+    """Player at 8, path [7, 8]: 8→7 adj, 7→8 adj. Final = 8 = player →
+    ArrowHitPlayer. arrows 5→4 (no terminal). The shot turn's Observation must
+    render 'OUCH! ARROW GOT YOU!' (G4 gap)."""
+    from wumpus import Game
+    from wumpus.sinks import InMemorySink
+
+    world = _build_shoot_world(player_room=8, wumpus_rooms=(17,), arrows=5)
+    game = Game._from_world(world, seed=0)
+    sink = InMemorySink()
+    game.subscribe(sink)
+    game.step("S")
+    game.step("2")
+    game.step("7")
+    return game.step("8")
+
+
+@then('the rendered_lines for the shot turn contain "OUCH! ARROW GOT YOU!"')
+def _r1s12_selfshot_renders(r1s12_selfshot_observation: Any) -> None:
+    lines = r1s12_selfshot_observation.rendered_lines
+    assert "OUCH! ARROW GOT YOU!" in lines, (
+        f"Expected the verbatim Yob self-shot line 'OUCH! ARROW GOT YOU!' in "
+        f"rendered_lines on a self-shot (G4); got: {lines!r}"
+    )
+
+
+@given(
+    "the player walks into the wumpus and is not eaten",
+    target_fixture="r1s12_bump_observation",
+)
+def _r1s12_bump_observation() -> Any:
+    """Player at 8, wumpus at 7 (adjacent). Move to 7 → HazardTriggered(WUMPUS).
+    Startle K=1 moves the wumpus to sorted_neighbors(7)[0] = 6 (not the player's
+    room 7), so the player is not eaten and the game continues. The bump turn's
+    Observation must render '...OOPS! BUMPED A WUMPUS!' (via the HazardTriggered
+    arm — confirms it already renders)."""
+    from wumpus import Game
+    from wumpus.sinks import InMemorySink
+    from wumpus.types import World
+
+    world = World(
+        player_room=8,
+        wumpus_rooms=(7,),
+        pit_rooms=(11, 14),  # parked away from room 7's neighbors {6, 8, 17}
+        bat_rooms=(15, 19),
+        arrows=5,
+        turn=0,
+        alive=True,
+        pending_prompt=None,
+        pending_arrow_path=(),
+    )
+    game = Game._from_world(world, seed=0)
+    game._random = _MockRandom([1])  # type: ignore[assignment]
+    sink = InMemorySink()
+    game.subscribe(sink)
+    return game.step("move 7")
+
+
+@then('the rendered_lines for the bump turn contain "...OOPS! BUMPED A WUMPUS!"')
+def _r1s12_bump_renders(r1s12_bump_observation: Any) -> None:
+    lines = r1s12_bump_observation.rendered_lines
+    assert "...OOPS! BUMPED A WUMPUS!" in lines, (
+        f"Expected the verbatim Yob wumpus-bump line '...OOPS! BUMPED A WUMPUS!' "
+        f"in rendered_lines on a non-fatal wumpus bump (G4); got: {lines!r}"
+    )
+
+
+@given(
+    "the player walks into a bat that teleports them to a safe room",
+    target_fixture="r1s12_snatch_observation",
+)
+def _r1s12_snatch_observation() -> Any:
+    """Player at 1, bat at 5 (adjacent). Move to 5 → HazardTriggered(BAT) +
+    PlayerTeleported. Scripted randint(1, 20) → 17 (a hazard-free room). The
+    snatch turn's Observation must render 'ZAP--SUPER BAT SNATCH! ...' (via the
+    HazardTriggered arm — confirms it already renders)."""
+    from wumpus import Game
+    from wumpus.sinks import InMemorySink
+    from wumpus.types import World
+
+    world = World(
+        player_room=1,
+        wumpus_rooms=(11,),
+        pit_rooms=(13, 14),
+        bat_rooms=(5, 12),
+        arrows=5,
+        turn=0,
+        alive=True,
+        pending_prompt=None,
+        pending_arrow_path=(),
+    )
+    game = Game._from_world(world, seed=0)
+    game._random = _MockRandom([17])  # type: ignore[assignment]
+    sink = InMemorySink()
+    game.subscribe(sink)
+    return game.step("move 5")
+
+
+@then(
+    "the rendered_lines for the snatch turn contain "
+    '"ZAP--SUPER BAT SNATCH! ELSEWHEREVILLE FOR YOU!"'
+)
+def _r1s12_snatch_renders(r1s12_snatch_observation: Any) -> None:
+    lines = r1s12_snatch_observation.rendered_lines
+    assert "ZAP--SUPER BAT SNATCH! ELSEWHEREVILLE FOR YOU!" in lines, (
+        f"Expected the verbatim Yob bat-snatch line 'ZAP--SUPER BAT SNATCH! "
+        f"ELSEWHEREVILLE FOR YOU!' in rendered_lines on a bat snatch (G4); "
+        f"got: {lines!r}"
+    )
