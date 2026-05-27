@@ -3135,3 +3135,121 @@ def _r1s12_snatch_renders(r1s12_snatch_observation: Any) -> None:
         f"ELSEWHEREVILLE FOR YOU!' in rendered_lines on a bat snatch (G4); "
         f"got: {lines!r}"
     )
+
+
+# ---------------------------------------------------------------------------
+# R1-S13 — Golden rendered-transcript regression net (cross-check to catalogue)
+# ---------------------------------------------------------------------------
+#
+# Strategy: drive a full wumpus-kill CLI session (seed=15: N/S/1/7) in-process
+# through the production driving port wumpus.cli.main with StringIO stdin/stdout
+# — the same in-process capture the golden-master characterization test uses
+# (tests/regression/test_rendered_transcript_golden.py) — and assert the key
+# § Goal 1 "Messages — verbatim" strings appear in the captured stdout, in the
+# catalogue order. This anchors the golden fixtures to the DOCUMENTED contract
+# (wumpus_python_goals.md § Goal 1) rather than only to themselves.
+#
+# Port-to-port: enter through cli.main (the CLI driving port), assert on the
+# captured stdout (the player-visible end-to-end output). The seed=15 session is
+# the same one pinned as wumpus_kill_seed15.txt; this scenario verifies the
+# transcript carries the catalogue strings, the regression test verifies it is
+# byte-stable.
+
+# bypass: golden-transcript catalogue cross-check is an exact-verbatim-string
+# contract (Yob's character-for-character messages), so the scenario is
+# example-based — property-framing cannot express "these exact strings appear in
+# this order". The PBT + state-delta coverage of the underlying rendering lives
+# at the R1-S11/S12 unit+acceptance levels; this scenario is the documented
+# fallback that ties the pinned transcript to the goals-doc catalogue.
+
+
+@given(
+    "a full wumpus-kill CLI session driven to its terminal",
+    target_fixture="r1s13_transcript",
+)
+def _r1s13_kill_session_transcript() -> str:
+    """Drive the seed=15 wumpus-kill session (the same (seed, input-script)
+    pinned as transcripts/wumpus_kill_seed15.txt) in-process through cli.main
+    and return the captured stdout transcript."""
+    import io
+
+    from wumpus import cli
+
+    stdin = io.StringIO("N\nS\n1\n7\nN\n")
+    stdout = io.StringIO()
+    cli.main(argv=["--seed", "15"], stdin=stdin, stdout=stdout)
+    return stdout.getvalue()
+
+
+@then('the rendered transcript contains the Goal 1 verbatim string "HUNT THE WUMPUS"')
+def _r1s13_contains_title(r1s13_transcript: str) -> None:
+    _assert_goal1_string(r1s13_transcript, "HUNT THE WUMPUS")
+
+
+@then('the rendered transcript contains the Goal 1 verbatim string "I SMELL A WUMPUS!"')
+def _r1s13_contains_smell(r1s13_transcript: str) -> None:
+    _assert_goal1_string(r1s13_transcript, "I SMELL A WUMPUS!")
+
+
+@then('the rendered transcript contains the Goal 1 verbatim string "YOU ARE IN ROOM"')
+def _r1s13_contains_position(r1s13_transcript: str) -> None:
+    _assert_goal1_string(r1s13_transcript, "YOU ARE IN ROOM")
+
+
+@then(
+    'the rendered transcript contains the Goal 1 verbatim string '
+    '"SHOOT OR MOVE (S-M)?"'
+)
+def _r1s13_contains_prompt(r1s13_transcript: str) -> None:
+    _assert_goal1_string(r1s13_transcript, "SHOOT OR MOVE (S-M)?")
+
+
+@then(
+    'the rendered transcript contains the Goal 1 verbatim string '
+    '"AHA! YOU GOT THE WUMPUS!"'
+)
+def _r1s13_contains_kill(r1s13_transcript: str) -> None:
+    _assert_goal1_string(r1s13_transcript, "AHA! YOU GOT THE WUMPUS!")
+
+
+@then('the rendered transcript contains the Goal 1 verbatim string "SAME SET-UP (Y-N)?"')
+def _r1s13_contains_same_setup(r1s13_transcript: str) -> None:
+    _assert_goal1_string(r1s13_transcript, "SAME SET-UP (Y-N)?")
+
+
+@then(
+    "those Goal 1 strings appear in the catalogue order "
+    "Title, Smell, Position, Prompt, Kill, Same-setup"
+)
+def _r1s13_catalogue_order(r1s13_transcript: str) -> None:
+    # The § Goal 1 catalogue order for a wumpus-kill session: title banner,
+    # the on-entry smell sense, the position line, the move/shoot prompt, the
+    # kill terminal line, then the same-setup re-prompt.
+    catalogue_order = (
+        "HUNT THE WUMPUS",
+        "I SMELL A WUMPUS!",
+        "YOU ARE IN ROOM",
+        "SHOOT OR MOVE (S-M)?",
+        "AHA! YOU GOT THE WUMPUS!",
+        "SAME SET-UP (Y-N)?",
+    )
+    indices = [r1s13_transcript.find(text) for text in catalogue_order]
+    assert all(i >= 0 for i in indices), (
+        f"One or more § Goal 1 strings is missing from the rendered transcript. "
+        f"find() results: {dict(zip(catalogue_order, indices))}"
+    )
+    assert indices == sorted(indices), (
+        f"§ Goal 1 verbatim strings did not render in the catalogue order "
+        f"{catalogue_order}. find() offsets: "
+        f"{dict(zip(catalogue_order, indices))}. Transcript:\n{r1s13_transcript}"
+    )
+
+
+def _assert_goal1_string(transcript: str, expected: str) -> None:
+    """Assert a § Goal 1 verbatim string appears in the captured transcript."""
+    assert expected in transcript, (
+        f"Expected the § Goal 1 verbatim string {expected!r} in the rendered "
+        f"wumpus-kill transcript (anchors the golden fixture to "
+        f"wumpus_python_goals.md § Goal 1 'Messages — verbatim'). Transcript:\n"
+        f"{transcript}"
+    )

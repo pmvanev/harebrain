@@ -349,3 +349,32 @@ Feature: R1 Yob fidelity — dodecahedron cave + Yob mechanics
   Scenario: A bat snatch renders the ZAP line
     Given the player walks into a bat that teleports them to a safe room
     Then the rendered_lines for the snatch turn contain "ZAP--SUPER BAT SNATCH! ELSEWHEREVILLE FOR YOU!"
+
+  # ---------------------------------------------------------------------------
+  # R1-S13 — Golden rendered-transcript regression net (cross-check to catalogue)
+  # ---------------------------------------------------------------------------
+  #
+  # The golden rendered-transcript regression net (the structural successor to
+  # the withdrawn R1-S10 BASIC fixtures, per ADR-011) lives at
+  # tests/regression/test_rendered_transcript_golden.py — it pins the engine's
+  # OWN full rendered stdout for fixed (seed, input-script) sessions and
+  # characterization-tests byte-for-byte reproduction (engine-vs-pinned-self).
+  #
+  # This scenario ties one captured transcript back to the DOCUMENTED contract:
+  # it drives a full wumpus-kill session (seed=15: N/S/1/7) in-process through
+  # wumpus.cli.main and asserts the key § Goal 1 "Messages — verbatim" strings
+  # appear, in order — so the golden fixtures are anchored to the goals-doc
+  # catalogue, not merely to themselves. Strings cross-checked: HUNT THE WUMPUS
+  # (Title), I SMELL A WUMPUS! (Smell sense), YOU ARE IN ROOM (Position),
+  # SHOOT OR MOVE (S-M)? (Move/shoot prompt), AHA! YOU GOT THE WUMPUS! (Kill
+  # terminal line), SAME SET-UP (Y-N)? (Same setup).
+
+  Scenario: A full rendered session matches the Goal 1 verbatim-message catalogue
+    Given a full wumpus-kill CLI session driven to its terminal
+    Then the rendered transcript contains the Goal 1 verbatim string "HUNT THE WUMPUS"
+    And the rendered transcript contains the Goal 1 verbatim string "I SMELL A WUMPUS!"
+    And the rendered transcript contains the Goal 1 verbatim string "YOU ARE IN ROOM"
+    And the rendered transcript contains the Goal 1 verbatim string "SHOOT OR MOVE (S-M)?"
+    And the rendered transcript contains the Goal 1 verbatim string "AHA! YOU GOT THE WUMPUS!"
+    And the rendered transcript contains the Goal 1 verbatim string "SAME SET-UP (Y-N)?"
+    And those Goal 1 strings appear in the catalogue order Title, Smell, Position, Prompt, Kill, Same-setup
