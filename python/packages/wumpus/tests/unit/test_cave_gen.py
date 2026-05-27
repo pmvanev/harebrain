@@ -26,6 +26,7 @@ import pytest
 from hypothesis import given, settings, strategies as st
 
 from wumpus.engine.cave_gen import generate_initial_layout
+from wumpus.types import VariantConfig
 
 
 @given(seed=st.integers())
@@ -71,3 +72,83 @@ def test_same_seed_produces_same_layout(seed: int) -> None:
         f"seed={seed}: cave_gen produced different layouts on two independent "
         f"random.Random({seed}) instances. SC1 (determinism) violated."
     )
+
+
+# ---------------------------------------------------------------------------
+# R4-S01 — VariantConfig parameterization of cave generation
+# ---------------------------------------------------------------------------
+
+
+@given(
+    seed=st.integers(),
+    wumpus_count=st.integers(min_value=1, max_value=4),
+    pit_count=st.integers(min_value=0, max_value=4),
+    bat_count=st.integers(min_value=0, max_value=4),
+)
+@settings(max_examples=100, deadline=None)
+def test_layout_counts_follow_variant(
+    seed: int, wumpus_count: int, pit_count: int, bat_count: int
+) -> None:
+    """The placed entity-collection sizes equal the VariantConfig counts, and
+    every placed room is distinct (the FNB rejection invariant). This is the
+    parameterization property: tuple LENGTHS track the config; the field SET
+    never changes (goals.md Goal 2)."""
+    variant = VariantConfig(
+        room_count=20,
+        wumpus_count=wumpus_count,
+        pit_count=pit_count,
+        bat_count=bat_count,
+    )
+    layout = generate_initial_layout(random.Random(seed), variant)
+
+    assert len(layout.wumpus_rooms) == wumpus_count
+    assert len(layout.pit_rooms) == pit_count
+    assert len(layout.bat_rooms) == bat_count
+
+    placed = (
+        layout.player_start,
+        *layout.wumpus_rooms,
+        *layout.pit_rooms,
+        *layout.bat_rooms,
+    )
+    assert len(set(placed)) == len(placed), (
+        f"seed={seed}: FNB rejection loop placed colliding rooms: {placed!r}."
+    )
+    for room in placed:
+        assert 1 <= room <= variant.room_count
+
+
+@pytest.mark.parametrize("seed", [0, 1, 42, 1337, 2**31 - 1])
+def test_default_variant_layout_matches_no_arg(seed: int) -> None:
+    """`VariantConfig()` (Yob defaults) reproduces the pre-R4-S01 single-arg
+    layout byte-identically — the same RNG-consumption order, same rooms.
+    This pins the Yob-fidelity claim: the default variant is a no-op over the
+    original FNB placement."""
+    with_default = generate_initial_layout(random.Random(seed), VariantConfig())
+    no_arg = generate_initial_layout(random.Random(seed))
+    assert with_default == no_arg, (
+        f"seed={seed}: default-VariantConfig layout diverged from the no-arg "
+        f"layout. The Yob default must be byte-identical."
+    )
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"room_count": 3},
+        {"arrow_count": 0},
+        {"wumpus_count": -1},
+        {"pit_count": -1},
+        {"wumpus_move_prob": 1.5},
+        {"wumpus_move_prob": -0.1},
+        {"topology": "complete"},
+        {"room_count": 4, "wumpus_count": 2, "pit_count": 1, "bat_count": 1},
+    ],
+)
+def test_variant_config_rejects_invalid(overrides: dict[str, object]) -> None:
+    """VariantConfig.__post_init__ rejects out-of-range / unsupported configs
+    with a ValueError. Input variations of the SAME behavior (validation) are
+    parametrized per Mandate 5. The last case is the occupants-fit invariant
+    (2 wumpus + 1 pit + 1 bat + 1 player = 5 > room_count=4)."""
+    with pytest.raises(ValueError):
+        VariantConfig(**overrides)  # type: ignore[arg-type]

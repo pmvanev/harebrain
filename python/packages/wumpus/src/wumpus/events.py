@@ -85,13 +85,16 @@ class GameStarted(_BaseEventFields):
 
     Carries everything `replay(ledger_path)` needs to reconstruct the
     session from the header alone (R2-S02): the seed, the engine version,
-    the initial layout hash, the variant config (parametric handling lands
-    at R4-S01; R2-S02 ships the placeholder shape), and the surface_id
-    (`"yob"` today; `"mystery"` / `"french"` arrive at R4-S03+).
+    the initial layout hash, the variant config (R4-S01 ships the structured
+    `VariantConfig.as_dict()` shape — room_count, wumpus_count, pit_count,
+    bat_count, arrow_count, arrow_max_range, wumpus_move_prob, topology,
+    escalation_rules), and the surface_id (`"yob"` today; `"mystery"` /
+    `"french"` arrive at R4-S03+).
 
     Per ADR-002 (additive schema evolution) `variant_config` is typed as a
-    flexible dict so R4-S01 can add fields without breaking the v1
-    contract.
+    flexible dict and the v1 schema keeps `additionalProperties: true` so
+    R4-S02's escalation_rules + future variant fields are additive without
+    bumping SCHEMA_VERSION.
     """
 
     type: Literal["GameStarted"] = "GameStarted"
@@ -99,9 +102,10 @@ class GameStarted(_BaseEventFields):
     engine_version: str = ""
     surface_id: str = ""
     layout_hash: str = ""
-    # R2-S02: placeholder shape `{"name": "yob"}`. R4-S01 lands the
-    # parametric VariantConfig; the schema permits additive fields here.
-    variant_config: dict[str, object] = field(default_factory=lambda: {"name": "yob"})
+    # R4-S01: the engine populates this from `VariantConfig.as_dict()`. The
+    # default factory carries an empty dict for the rare hand-built event
+    # (the schema's additive-friendly shape accepts both).
+    variant_config: dict[str, object] = field(default_factory=dict)
     active_escalation_rules: tuple[str, ...] = ()
 
 

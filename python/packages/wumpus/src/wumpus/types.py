@@ -24,6 +24,118 @@ from dataclasses import dataclass, field
 from typing import Literal, Protocol
 
 # ---------------------------------------------------------------------------
+# A5 — VariantConfig (R4-S01)
+# ---------------------------------------------------------------------------
+#
+# The non-surface dimensions of a Wumpus game, parameterizing the engine
+# without touching engine code (goals.md § Goal 2). Construction with no
+# arguments yields Yob 1973 defaults; `Game(seed=k)` is equivalent to
+# `Game(seed=k, variant=VariantConfig())`.
+#
+# CRITICAL CONSTRAINT (goals.md § Goal 2): no variant changes the *internal*
+# state schema. `wumpus_count=2` means `World.wumpus_rooms` is a length-2
+# tuple, NOT a new field. The World/Snapshot/Event field SET is identical
+# across all VariantConfig values.
+#
+# R4-S01 ships the parametric type + Yob defaults + cave-gen parameterization
+# (room_count, wumpus_count, pit_count, bat_count, arrow_count) and wires
+# arrow_count to the out-of-arrows terminal. `escalation_rules` is an
+# empty-tuple placeholder field ONLY — the EscalationRule Protocol + hooks
+# land at R4-S02. `topology` accepts only "dodecahedron" at R4-S01; other
+# topologies are R5-S02 (rejected here with a clear error).
+
+
+@dataclass(frozen=True)
+class VariantConfig:
+    """Parametric, frozen game configuration. `VariantConfig()` = Yob 1973.
+
+    Per ADR-007 (stdlib dataclasses, no pydantic) `__post_init__` defends the
+    invariants. Per ADR-001 the type is `frozen=True` so it round-trips in the
+    Snapshot (SC6) and carries no hidden state.
+
+    Fields (Yob defaults from goals.md § Goal 2):
+      - room_count: number of rooms in the cave (>= 4).
+      - topology: cave topology. R4-S01 supports only "dodecahedron"; other
+        3-regular topologies arrive at R5-S02.
+      - wumpus_count / pit_count / bat_count: hazard placement counts. They
+        size the corresponding `World.*_rooms` tuples; they never add fields.
+      - arrow_count: starting arrow count; wired to `World.arrows` and the
+        out-of-arrows terminal (>= 1).
+      - arrow_max_range: max rooms an arrow path may span (Yob: 5).
+      - wumpus_move_prob: P(wumpus moves on startle) (Yob FNC: 0.75); must be
+        in [0.0, 1.0]. R4-S01 stores it; the startle PMF parameterization is
+        deferred (Yob baseline already moves with the FNC distribution).
+      - escalation_rules: empty-tuple placeholder slot (R4-S02 lands the
+        Protocol). Do NOT populate at R4-S01.
+    """
+
+    room_count: int = 20
+    topology: str = "dodecahedron"
+    wumpus_count: int = 1
+    pit_count: int = 2
+    bat_count: int = 2
+    arrow_count: int = 5
+    arrow_max_range: int = 5
+    wumpus_move_prob: float = 0.75
+    # R4-S01: empty-tuple placeholder. The EscalationRule Protocol + slot wiring
+    # land at R4-S02; at R4-S01 this is a typed-but-inert field so the schema
+    # (and GameStarted.variant_config) can carry it additively.
+    escalation_rules: tuple[object, ...] = ()
+
+    def __post_init__(self) -> None:
+        if self.room_count < 4:
+            raise ValueError(
+                f"VariantConfig.room_count must be >= 4; got {self.room_count}."
+            )
+        if self.topology != "dodecahedron":
+            raise ValueError(
+                f"VariantConfig.topology {self.topology!r} is unsupported at "
+                f"R4-S01; only 'dodecahedron' is wired (other topologies are "
+                f"R5-S02)."
+            )
+        for name in ("wumpus_count", "pit_count", "bat_count", "arrow_max_range"):
+            value = getattr(self, name)
+            if value < 0:
+                raise ValueError(
+                    f"VariantConfig.{name} must be non-negative; got {value}."
+                )
+        if self.arrow_count < 1:
+            raise ValueError(
+                f"VariantConfig.arrow_count must be >= 1; got {self.arrow_count}."
+            )
+        if not (0.0 <= self.wumpus_move_prob <= 1.0):
+            raise ValueError(
+                f"VariantConfig.wumpus_move_prob must be in [0.0, 1.0]; "
+                f"got {self.wumpus_move_prob}."
+            )
+        # Entity placement must fit in the cave alongside the player start.
+        occupants = (
+            self.wumpus_count + self.pit_count + self.bat_count + 1  # +player_start
+        )
+        if occupants > self.room_count:
+            raise ValueError(
+                f"VariantConfig entity counts (wumpus={self.wumpus_count}, "
+                f"pits={self.pit_count}, bats={self.bat_count}, +1 player) sum "
+                f"to {occupants}, exceeding room_count={self.room_count}."
+            )
+
+    def as_dict(self) -> dict[str, object]:
+        """Serialize to a plain dict for `GameStarted.variant_config` + the
+        ledger schema. `escalation_rules` serializes to its length (R4-S01 it
+        is always 0); the structured rule serialization lands at R4-S02."""
+        return {
+            "room_count": self.room_count,
+            "topology": self.topology,
+            "wumpus_count": self.wumpus_count,
+            "pit_count": self.pit_count,
+            "bat_count": self.bat_count,
+            "arrow_count": self.arrow_count,
+            "arrow_max_range": self.arrow_max_range,
+            "wumpus_move_prob": self.wumpus_move_prob,
+            "escalation_rules": [],
+        }
+
+# ---------------------------------------------------------------------------
 # PromptKind — the engine's discriminator for which prompt it's awaiting next.
 # ---------------------------------------------------------------------------
 #

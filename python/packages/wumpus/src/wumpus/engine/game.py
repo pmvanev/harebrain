@@ -52,7 +52,7 @@ from wumpus.events import (
     SessionEnded,
 )
 from wumpus.surfaces import yob as yob_surface
-from wumpus.types import Observation, PromptKind, Snapshot, World
+from wumpus.types import Observation, PromptKind, Snapshot, VariantConfig, World
 
 if TYPE_CHECKING:
     from wumpus.sinks import Sink
@@ -67,11 +67,6 @@ _R0_ENGINE_VERSION: str = "0.0.0"
 # real per-turn variant tagging.
 _R0_SURFACE_ID: str = "yob"
 _R0_SURFACE_VARIANT: str = "<placeholder>"
-# R2-S02: variant_config carries the placeholder shape today; R4-S01's
-# parametric VariantConfig will replace this with a real config object.
-# Per ADR-002 (additive schema evolution) the schema permits additive
-# fields here without bumping SCHEMA_VERSION.
-_R2S02_VARIANT_CONFIG: dict[str, object] = {"name": "yob"}
 
 # Cave-topology selector. "yob" is the canonical 20-room dodecahedron + FNB
 # rejection-loop layout (R1-S01 default). "toy" is the R0 walking-skeleton
@@ -120,7 +115,12 @@ class Game:
     acceptance scenarios are rewritten against the real geometry.
     """
 
-    def __init__(self, seed: int | None = None, cave: str = _CAVE_YOB) -> None:
+    def __init__(
+        self,
+        seed: int | None = None,
+        cave: str = _CAVE_YOB,
+        variant: VariantConfig | None = None,
+    ) -> None:
         # R2-S02: seed=None → roll an OS-entropy seed so the ledger header
         # carries a concrete integer the replay path can reuse. Without
         # this, replay would have no way to reconstruct the initial
@@ -129,6 +129,13 @@ class Game:
         # appear in engine code (SC1 determinism-source audit carve-out).
         if seed is None:
             seed = _bootstrap_seed()
+        # R4-S01: `variant=None` → Yob 1973 defaults. `Game(seed=k)` is
+        # equivalent to `Game(seed=k, variant=VariantConfig())`. The config
+        # parameterizes cave generation (entity counts, room count) and the
+        # starting arrow count without changing the internal state schema.
+        self._variant: VariantConfig = (
+            variant if variant is not None else VariantConfig()
+        )
         self._seed: int = seed
         self._random: random.Random = random.Random(seed)
         self._cave: str = cave
@@ -173,7 +180,7 @@ class Game:
             engine_version=_R0_ENGINE_VERSION,
             surface_id=_R0_SURFACE_ID,
             layout_hash=internal_state_hash(self._initial_layout),
-            variant_config=dict(_R2S02_VARIANT_CONFIG),
+            variant_config=self._variant.as_dict(),
             active_escalation_rules=(),
         )
         self._emit(start_event)
@@ -231,6 +238,11 @@ class Game:
         game._seed = seed
         game._random = random.Random(seed)
         game._cave = _CAVE_YOB
+        # R4-S01: the test hatch pins a World directly, so the variant only
+        # supplies the GameStarted header + SAME SET-UP restore arrow count.
+        # Default VariantConfig() (Yob) is correct — the World already carries
+        # whatever tuple shapes the test specified.
+        game._variant = VariantConfig()
         game._world = world
         # R1-S07: pin the initial layout for SAME SET-UP=Y restore. See
         # `__init__` for the field's contract.
@@ -249,7 +261,7 @@ class Game:
             engine_version=_R0_ENGINE_VERSION,
             surface_id=_R0_SURFACE_ID,
             layout_hash=internal_state_hash(game._world),
-            variant_config=dict(_R2S02_VARIANT_CONFIG),
+            variant_config=game._variant.as_dict(),
             active_escalation_rules=(),
         )
         game._emit(start_event)
@@ -718,7 +730,7 @@ class Game:
                 engine_version=_R0_ENGINE_VERSION,
                 surface_id=_R0_SURFACE_ID,
                 layout_hash=internal_state_hash(self._world),
-                variant_config=dict(_R2S02_VARIANT_CONFIG),
+                variant_config=self._variant.as_dict(),
                 active_escalation_rules=(),
             )
         )
@@ -767,13 +779,17 @@ class Game:
           (test-only; no RNG consumed).
         """
         if cave == _CAVE_YOB:
-            layout = generate_initial_layout(self._random)
+            # R4-S01: cave generation is parameterized by the VariantConfig
+            # (entity counts + room_count); arrows initialize from
+            # `arrow_count`. The default VariantConfig() reproduces the Yob
+            # FNB layout byte-identically for a given seed.
+            layout = generate_initial_layout(self._random, self._variant)
             return World(
                 player_room=layout.player_start,
                 wumpus_rooms=layout.wumpus_rooms,
                 pit_rooms=layout.pit_rooms,
                 bat_rooms=layout.bat_rooms,
-                arrows=0,
+                arrows=self._variant.arrow_count,
                 turn=0,
                 alive=True,
                 pending_prompt=None,
@@ -1033,6 +1049,13 @@ class Game:
         game = cls.__new__(cls)
         game._seed = snapshot.seed
         game._random = _decode_rng_cursor(snapshot.rng_cursor)
+        # R4-S01: the Snapshot does NOT carry a variant_config field (adding
+        # one would change the Snapshot field set — scenario 4's no-schema-
+        # change canary forbids that). A resurrected Game uses the default
+        # VariantConfig() for its header; the World it restores already
+        # carries whatever tuple shapes the variant produced (the variant
+        # never adds fields, so the restored World is complete on its own).
+        game._variant = VariantConfig()
         # R3-S01: cave topology now round-trips. Snapshots from pre-R3-S01
         # call sites (constructed without `cave`) default to "yob" per the
         # Snapshot dataclass default — the historical behavior.
@@ -1062,7 +1085,7 @@ class Game:
             engine_version=_R0_ENGINE_VERSION,
             surface_id=_R0_SURFACE_ID,
             layout_hash=internal_state_hash(game._world),
-            variant_config=dict(_R2S02_VARIANT_CONFIG),
+            variant_config=game._variant.as_dict(),
             active_escalation_rules=snapshot.active_escalation_rules,
         )
         game._emit(start_event)

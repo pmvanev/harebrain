@@ -83,8 +83,19 @@
             "layout_hash": {"type": "string"},
             "variant_config": {
               "type": "object",
-              "description": "R2-S02 placeholder shape ({\"name\": \"yob\"}); ADR-002 additive — R4-S01 parametric VariantConfig adds fields.",
-              "additionalProperties": true
+              "description": "R4-S01 structured VariantConfig.as_dict() shape (the non-surface dimensions from goals.md Goal 2). ADR-002 additive: additionalProperties stays true so R4-S02 escalation_rules + future variant fields are additive without a schema-version bump. The known fields are documented but not all required (a hand-built header may carry a subset).",
+              "additionalProperties": true,
+              "properties": {
+                "room_count": {"type": "integer", "minimum": 4},
+                "topology": {"type": "string"},
+                "wumpus_count": {"type": "integer", "minimum": 0},
+                "pit_count": {"type": "integer", "minimum": 0},
+                "bat_count": {"type": "integer", "minimum": 0},
+                "arrow_count": {"type": "integer", "minimum": 1},
+                "arrow_max_range": {"type": "integer", "minimum": 0},
+                "wumpus_move_prob": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+                "escalation_rules": {"type": "array"}
+              }
             },
             "active_escalation_rules": {"type": "array", "items": {"type": "string"}}
           },

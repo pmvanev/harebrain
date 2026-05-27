@@ -41,7 +41,7 @@ from wumpus.serialization import (
     snapshot_from_json,
     snapshot_to_json,
 )
-from wumpus.types import Observation, PromptKind, Snapshot, World
+from wumpus.types import Observation, PromptKind, Snapshot, VariantConfig, World
 
 __version__ = "0.0.0"
 
@@ -51,6 +51,7 @@ __all__ = [
     "Snapshot",
     "Observation",
     "PromptKind",
+    "VariantConfig",
     "Event",
     "GameStarted",
     "MoveAttempted",

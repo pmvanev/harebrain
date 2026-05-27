@@ -46,7 +46,7 @@ from wumpus.events import (
     WumpusStartled,
 )
 from wumpus.serialization import event_from_dict
-from wumpus.types import World
+from wumpus.types import VariantConfig, World
 
 
 class VersionCompatibilityError(Exception):
@@ -136,17 +136,24 @@ class Replay:
         self._header: GameStarted = header_event
         self._engine_version: str = header_event.engine_version
         self._seed: int = header_event.seed
-        # Bootstrap World from the seed (proves the seed-determinism
+        # R4-S01: reconstruct the VariantConfig from the structured
+        # `variant_config` header so the bootstrap layout (entity counts,
+        # room_count) AND the starting arrow count match what `Game.__init__`
+        # produced. The header dict carries the non-surface dimensions; the
+        # default VariantConfig() is the fallback for legacy headers without
+        # the structured shape (pre-R4-S01 `{"name": "yob"}` placeholders).
+        variant = _variant_from_header(header_event.variant_config)
+        # Bootstrap World from the seed + variant (proves the seed-determinism
         # contract end-to-end). The layout MUST match what `Game.__init__`
-        # produces given the same seed — confirmed by the round-trip
-        # property test.
-        layout = generate_initial_layout(random.Random(header_event.seed))
+        # produces given the same seed + variant — confirmed by the
+        # round-trip property test.
+        layout = generate_initial_layout(random.Random(header_event.seed), variant)
         self._world: World = World(
             player_room=layout.player_start,
             wumpus_rooms=layout.wumpus_rooms,
             pit_rooms=layout.pit_rooms,
             bat_rooms=layout.bat_rooms,
-            arrows=0,
+            arrows=variant.arrow_count,
             turn=0,
             alive=True,
             pending_prompt=None,
@@ -288,6 +295,34 @@ class Replay:
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+
+def _variant_from_header(variant_config: dict[str, object]) -> VariantConfig:
+    """Reconstruct a `VariantConfig` from a `GameStarted.variant_config` header
+    dict (R4-S01 structured shape). Unknown / legacy headers (e.g. the
+    pre-R4-S01 `{"name": "yob"}` placeholder) fall back to Yob defaults — the
+    keys below are simply absent, so `VariantConfig()` defaults apply.
+
+    `escalation_rules` is NOT reconstructed at R4-S01 (it serializes to `[]`
+    and the field is an inert placeholder); the EscalationRule revival lands
+    at R4-S02.
+    """
+    fields = (
+        "room_count",
+        "topology",
+        "wumpus_count",
+        "pit_count",
+        "bat_count",
+        "arrow_count",
+        "arrow_max_range",
+        "wumpus_move_prob",
+    )
+    kwargs = {
+        name: variant_config[name] for name in fields if name in variant_config
+    }
+    if not kwargs:
+        return VariantConfig()
+    return VariantConfig(**kwargs)  # type: ignore[arg-type]
 
 
 def _check_version_compatibility(*, written: str, current: str) -> None:

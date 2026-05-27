@@ -126,15 +126,24 @@ def test_replay_round_trip_property(
     replayed_world = replay(ledger_path).advance_to(turn=target_turn).world_state()
 
     # Replay reconstructs the per-turn observable surface: player_room,
-    # turn, alive, arrows. (The toy cave's initial wumpus/pit/bat tuples
-    # differ between toy fixture and the yob cave_gen output replay uses;
-    # that's a known artifact of using toy cave for round-trip — the
-    # hazard fields are not compared here, but they are not mutated by
-    # any toy-cave action anyway.)
+    # turn, alive. (The toy cave's initial wumpus/pit/bat tuples differ
+    # between toy fixture and the yob cave_gen output replay uses; that's a
+    # known artifact of using toy cave for round-trip — the hazard fields
+    # are not compared here, but they are not mutated by any toy-cave action
+    # anyway.)
+    #
+    # R4-S01 note: `arrows` is NOT compared for toy-cave sessions. Replay
+    # bootstraps the World from the ledger header's seed + variant_config via
+    # the YOB cave_gen path, initializing arrows from the variant's
+    # arrow_count (default 5). The toy-cave fixture hardcodes arrows=0 (it
+    # predates parametric variants), and "this was a toy cave" is not encoded
+    # in the header. The two values differ for structural reasons, not a bug;
+    # the prior 0==0 equality was a coincidence. Arrow round-trip on the YOB
+    # cave is covered by Behaviour 1 (internal_state_hash equality) + the
+    # R1-S06 out-of-arrows acceptance + the R3 snapshot round-trip suite.
     assert replayed_world.player_room == expected_world.player_room
     assert replayed_world.turn == expected_world.turn
     assert replayed_world.alive == expected_world.alive
-    assert replayed_world.arrows == expected_world.arrows
 
 
 # ---------------------------------------------------------------------------
