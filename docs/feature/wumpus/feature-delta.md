@@ -5030,3 +5030,36 @@ When DELIVER accepts handoff:
 - Flip `[REF] DISTILL Phase Tracker` row 8 status
 - DISTILL wave artifacts (.feature files, step defs, package bootstrap) become read-only for DELIVER purposes (DELIVER may ADD scenarios per the per-slice procedure but should not MODIFY R0's existing scenarios)
 - The DT-D1 through DT-D7 decisions become the immutable test-design record for the wumpus engine
+
+---
+
+## Wave: DELIVER / [REF] R1-S10 Deferral & Follow-up
+
+**Status:** R1-S10 is **deferred, not dropped.** Recorded 2026-05-27, mid-R4. This is the first DELIVER-wave section in this file — DELIVER slice progress is otherwise tracked by git commits (`DELIVER R<N>-S<NN>: ...`), not by per-slice edits to the Story Map. This section exists because R1-S10's deferral crosses slice boundaries and gates a goals-doc done-criterion, so it needs a durable home rather than living only in commit history.
+
+### What R1-S10 is
+
+R1-S10 — *Byte-identical BASIC transcript regression fixture suite* (see `[REF] Story Map` § R1-S10 and `[REF] User Stories` § Story R1-S10). It captures N≈10 PC-BASIC / GW-BASIC transcripts of `wumpus.gwbasic.bas` driven by deterministic input scripts + fixed seeds, and asserts the engine's stdout matches byte-for-byte for the same `(seed, input)`. It **is goals-doc done-criterion #1** and carries **KPI K-1** (`[REF] Outcome KPIs`: "10/10 BASIC fixtures byte-identical"). It is the strongest *external* validation of Yob fidelity in the whole feature.
+
+### Why it was deferred (and why that was acceptable to sequence around)
+
+- **Hard prerequisite unmet.** R1-S10 requires the "Pre-R1-S10 — BASIC transcript capture session" (`[REF] Pre-requisites`; DoR check **C-R1-S10**, `[REF] DoR Validation`): 10 PC-BASIC sessions captured against `wumpus.gwbasic.bas` patched with `5 RANDOMIZE <seed>` (per `wumpus/experiments/g_wild_baseline/README.md`), each stored as a byte-exact `(seed_i, input_script_i, expected_stdout_i)` fixture. **As of this note, those fixtures do not exist** — there is no `tests/regression/` dir and no `.bas` transcript fixtures on disk. C-R1-S10's `D8` (testable) is still ✗. The capture session is an environment-setup task (needs a working PC-BASIC + the patch), estimated 0.5–1 day; it is *not* engine code.
+- **No hard code dependency from R2/R3.** R2 (ledger) and R3 (snapshot/audits) do not consume R1-S10's fixtures, so DELIVER ran R1-S09 → R2-S01 → … → R3-S03 → R4-S01 around the blocker rather than stall the whole feature on a one-time capture session. The Story Map's straight-line strategy (`[REF] WS Strategy`) tolerates this because R1-S10 is a *validation* slice, not a *capability* slice — the Yob mechanics it validates (R1-S01…S08) all shipped.
+
+### Non-negotiable
+
+The feature is **not "done" per goals-doc done-criterion #1** until R1-S10 lands and 10/10 fixtures pass. KPI **K-1 is currently unmeasurable.** Deferral ≠ cut. This must be closed before the wumpus engine is declared feature-complete.
+
+### DELIVER follow-up checklist — re-verify these once R1-S10 lands
+
+These are the points in the *current (DELIVER) wave* that lean on R1-S10 and were satisfied with weaker evidence (or not yet reached) while it is outstanding:
+
+- [ ] **R4-S03 (Surface interface refactor) — hard dependency.** The Story Map lists R4-S03 "Depends on: R1-S10"; its demo/AC is "R1-S10 fixtures all still pass after the surface refactor." Lifting Yob strings out of engine constants into `YobSurface` is exactly the kind of refactor a byte-fidelity net is meant to guard. **Action:** when R1-S10 lands, re-run the BASIC fixture suite against the post-R4-S03 engine to confirm the string extraction preserved byte-fidelity. Until then, R4-S03 ships on acceptance-scenario + unit evidence only — treat any surface-refactor regression risk as open.
+- [ ] **R4-S02 (escalation_rules slot).** Its demo references "R1-S10 fixture suite re-run with `escalation_rules=[IdentityRule()]` — byte-identical." **Interim gate:** use an engine-self byte-comparison (a no-rules run vs an `[IdentityRule()]` run on the same seed/inputs must be byte-identical) in place of the BASIC fixtures. **Action:** re-confirm against the real BASIC fixtures once they exist.
+- [ ] **R4-S04 / R4-S05 / R4-S06.** Each references re-running R1-S10 fixtures as the byte-fidelity regression net at its release boundary (surface-leak audit, paired Mystery/French hash equality). **Action:** re-validate the K-1 suite at each of these once fixtures exist.
+- [ ] **K-1 regression-on-every-release.** The acceptance scenario "Done-criterion #1 holds across all subsequent releases" (`[REF] Acceptance Criteria`) and the CI matrix that is supposed to run R1-S10 fixtures on every PR (`[REF] System Constraints` SC8; `[REF] Acceptance Criteria`) cannot be wired until the fixtures exist. **Action:** add the CI job + the cross-release regression assertion when R1-S10 lands.
+- [ ] **Forced-termination seed placeholders.** `python/packages/wumpus/tests/conftest.py` has `forced_loss_seed → 17` and `forced_win_seed → 99`, both flagged "placeholder; actual value pinned during R1-S10 BASIC capture." **Action:** pin these to seeds actually known to force a loss/win during the capture session, and refresh any test that currently leans on the placeholder values.
+
+### Suggested resolution path
+
+Schedule the **BASIC transcript capture session** as a standalone setup task (own commit, e.g. `DELIVER R1-S00: BASIC transcript capture prerequisite`), then implement **R1-S10** against the captured fixtures, then walk the checklist above. The capture session can happen any time before R4-S03 without further reordering; doing it before R4-S03 restores that slice's intended safety net.
