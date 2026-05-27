@@ -28,3 +28,32 @@ Feature: R4 surface seam — Surface Protocol + YobSurface
     Given a YobSurface instance bound to the Surface Protocol
     When command_parse(command_token(verb)) is invoked for every CommandVerb
     Then the result equals the original verb
+
+  # ---- R4-S05 — obfuscation-gap measurement (journey J2) ----
+  #
+  # The surface seam is STRUCTURAL, not cosmetic: a MysterySurface and the
+  # default YobSurface, run from the SAME seed with translation-equivalent
+  # actions, produce an IDENTICAL internal trajectory — equal internal_state_hash
+  # at every turn. Only the bytes the player reads differ. That equality is the
+  # validity proof of the obfuscation-gap measurement (SC8/SC9).
+
+  # Framed as invariant properties (the PBT mandate); expressed via the
+  # `Scenario:` keyword because this repo's Gherkin parser (official grammar)
+  # does not accept a `Property:` keyword. The broad equivalence-class coverage
+  # lives in tests/property/test_obfuscation_gap.py; these pin the canonical
+  # walkthrough.
+
+  Scenario: Paired classic and mystery runs produce identical internal trajectories
+    Given the same seed and a sequence of internal action intents
+    When the engine is driven once via the Yob surface and once via the Mystery surface with translation-equivalent inputs
+    Then the emitted internal_state_hash sequence is identical at every turn
+
+  Scenario: Mystery surface does not consume engine RNG
+    Given the same seed and a sequence of internal action intents
+    When the engine is driven once via the Yob surface and once via the Mystery surface with translation-equivalent inputs
+    Then the emitted rng_cursor sequence is identical at every turn
+
+  Scenario: Mystery surface genuinely obfuscates the rendered bytes
+    Given the same seed and a sequence of internal action intents
+    When the engine is driven once via the Yob surface and once via the Mystery surface with translation-equivalent inputs
+    Then the rendered player-visible output of the Mystery run differs from the Yob run

@@ -117,8 +117,8 @@ def test_cli_exits_cleanly_on_session_ended() -> None:
 
 
 def test_cli_accepts_yob_surface_default_and_explicit_flag() -> None:
-    """`--surface yob` is the explicit default. Anything else is rejected
-    until R4-S03 wires the parametric Surface Protocol.
+    """`--surface yob` is the explicit default; `--surface mystery` is wired
+    at R4-S05. An unknown surface (e.g. 'french', R4-S06) is still rejected.
 
     A clear error means: exit non-zero, message on stderr-or-stdout naming
     the unknown surface. We use SystemExit (argparse's default) so the
@@ -137,10 +137,19 @@ def test_cli_accepts_yob_surface_default_and_explicit_flag() -> None:
         stdout=io.StringIO(),
     )
 
-    # An unsupported surface must exit non-zero.
+    # R4-S05: 'mystery' is now a wired surface — it must NOT be rejected. We
+    # answer the mystery INSTRUCTIONS prompt with the mystery NO token ("K")
+    # so the run starts; stdin then reaches EOF and the loop exits cleanly.
+    cli.main(
+        argv=["--seed", str(_FORCED_LOSS_SEED), "--surface", "mystery"],
+        stdin=io.StringIO("K\n"),
+        stdout=io.StringIO(),
+    )
+
+    # An unsupported surface must still exit non-zero.
     with pytest.raises(SystemExit) as excinfo:
         cli.main(
-            argv=["--seed", "0", "--surface", "mystery"],
+            argv=["--seed", "0", "--surface", "french"],
             stdin=io.StringIO(""),
             stdout=io.StringIO(),
         )

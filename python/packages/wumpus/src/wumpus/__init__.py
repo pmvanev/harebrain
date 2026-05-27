@@ -41,6 +41,7 @@ from wumpus.serialization import (
     snapshot_from_json,
     snapshot_to_json,
 )
+from wumpus.surfaces.mystery import MysterySurface
 from wumpus.surfaces.yob import YobSurface
 from wumpus.types import (
     CommandVerb,
@@ -70,6 +71,7 @@ __all__ = [
     "CommandVerb",
     "ParsedCommand",
     "YobSurface",
+    "MysterySurface",
     "Event",
     "GameStarted",
     "MoveAttempted",

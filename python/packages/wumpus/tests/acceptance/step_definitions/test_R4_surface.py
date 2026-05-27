@@ -23,10 +23,13 @@ place); the cross-suite green bar is enforced by running the full suite.
 
 from __future__ import annotations
 
+import io
 from typing import get_args
 
 from pytest_bdd import given, scenarios, then, when
 
+from wumpus import Game, MysterySurface
+from wumpus.sinks import RendererSink
 from wumpus.types import CommandVerb, Surface
 from wumpus.surfaces.yob import YobSurface
 
@@ -285,4 +288,130 @@ def _r4s03_roundtrip_identity(
     assert len(set(tokens)) == len(tokens), (
         f"YobSurface command tokens are not distinct across verbs: {tokens!r}. "
         f"Ambiguous tokens break inverse-translation."
+    )
+
+
+# ---------------------------------------------------------------------------
+# R4-S05 — obfuscation-gap measurement (journey J2)
+#
+# Paired Yob/Mystery runs from the same seed with translation-equivalent
+# inputs share an identical internal trajectory (equal internal_state_hash +
+# rng_cursor at every turn), but the rendered bytes genuinely differ. These
+# scenarios drive through the `Game(...)` driving port (port-to-port) and assert
+# on the public `_debug_events` + the RendererSink transcript boundary. The
+# property suite (`tests/property/test_obfuscation_gap.py`) explores the
+# equivalence classes; these scenarios pin one canonical example walkthrough.
+# ---------------------------------------------------------------------------
+
+# A fixed internal action plan rendered into BOTH surfaces' input alphabets.
+# Intent: answer INSTRUCTIONS=NO, then — cleanly from the action prompt — a
+# SHOOT of path length 2 to internal rooms [2, 3]. Rendered VIA each surface's
+# own command_token / room_label — no engine-internal peeking (brief 3b). The
+# shoot exercises the arrow walk + the wumpus startle RNG, so the trajectory
+# equality is a meaningful SC9 proof (a surface that touched RNG would desync
+# the startle draw and the rng_cursor would diverge).
+#
+# Why a shoot (not a move) for the canonical example: a shoot issued from the
+# action prompt is interpreted identically by both surfaces (SHOOT token ->
+# SHOOT verb; bare path-length count; room labels invert to the same ids).
+# A move CAN go off-graph and leave the engine at WHERE TO?, where a following
+# bare count would be (mis)read as a Yob room but rejected by Mystery — that is
+# the risk-note asymmetry: a bare path-length COUNT is not a surface concept.
+# We therefore pin the SHOOT path here (clean action-prompt state) and cover
+# the MOVE equivalence (incl. off-graph re-prompts + hazard RNG) in the
+# property suite (tests/property/test_obfuscation_gap.py).
+_R4S05_SEED: int = 1973
+
+
+def _render_plan(surface: Surface) -> list[str]:
+    """Render the canonical R4-S05 internal action plan into `surface`'s input
+    tokens using only the surface's public translation methods."""
+    return [
+        surface.command_token("NO"),  # answer INSTRUCTIONS prompt
+        surface.command_token("SHOOT"),  # at the action prompt -> shoot
+        "2",  # path length (a bare count — surface-independent)
+        surface.room_label(2),  # internal room ids 2, 3 as the arrow path
+        surface.room_label(3),
+    ]
+
+
+def _drive_paired(surface: Surface) -> Game:
+    game = Game(seed=_R4S05_SEED, surface=surface)
+    for token in _render_plan(surface):
+        game.step(token)
+    return game
+
+
+def _rendered_transcript(surface: Surface) -> str:
+    stream = io.StringIO()
+    game = Game(seed=_R4S05_SEED, surface=surface)
+    game.subscribe(RendererSink(stream=stream, surface=surface))
+    for token in _render_plan(surface):
+        game.step(token)
+    return stream.getvalue()
+
+
+@given(
+    "the same seed and a sequence of internal action intents",
+    target_fixture="r4s05_seed",
+)
+def _r4s05_seed() -> int:
+    return _R4S05_SEED
+
+
+@when(
+    "the engine is driven once via the Yob surface and once via the Mystery "
+    "surface with translation-equivalent inputs",
+    target_fixture="r4s05_paired",
+)
+def _r4s05_paired(r4s05_seed: int) -> dict[str, object]:
+    yob_game = _drive_paired(YobSurface())
+    mystery_game = _drive_paired(MysterySurface())
+    return {
+        "yob_events": list(yob_game._debug_events),
+        "mystery_events": list(mystery_game._debug_events),
+        "yob_transcript": _rendered_transcript(YobSurface()),
+        "mystery_transcript": _rendered_transcript(MysterySurface()),
+    }
+
+
+@then("the emitted internal_state_hash sequence is identical at every turn")
+def _r4s05_hash_identical(r4s05_paired: dict[str, object]) -> None:
+    yob_events = r4s05_paired["yob_events"]
+    mystery_events = r4s05_paired["mystery_events"]
+    assert len(yob_events) == len(mystery_events), (
+        f"Paired runs produced different event counts: yob={len(yob_events)}, "
+        f"mystery={len(mystery_events)} — internal trajectories diverged."
+    )
+    for index, (yob_event, mystery_event) in enumerate(zip(yob_events, mystery_events)):
+        assert yob_event.internal_state_hash == mystery_event.internal_state_hash, (
+            f"Event {index} ({type(yob_event).__name__}) internal_state_hash "
+            f"diverged: yob={yob_event.internal_state_hash!r}, "
+            f"mystery={mystery_event.internal_state_hash!r}. SC9 violated."
+        )
+
+
+@then("the emitted rng_cursor sequence is identical at every turn")
+def _r4s05_rng_identical(r4s05_paired: dict[str, object]) -> None:
+    yob_events = r4s05_paired["yob_events"]
+    mystery_events = r4s05_paired["mystery_events"]
+    assert len(yob_events) == len(mystery_events)
+    for index, (yob_event, mystery_event) in enumerate(zip(yob_events, mystery_events)):
+        assert yob_event.rng_cursor == mystery_event.rng_cursor, (
+            f"Event {index} ({type(yob_event).__name__}) rng_cursor diverged — "
+            f"the Mystery surface consumed engine RNG. SC9 violated."
+        )
+
+
+@then("the rendered player-visible output of the Mystery run differs from the Yob run")
+def _r4s05_rendered_differs(r4s05_paired: dict[str, object]) -> None:
+    yob_transcript = r4s05_paired["yob_transcript"]
+    mystery_transcript = r4s05_paired["mystery_transcript"]
+    assert mystery_transcript != yob_transcript, (
+        "The Mystery rendered transcript is byte-identical to the Yob one — "
+        "the surface is cosmetic, not obfuscating."
+    )
+    assert "SHOOT OR MOVE (S-M)?" not in mystery_transcript, (
+        "The Mystery transcript leaked Yob's verbatim action prompt — the "
+        "surface relabelling is incomplete."
     )

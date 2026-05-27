@@ -426,6 +426,21 @@ class Surface(Protocol):
         """Player-facing label for a room id (Yob: the decimal number)."""
         ...
 
+    def room_id(self, label: str) -> int | None:
+        """Inverse of `room_label`: map a player-typed room label back to the
+        internal room id, or None if the label is not a valid room reference
+        (the engine then re-prompts without consuming the turn — G6).
+
+        R4-S05 adds this inverse so the engine interprets room references VIA
+        the active surface (rather than parsing a bare decimal directly). The
+        contract is round-trip completeness: `room_id(room_label(n)) == n` for
+        every internal room id `n` the surface labels. For Yob this is just
+        decimal `int` parsing (a no-op translation: the player types "7" and
+        the engine sees 7); for Mystery it inverts the scrambled-label
+        bijection so a paired Yob/Mystery run sharing the same internal intent
+        produces an identical internal trajectory (SC9)."""
+        ...
+
     def render_location(
         self, room_id: int, adjacents: tuple[int, ...]
     ) -> tuple[str, ...]:
@@ -471,4 +486,30 @@ class Surface(Protocol):
 
     def instructions_block(self) -> tuple[str, ...]:
         """The verbatim instructions block, one tuple entry per line."""
+        ...
+
+    def banner(self) -> str:
+        """The post-instructions banner line (Yob: "HUNT THE WUMPUS").
+
+        R4-S05: added so the engine's render path renders the banner VIA the
+        active surface rather than hardcoding the Yob free function — a Mystery
+        run shows the mystery banner. Rendered after the instructions block (or
+        after just the welcome on INSTRUCTIONS=N)."""
+        ...
+
+    def terminal_lines(self, outcome: str, message_kind: str) -> tuple[str, ...]:
+        """Player-facing lines for a GameEnded(outcome, message_kind): the
+        outcome-specific reason line(s) followed by the win/lose swap tag.
+
+        R4-S05: added so the engine renders terminals VIA the active surface
+        (the R4-S03 render path hardcoded the Yob free function). A Mystery run
+        renders mystery terminal prose; the structured (outcome, message_kind)
+        discriminators are surface-independent (the engine emits them), so the
+        internal trajectory is unaffected (SC9)."""
+        ...
+
+    def off_graph_move_line(self) -> str:
+        """Player-facing line for a rejected (off-graph) move (Yob:
+        "NOT POSSIBLE -"). R4-S05: routed through the surface so a Mystery run
+        renders the mystery off-graph line."""
         ...

@@ -394,6 +394,19 @@ class YobSurface:
         """Yob renders rooms as their decimal number (Mystery scrambles this)."""
         return str(room_id)
 
+    def room_id(self, label: str) -> int | None:
+        """Inverse of `room_label`: parse a player-typed decimal room label.
+
+        For Yob the room label IS the decimal room number, so this is plain
+        `int` parsing — routing a Yob run's room references through the surface
+        is a NO-OP (the player types "7", the engine sees 7). Returns None on a
+        non-integer token so the engine re-prompts without consuming the turn
+        (G6), matching the prior `_parse_int_or_none` behavior byte-for-byte."""
+        try:
+            return int(label.strip())
+        except (ValueError, AttributeError):
+            return None
+
     def render_location(
         self, room_id: int, adjacents: tuple[int, ...]
     ) -> tuple[str, ...]:
@@ -488,6 +501,41 @@ class YobSurface:
         """Return Yob's verbatim instructions block (delegates to the module
         free function so the R1-S08 strings have a single home)."""
         return instructions_block()
+
+    def banner(self) -> str:
+        """Return Yob's verbatim post-instructions banner ("HUNT THE WUMPUS").
+
+        R4-S05: the engine render path renders the banner through this method
+        (was hardcoded to the module free function). Byte-identical to the
+        prior render — the banner constant is unchanged."""
+        return HUNT_THE_WUMPUS_BANNER
+
+    def terminal_lines(self, outcome: str, message_kind: str) -> tuple[str, ...]:
+        """Render a GameEnded(outcome, message_kind) to Yob's terminal lines.
+
+        Delegates to the module `render_terminal` free function (which both the
+        legacy render path and `RendererSink` used) so the output is
+        byte-identical to R1-S07/R4-S03. The reason line is chosen by
+        `outcome`; the win/lose swap tag by `message_kind` (D11)."""
+        terminal = GameEnded(
+            schema_version=0,
+            turn=0,
+            surface_variant="",
+            internal_state_hash="",
+            rng_cursor="",
+            outcome=outcome,  # type: ignore[arg-type]
+            message_kind=message_kind,  # type: ignore[arg-type]
+            final_snapshot=None,
+        )
+        return render_terminal(terminal)
+
+    def off_graph_move_line(self) -> str:
+        """Return Yob's verbatim off-graph move line ("NOT POSSIBLE -").
+
+        R4-S05: routed through the surface (was the hardcoded
+        `render_off_graph_move` free function). Byte-identical to the prior
+        render."""
+        return OFF_GRAPH_MOVE
 
     def terminal_strings(self) -> tuple[str, ...]:
         """Every terminal / miss / self-shot / swap-tag string the surface can

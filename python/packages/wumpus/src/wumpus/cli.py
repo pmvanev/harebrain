@@ -41,6 +41,9 @@ from typing import TextIO
 
 from wumpus import Game
 from wumpus.sinks import JsonlSink, RendererSink
+from wumpus.surfaces.mystery import MysterySurface
+from wumpus.surfaces.yob import YobSurface
+from wumpus.types import Surface
 
 
 def _build_argument_parser() -> argparse.ArgumentParser:
@@ -82,8 +85,10 @@ def _build_argument_parser() -> argparse.ArgumentParser:
         default="yob",
         metavar="VARIANT",
         help=(
-            "Surface variant to render with. R1-S09 ships only 'yob'; "
-            "parametric surface selection lands at R4-S03."
+            "Surface variant to render with. 'yob' (default) is the verbatim "
+            "Yob 1973 surface; 'mystery' is the obfuscation-gap probe surface "
+            "(R4-S05) — scrambled labels, alien glyph strings, identical "
+            "internal trajectory."
         ),
     )
     parser.add_argument(
@@ -105,13 +110,24 @@ def _build_argument_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _validate_surface(parser: argparse.ArgumentParser, surface: str) -> None:
-    """SC8-aligned surface gate: reject any non-yob value at R1-S09."""
-    if surface != "yob":
+_SURFACE_BY_NAME: dict[str, type[Surface]] = {
+    "yob": YobSurface,
+    "mystery": MysterySurface,
+}
+
+
+def _resolve_surface(parser: argparse.ArgumentParser, surface: str) -> Surface:
+    """Resolve the `--surface` name to a Surface instance.
+
+    R4-S05: 'yob' (default) and 'mystery' are wired. Any other value fails fast
+    with a clear error (SC8 — the engine never sees an unvalidated surface)."""
+    surface_class = _SURFACE_BY_NAME.get(surface)
+    if surface_class is None:
         parser.error(
-            f"--surface={surface!r} is not yet supported at R1-S09; "
-            f"only 'yob' is wired (parametric surfaces land at R4-S03)."
+            f"--surface={surface!r} is not supported; "
+            f"choose one of {sorted(_SURFACE_BY_NAME)!r}."
         )
+    return surface_class()
 
 
 def main(
@@ -156,10 +172,14 @@ def main(
 
     parser = _build_argument_parser()
     args = parser.parse_args(argv)
-    _validate_surface(parser, args.surface)
+    surface = _resolve_surface(parser, args.surface)
 
-    game = Game(seed=args.seed if args.seed is not None else 0, cave=args.cave)
-    renderer_sink = RendererSink(stream=stdout)
+    game = Game(
+        seed=args.seed if args.seed is not None else 0,
+        cave=args.cave,
+        surface=surface,
+    )
+    renderer_sink = RendererSink(stream=stdout, surface=surface)
     game.subscribe(renderer_sink)
     ledger_sink: JsonlSink | None = None
     if args.ledger is not None:

@@ -386,10 +386,13 @@ class Game:
         # Top-level with NO pending prompt. This is the programmatic-only
         # entry point: the interactive CLI is always two-step (it parks in
         # "action" after each turn), so it never reaches here for moves.
-        # "S" enters the shoot sub-state-machine; "move <N>" is the documented
-        # programmatic-only alias (see `_parse_move_alias`). Anything else
-        # re-prompts the action prompt rather than crashing (G6).
-        if action == "S":
+        # The surface's SHOOT token enters the shoot sub-state-machine;
+        # "move <N>" is the documented programmatic-only alias (see
+        # `_parse_move_alias`). Anything else re-prompts the action prompt
+        # rather than crashing (G6). R4-S05: the shoot token is interpreted via
+        # the active surface so a Mystery run's programmatic entry uses the
+        # mystery SHOOT token (no-op for Yob, whose token IS "S").
+        if self._parse_command_verb(action) == "SHOOT":
             return self._enter_shoot_mode()
         target_room = self._parse_move_alias(action)
         if target_room is None:
@@ -766,11 +769,18 @@ class Game:
         discriminates them.
 
         On invalid input: re-emit `PromptIssued(kind="instructions")`.
+
+        R4-S05: the Y/N answer is interpreted VIA the active surface
+        (`surface.command_parse` → YES / NO verb), not by comparing the raw
+        token against the literals "Y"/"N". For the Yob surface this is a no-op
+        (its tokens ARE "Y"/"N"); for a Mystery surface the player types the
+        mystery YES/NO tokens and the engine sees the same verbs — so a paired
+        run shares the internal trajectory (SC9).
         """
-        answer = action.strip().upper()
-        if answer == "Y":
+        verb = self._parse_command_verb(action)
+        if verb == "YES":
             return self._reveal_instructions(lines=self._surface.instructions_block())
-        if answer == "N":
+        if verb == "NO":
             return self._reveal_instructions(lines=())
         # Malformed answer — re-prompt by re-emitting the INSTRUCTIONS prompt.
         self._reissue_prompt("instructions", context=None)
@@ -865,11 +875,16 @@ class Game:
 
     def _step_same_setup(self, action: str) -> Observation:
         """Handle a step from the post-terminal `pending_prompt="same_setup"`
-        state. Accepts case-insensitive 'Y' / 'N'; any other input re-prompts."""
-        answer = action.strip().upper()
-        if answer == "Y":
+        state. Accepts the surface's YES / NO tokens; any other input re-prompts.
+
+        R4-S05: the Y/N answer is interpreted VIA the active surface
+        (`surface.command_parse` → YES / NO verb) rather than by comparing the
+        raw token against the literals "Y"/"N" (no-op for Yob, the real
+        translation for Mystery)."""
+        verb = self._parse_command_verb(action)
+        if verb == "YES":
             return self._restore_initial_layout()
-        if answer == "N":
+        if verb == "NO":
             return self._end_session()
         # Malformed answer — re-prompt by re-emitting the SAME SET-UP prompt.
         self._emit(
@@ -1005,6 +1020,41 @@ class Game:
         except ValueError:
             return None
 
+    # ---- R4-S05 surface-routed input interpretation ----------------------
+
+    def _parse_command_verb(self, action: str) -> str | None:
+        """Interpret a player command token VIA the active surface, returning
+        the internal CommandVerb tag ("SHOOT"/"MOVE"/"YES"/"NO") or None.
+
+        This is the single routing hook the input state machine uses to read
+        command tokens through `surface.command_parse` rather than comparing
+        against the hardcoded Yob letters. The surface raises `ValueError` on
+        an unrecognized token (the inverse-translation contract); the engine
+        treats that as "no verb" and re-prompts (G6) instead of crashing. For
+        the Yob surface this returns exactly what the old `== "S"`/`"M"`/`"Y"`/
+        `"N"` comparisons did (its tokens ARE those letters); a Mystery run
+        recovers the same verbs from its scrambled tokens — so the internal
+        trajectory is surface-independent (SC9)."""
+        try:
+            return self._surface.command_parse(action).verb
+        except (ValueError, AttributeError):
+            return None
+
+    def _parse_room_reference(self, action: str) -> int | None:
+        """Interpret a player room reference VIA the active surface, returning
+        the internal room id or None.
+
+        The player types the surface's room LABEL; `surface.room_id` inverts
+        the room-label bijection back to the internal id (Yob: a no-op decimal
+        parse; Mystery: the digit-cipher inverse). A label the surface cannot
+        invert yields None, and the engine re-prompts without consuming the
+        turn (G6) — identical to the prior `_parse_int_or_none` contract for
+        the Yob surface."""
+        try:
+            return self._surface.room_id(action)
+        except (ValueError, AttributeError):
+            return None
+
     # ---- R1-S05 shoot sub-state-machine ----------------------------------
 
     def _enter_shoot_mode(self) -> Observation:
@@ -1075,16 +1125,26 @@ class Game:
     def _handle_action_choice(self, action: str) -> Observation:
         """Handle input at the top-level `SHOOT OR MOVE (S-M)?` prompt (G2).
 
-        Single-letter `S` enters the shoot sub-state-machine; `M` enters the
-        two-step move (emits `ActionChosen("M")` + `WHERE TO?` and parks at
-        `move_target`). The `move <N>` programmatic alias is also accepted here
-        so the existing test corpus + the determinism golden master script
-        (`['N', 'move 19']`) keep resolving a move in one call. Any other token
-        re-prompts the action prompt without consuming the turn (G6)."""
-        token = action.strip().upper()
-        if token == "S":
+        The surface's SHOOT token enters the shoot sub-state-machine; its MOVE
+        token enters the two-step move (emits `ActionChosen("M")` + `WHERE TO?`
+        and parks at `move_target`). The `move <N>` programmatic alias is also
+        accepted here so the existing test corpus + the determinism golden
+        master script (`['N', 'move 19']`) keep resolving a move in one call.
+        Any other token re-prompts the action prompt without consuming the turn
+        (G6).
+
+        R4-S05: the player's choice is interpreted VIA the active surface
+        (`surface.command_parse` → SHOOT / MOVE verb) rather than by comparing
+        the raw token against the literals "S"/"M". For Yob this is a no-op (its
+        tokens ARE "S"/"M"); a Mystery run feeds the mystery SHOOT/MOVE tokens
+        and the engine sees the identical verbs. `ActionChosen.action` records
+        the canonical internal verb tag ("S"/"M") — NOT the surface token — so
+        the internal event stream (and `internal_state_hash`) stays surface-
+        independent (SC9)."""
+        verb = self._parse_command_verb(action)
+        if verb == "SHOOT":
             return self._enter_shoot_mode()
-        if token == "M":
+        if verb == "MOVE":
             return self._enter_move_target_mode()
         target_room = self._parse_move_alias(action)
         if target_room is not None:
@@ -1121,11 +1181,19 @@ class Game:
     def _handle_move_target_entry(self, action: str) -> Observation:
         """Handle a room number at the `WHERE TO?` prompt (two-step move, G5).
 
-        A valid integer resolves the move via `_resolve_move_action` (which
+        A valid room label resolves the move via `_resolve_move_action` (which
         clears the pending state on a successful move and re-issues WHERE TO?
-        on an off-graph target). A non-integer re-prompts WHERE TO? without
-        consuming the turn and never raises (G6)."""
-        target_room = _parse_int_or_none(action)
+        on an off-graph target). An unparseable label re-prompts WHERE TO?
+        without consuming the turn and never raises (G6).
+
+        R4-S05: the room reference is interpreted VIA the active surface
+        (`surface.room_id` inverts the room-label bijection) rather than by
+        parsing a bare decimal. The player types the surface's room LABEL and
+        the engine recovers the internal room id; for Yob the label IS the
+        decimal so this is a no-op, while a Mystery run types scrambled labels
+        that invert to the same internal ids — so a paired run moves to the
+        same rooms (SC9)."""
+        target_room = self._parse_room_reference(action)
         if target_room is None:
             self._reissue_prompt("move_target", context=None)
             return self._render_observation()
@@ -1153,8 +1221,15 @@ class Game:
 
     def _handle_room_slot_entry(self, action: str) -> Observation:
         """Validate a ROOM #? slot entry. Crooked at K>2 re-prompts the
-        same slot; valid → append to path and advance (or finalize)."""
-        attempted_room = _parse_int_or_none(action)
+        same slot; valid → append to path and advance (or finalize).
+
+        R4-S05: the room slot is interpreted VIA the active surface
+        (`surface.room_id`) — the player types a room LABEL, the engine
+        recovers the internal room id (no-op for Yob, the bijection inverse for
+        Mystery). The collected `pending_arrow_path` therefore holds internal
+        room ids regardless of surface, keeping the arrow walk surface-
+        independent (SC9)."""
+        attempted_room = self._parse_room_reference(action)
         current_path = self._world.pending_arrow_path
         slot = len(current_path) + 1  # 1-indexed
         path_length = self._world.pending_path_length

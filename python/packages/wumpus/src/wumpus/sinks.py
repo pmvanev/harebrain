@@ -23,7 +23,7 @@ from wumpus.schema import load_schema
 from wumpus.serialization import event_to_dict
 
 if TYPE_CHECKING:
-    pass
+    from wumpus.types import Surface
 
 
 @runtime_checkable
@@ -99,11 +99,18 @@ class RendererSink:
 
     name: str = "renderer"
 
-    def __init__(self, stream: TextIO) -> None:
+    def __init__(self, stream: TextIO, surface: "Surface | None" = None) -> None:
         self._stream: TextIO = stream
+        # R4-S05: the sink renders through the Game's ACTIVE surface, so a
+        # Mystery run prints mystery bytes. `surface=None` defaults (inside
+        # `lines_for_events`) to a YobSurface, preserving every R1-S09/R1-S13
+        # call site that constructs `RendererSink(stream=...)` — the rendered
+        # output for a Yob game is byte-identical. The CLI now passes the
+        # resolved surface so `--surface mystery` actually obfuscates output.
+        self._surface: "Surface | None" = surface
 
     def emit(self, event: Event) -> None:
-        rendered = lines_for_events([event])
+        rendered = lines_for_events([event], self._surface)
         # Suppress the whole-turn placeholder fallback for single-event
         # emissions (see class docstring): if the only line is the R0
         # placeholder, the event has no surface mapping and nothing should

@@ -44,7 +44,6 @@ from wumpus.events import (
     PromptIssued,
     SenseEmitted,
 )
-from wumpus.surfaces import yob as yob_surface
 
 # PromptKind values the renderer maps to a single surface prompt line. Every
 # kind the engine parks at must render so the prompt is observable before the
@@ -145,20 +144,25 @@ def _render_event(event: Event, surface: "Surface") -> tuple[str, ...]:
         # per-turn self-shot narration.
         return (surface.arrow_outcome_string("SELF_SHOT"),)
     if isinstance(event, HazardTriggered):
-        # Delegate to the module free function: it is defensive about
-        # variant-config-driven hazard kinds outside the known set (returns
-        # () rather than raising), and `YobSurface.hazard_name` wraps the same
-        # table for the known kinds — so the rendered output is identical.
-        return yob_surface.render_hazard(event)
+        # R4-S05: route through the active surface's `hazard_name` (was the Yob
+        # free function). A hazard kind outside the surface's known set is a
+        # genuine engine/surface mismatch — but the engine only emits the three
+        # known kinds, so this never raises in practice; if a future variant
+        # adds a kind, the surface must learn it (fail loud, not silently drop).
+        return (surface.hazard_name(event.kind),)
     if isinstance(event, GameEnded):
-        return yob_surface.render_terminal(event)
+        # R4-S05: route terminal rendering through the active surface (was the
+        # Yob free function). The (outcome, message_kind) discriminators are
+        # surface-independent; the surface owns the rendered prose + the swap.
+        return surface.terminal_lines(event.outcome, event.message_kind)
     if isinstance(event, MoveAttempted) and not event.accepted:
-        # Off-graph move (G6): render Yob's "NOT POSSIBLE -" line. The engine
+        # Off-graph move (G6): render the surface's off-graph line. The engine
         # re-prompts WHERE TO? / the action prompt right after (a separate
-        # PromptIssued event), so the rendered turn reads "NOT POSSIBLE -"
+        # PromptIssued event), so the rendered turn reads the off-graph line
         # then the re-prompt. An accepted MoveAttempted renders nothing
-        # (LocationReported carries the per-turn location lines).
-        return yob_surface.render_off_graph_move()
+        # (LocationReported carries the per-turn location lines). R4-S05 routes
+        # this through the surface (was the Yob free function).
+        return (surface.off_graph_move_line(),)
     if isinstance(event, PromptIssued) and event.kind in _RENDERED_PROMPT_KINDS:
         # Every parked prompt renders through the Surface Protocol's
         # `prompt_text` so a non-Yob surface renders prompts without touching
@@ -166,7 +170,10 @@ def _render_event(event: Event, surface: "Surface") -> tuple[str, ...]:
         # instructions special-cases to the full PromptKind set.
         return (surface.prompt_text(event.kind),)
     if isinstance(event, InstructionsShown):
-        return yob_surface.render_instructions(event)
+        # R4-S05: render the instructions block (carried on the event, sourced
+        # from the surface at emission time) + the surface's banner. Was the
+        # Yob `render_instructions` free function (event.lines + Yob banner).
+        return tuple(event.lines) + (surface.banner(),)
     return ()
 
 
