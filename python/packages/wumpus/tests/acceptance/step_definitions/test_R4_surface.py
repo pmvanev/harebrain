@@ -28,7 +28,7 @@ from typing import get_args
 
 from pytest_bdd import given, scenarios, then, when
 
-from wumpus import Game, MysterySurface
+from wumpus import FrenchSurface, Game, GameStarted, MysterySurface
 from wumpus.sinks import RendererSink
 from wumpus.types import CommandVerb, Surface
 from wumpus.surfaces.yob import YobSurface
@@ -414,4 +414,106 @@ def _r4s05_rendered_differs(r4s05_paired: dict[str, object]) -> None:
     assert "SHOOT OR MOVE (S-M)?" not in mystery_transcript, (
         "The Mystery transcript leaked Yob's verbatim action prompt — the "
         "surface relabelling is incomplete."
+    )
+
+
+# ---------------------------------------------------------------------------
+# R4-S06 — surface-generality smoke (FrenchSurface drops in, no engine changes)
+#
+# A SECOND, non-Mystery surface (a real French translation) drops into the SAME
+# seam R4-S05 built, with NO engine changes, and the SAME structural equality
+# holds: a paired Yob/French run from the same seed with translation-equivalent
+# inputs shares an identical internal trajectory (equal internal_state_hash +
+# rng_cursor every turn), while the rendered bytes genuinely differ. The header
+# records surface_id="french". These reuse the canonical R4-S05 action plan
+# (`_render_plan`) and helpers (`_drive_paired`, `_rendered_transcript`), which
+# already accept any Surface — that reuse is itself part of the generality proof
+# (the same driving code drives French without modification). The property suite
+# (tests/property/test_obfuscation_gap.py, now parametrized over Mystery AND
+# French) explores the equivalence classes; these pin one canonical example.
+# ---------------------------------------------------------------------------
+
+
+@given(
+    "a Game driven via the French surface",
+    target_fixture="r4s06_french_started",
+)
+def _r4s06_french_started() -> GameStarted:
+    """Drive a fresh French Game through the canonical plan and return the
+    GameStarted event from its emission record (the ledger header)."""
+    game = _drive_paired(FrenchSurface())
+    started = next(
+        event for event in game._debug_events if isinstance(event, GameStarted)
+    )
+    return started
+
+
+@then('the GameStarted header records surface_id "french"')
+def _r4s06_header_surface_id(r4s06_french_started: GameStarted) -> None:
+    assert r4s06_french_started.surface_id == "french", (
+        f"GameStarted.surface_id was {r4s06_french_started.surface_id!r}; "
+        f"expected 'french'. The French surface's variant id is not recorded "
+        f'in the ledger header — the demo target (surface_variant="french") '
+        f"is not met."
+    )
+
+
+@when(
+    "the engine is driven once via the Yob surface and once via the French "
+    "surface with translation-equivalent inputs",
+    target_fixture="r4s06_paired",
+)
+def _r4s06_paired(r4s05_seed: int) -> dict[str, object]:
+    yob_game = _drive_paired(YobSurface())
+    french_game = _drive_paired(FrenchSurface())
+    return {
+        "yob_events": list(yob_game._debug_events),
+        "french_events": list(french_game._debug_events),
+        "yob_transcript": _rendered_transcript(YobSurface()),
+        "french_transcript": _rendered_transcript(FrenchSurface()),
+    }
+
+
+@then("the Yob and French internal_state_hash sequence is identical at every turn")
+def _r4s06_hash_identical(r4s06_paired: dict[str, object]) -> None:
+    yob_events = r4s06_paired["yob_events"]
+    french_events = r4s06_paired["french_events"]
+    assert len(yob_events) == len(french_events), (
+        f"Paired runs produced different event counts: yob={len(yob_events)}, "
+        f"french={len(french_events)} — internal trajectories diverged. The "
+        f"French surface altered the trajectory; the R4-S05 seam was "
+        f"Mystery-shaped."
+    )
+    for index, (yob_event, french_event) in enumerate(zip(yob_events, french_events)):
+        assert yob_event.internal_state_hash == french_event.internal_state_hash, (
+            f"Event {index} ({type(yob_event).__name__}) internal_state_hash "
+            f"diverged: yob={yob_event.internal_state_hash!r}, "
+            f"french={french_event.internal_state_hash!r}. SC9 violated / the "
+            f"seam is not surface-general."
+        )
+
+
+@then("the Yob and French rng_cursor sequence is identical at every turn")
+def _r4s06_rng_identical(r4s06_paired: dict[str, object]) -> None:
+    yob_events = r4s06_paired["yob_events"]
+    french_events = r4s06_paired["french_events"]
+    assert len(yob_events) == len(french_events)
+    for index, (yob_event, french_event) in enumerate(zip(yob_events, french_events)):
+        assert yob_event.rng_cursor == french_event.rng_cursor, (
+            f"Event {index} ({type(yob_event).__name__}) rng_cursor diverged — "
+            f"the French surface consumed engine RNG. SC9 violated."
+        )
+
+
+@then("the rendered player-visible output of the French run differs from the Yob run")
+def _r4s06_rendered_differs(r4s06_paired: dict[str, object]) -> None:
+    yob_transcript = r4s06_paired["yob_transcript"]
+    french_transcript = r4s06_paired["french_transcript"]
+    assert french_transcript != yob_transcript, (
+        "The French rendered transcript is byte-identical to the Yob one — "
+        "the French surface is not translating anything."
+    )
+    assert "SHOOT OR MOVE (S-M)?" not in french_transcript, (
+        "The French transcript leaked Yob's verbatim action prompt — the "
+        "French translation is incomplete."
     )

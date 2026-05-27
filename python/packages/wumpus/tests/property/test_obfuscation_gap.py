@@ -1,19 +1,26 @@
-"""R4-S05 property tests — the obfuscation-gap measurement (journey J2).
+"""R4-S05/R4-S06 property tests — the obfuscation-gap measurement (journey J2).
 
 The surface seam is STRUCTURAL, not cosmetic. This is the validity proof of the
-obfuscation-gap measurement: a `MysterySurface` and the default `YobSurface`,
+obfuscation-gap measurement: ANY non-Yob surface and the default `YobSurface`,
 run from the SAME seed with translation-equivalent player inputs, produce an
 IDENTICAL internal trajectory — equal `internal_state_hash` AND equal
 `rng_cursor` on every emitted event at every turn. Only the bytes the player
 reads differ (the rendered output genuinely diverges, proving real obfuscation).
 
+R4-S06 generalizes the pairing: every property is parametrized over the
+non-Yob surfaces `[MysterySurface(), FrenchSurface()]` via `_VARIANT_SURFACES`.
+The SAME property body drives both — that reuse IS the surface-generality proof
+(the R4-S05 seam was not Mystery-shaped: a second, independent, non-Mystery
+surface satisfies the identical invariants with no special-casing). The Mystery
+case keeps R4-S05 green; the French case lands R4-S06.
+
 Why this proves SC9
 -------------------
-SC9: the surface never reads engine state and never consumes RNG. If a Mystery
+SC9: the surface never reads engine state and never consumes RNG. If a variant
 surface drew from the engine's RNG (or branched the engine on a surface-form
 decision), the paired `rng_cursor` sequences would DESYNC — a single extra draw
 shifts every subsequent cursor. Equal cursors at every event is the falsifiable
-proof that the Mystery surface is RNG-inert. Equal `internal_state_hash` proves
+proof that the variant surface is RNG-inert. Equal `internal_state_hash` proves
 the internal World trajectory is surface-independent.
 
 Honest paired driving (brief 3b)
@@ -53,11 +60,23 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+import pytest
 from hypothesis import given, settings, strategies as st
 
-from wumpus import Game, MysterySurface, YobSurface
+from wumpus import FrenchSurface, Game, MysterySurface, YobSurface
 from wumpus.events import Event
 from wumpus.types import Surface
+
+
+# The non-Yob surfaces the paired properties pair Yob AGAINST. R4-S05 shipped
+# Mystery; R4-S06 adds French — a SECOND, independent, non-Mystery surface that
+# must satisfy the identical invariants through the same property bodies. The
+# parametrize id is the surface_id so a failure names which variant desynced.
+_VARIANT_SURFACES: tuple[Surface, ...] = (MysterySurface(), FrenchSurface())
+
+
+def _variant_id(surface: Surface) -> str:
+    return surface.surface_id
 
 
 # ---------------------------------------------------------------------------
@@ -161,29 +180,32 @@ def _rendered_output(seed: int, plan: tuple[_Intent, ...], surface: Surface) -> 
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.parametrize("variant_surface", _VARIANT_SURFACES, ids=_variant_id)
 @given(seed=_seed_strategy(), plan=_action_plan_strategy())
 @settings(deadline=None)
 def test_paired_runs_have_identical_internal_state_hash(
-    seed: int, plan: tuple[_Intent, ...]
+    variant_surface: Surface, seed: int, plan: tuple[_Intent, ...]
 ) -> None:
-    """For any (seed, internal action plan), the Yob and Mystery runs emit an
+    """For any (seed, internal action plan), the Yob and variant runs emit an
     identical `internal_state_hash` on every event at every turn. The surface
     is a pure output relabelling; the internal World trajectory is surface-
-    independent (SC9). This IS the obfuscation-gap validity proof."""
+    independent (SC9). This IS the obfuscation-gap validity proof — and, run
+    over BOTH Mystery and French, the surface-generality proof (R4-S06)."""
+    variant = variant_surface.surface_id
     yob_events = _drive(seed, plan, YobSurface())
-    mystery_events = _drive(seed, plan, MysterySurface())
+    variant_events = _drive(seed, plan, variant_surface)
 
-    assert len(yob_events) == len(mystery_events), (
+    assert len(yob_events) == len(variant_events), (
         f"Paired runs produced different event counts at seed={seed}: "
-        f"yob={len(yob_events)}, mystery={len(mystery_events)}. The internal "
+        f"yob={len(yob_events)}, {variant}={len(variant_events)}. The internal "
         f"trajectories diverged — the surface is not purely cosmetic."
     )
-    for index, (yob_event, mystery_event) in enumerate(zip(yob_events, mystery_events)):
-        assert yob_event.internal_state_hash == mystery_event.internal_state_hash, (
+    for index, (yob_event, variant_event) in enumerate(zip(yob_events, variant_events)):
+        assert yob_event.internal_state_hash == variant_event.internal_state_hash, (
             f"Event {index} ({type(yob_event).__name__}) internal_state_hash "
-            f"diverged between the Yob and Mystery runs at seed={seed}: "
+            f"diverged between the Yob and {variant} runs at seed={seed}: "
             f"yob={yob_event.internal_state_hash!r}, "
-            f"mystery={mystery_event.internal_state_hash!r}. The surface "
+            f"{variant}={variant_event.internal_state_hash!r}. The surface "
             f"altered the internal trajectory — SC9 violated."
         )
 
@@ -193,27 +215,29 @@ def test_paired_runs_have_identical_internal_state_hash(
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.parametrize("variant_surface", _VARIANT_SURFACES, ids=_variant_id)
 @given(seed=_seed_strategy(), plan=_action_plan_strategy())
 @settings(deadline=None)
-def test_mystery_surface_consumes_no_engine_rng(
-    seed: int, plan: tuple[_Intent, ...]
+def test_variant_surface_consumes_no_engine_rng(
+    variant_surface: Surface, seed: int, plan: tuple[_Intent, ...]
 ) -> None:
-    """For any (seed, internal action plan), the Yob and Mystery runs emit an
+    """For any (seed, internal action plan), the Yob and variant runs emit an
     identical `rng_cursor` on every event. A surface that drew from the
     engine's RNG would shift every subsequent cursor (one extra draw desyncs
     the whole tail), so equal cursors at every event is the falsifiable proof
-    the Mystery surface is RNG-inert (SC9)."""
+    the variant surface is RNG-inert (SC9). Run over Mystery AND French."""
+    variant = variant_surface.surface_id
     yob_events = _drive(seed, plan, YobSurface())
-    mystery_events = _drive(seed, plan, MysterySurface())
+    variant_events = _drive(seed, plan, variant_surface)
 
-    assert len(yob_events) == len(mystery_events), (
+    assert len(yob_events) == len(variant_events), (
         f"Paired runs produced different event counts at seed={seed}: "
-        f"yob={len(yob_events)}, mystery={len(mystery_events)}."
+        f"yob={len(yob_events)}, {variant}={len(variant_events)}."
     )
-    for index, (yob_event, mystery_event) in enumerate(zip(yob_events, mystery_events)):
-        assert yob_event.rng_cursor == mystery_event.rng_cursor, (
+    for index, (yob_event, variant_event) in enumerate(zip(yob_events, variant_events)):
+        assert yob_event.rng_cursor == variant_event.rng_cursor, (
             f"Event {index} ({type(yob_event).__name__}) rng_cursor diverged "
-            f"between the Yob and Mystery runs at seed={seed}. The Mystery "
+            f"between the Yob and {variant} runs at seed={seed}. The {variant} "
             f"surface consumed engine RNG (a draw desynced the cursor) — "
             f"SC9 violated."
         )
@@ -224,31 +248,34 @@ def test_mystery_surface_consumes_no_engine_rng(
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.parametrize("variant_surface", _VARIANT_SURFACES, ids=_variant_id)
 @given(seed=_seed_strategy(), plan=_action_plan_strategy())
 @settings(deadline=None)
-def test_mystery_rendered_output_differs_from_yob(
-    seed: int, plan: tuple[_Intent, ...]
+def test_variant_rendered_output_differs_from_yob(
+    variant_surface: Surface, seed: int, plan: tuple[_Intent, ...]
 ) -> None:
-    """The Mystery run's player-visible rendered transcript must NOT equal the
+    """The variant run's player-visible rendered transcript must NOT equal the
     Yob run's. Equal internal trajectory + DIVERGENT rendered bytes is exactly
-    what "the seam is structural, not cosmetic" means — the Mystery surface is
-    actually obfuscating, not a no-op clone of Yob.
+    what "the seam is structural, not cosmetic" means — the variant surface is
+    actually relabelling (Mystery obfuscates, French translates), not a no-op
+    clone of Yob.
 
     Even the shortest plan (just the instructions_no answer) renders the banner
-    + opening room + first prompt, all of which the Mystery surface relabels, so
+    + opening room + first prompt, all of which the variant surface relabels, so
     the transcripts always differ."""
+    variant = variant_surface.surface_id
     yob_output = _rendered_output(seed, plan, YobSurface())
-    mystery_output = _rendered_output(seed, plan, MysterySurface())
+    variant_output = _rendered_output(seed, plan, variant_surface)
 
-    assert mystery_output != yob_output, (
-        f"The Mystery rendered output is byte-identical to the Yob output at "
-        f"seed={seed} — the Mystery surface is not obfuscating anything. The "
+    assert variant_output != yob_output, (
+        f"The {variant} rendered output is byte-identical to the Yob output at "
+        f"seed={seed} — the {variant} surface is not relabelling anything. The "
         f"seam is cosmetic, not structural."
     )
-    # Stronger: the Mystery output must not contain Yob's canonical action
-    # prompt (it should render the mystery prompt instead). This guards against
-    # a partial relabelling that leaves engine-emitted prompts in Yob bytes.
-    assert "SHOOT OR MOVE (S-M)?" not in mystery_output, (
-        f"The Mystery rendered output leaked Yob's verbatim action prompt at "
+    # Stronger: the variant output must not contain Yob's canonical action
+    # prompt (it should render its own prompt instead). This guards against a
+    # partial relabelling that leaves engine-emitted prompts in Yob bytes.
+    assert "SHOOT OR MOVE (S-M)?" not in variant_output, (
+        f"The {variant} rendered output leaked Yob's verbatim action prompt at "
         f"seed={seed} — the surface relabelling is incomplete."
     )

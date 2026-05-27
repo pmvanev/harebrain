@@ -41,6 +41,7 @@ from typing import TextIO
 
 from wumpus import Game
 from wumpus.sinks import JsonlSink, RendererSink
+from wumpus.surfaces.french import FrenchSurface
 from wumpus.surfaces.mystery import MysterySurface
 from wumpus.surfaces.yob import YobSurface
 from wumpus.types import Surface
@@ -88,7 +89,8 @@ def _build_argument_parser() -> argparse.ArgumentParser:
             "Surface variant to render with. 'yob' (default) is the verbatim "
             "Yob 1973 surface; 'mystery' is the obfuscation-gap probe surface "
             "(R4-S05) — scrambled labels, alien glyph strings, identical "
-            "internal trajectory."
+            "internal trajectory; 'french' is a real French translation (R4-S06) "
+            "— same identical internal trajectory, French prose + command tokens."
         ),
     )
     parser.add_argument(
@@ -113,14 +115,16 @@ def _build_argument_parser() -> argparse.ArgumentParser:
 _SURFACE_BY_NAME: dict[str, type[Surface]] = {
     "yob": YobSurface,
     "mystery": MysterySurface,
+    "french": FrenchSurface,
 }
 
 
 def _resolve_surface(parser: argparse.ArgumentParser, surface: str) -> Surface:
     """Resolve the `--surface` name to a Surface instance.
 
-    R4-S05: 'yob' (default) and 'mystery' are wired. Any other value fails fast
-    with a clear error (SC8 — the engine never sees an unvalidated surface)."""
+    R4-S05: 'yob' (default) and 'mystery' are wired. R4-S06: 'french' joins them
+    (a second, non-Mystery surface — the generality proof). Any other value fails
+    fast with a clear error (SC8 — the engine never sees an unvalidated surface)."""
     surface_class = _SURFACE_BY_NAME.get(surface)
     if surface_class is None:
         parser.error(

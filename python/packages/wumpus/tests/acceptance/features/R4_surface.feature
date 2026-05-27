@@ -57,3 +57,30 @@ Feature: R4 surface seam — Surface Protocol + YobSurface
     Given the same seed and a sequence of internal action intents
     When the engine is driven once via the Yob surface and once via the Mystery surface with translation-equivalent inputs
     Then the rendered player-visible output of the Mystery run differs from the Yob run
+
+  # ---- R4-S06 — surface-generality smoke (FrenchSurface drops in, no engine changes) ----
+  #
+  # R4-S05 proved the surface seam works for ONE non-Yob surface (Mystery). The
+  # risk it leaves open: was that seam Mystery-shaped? R4-S06 falsifies that risk
+  # by dropping in a SECOND, independent, non-Mystery surface (FrenchSurface, a
+  # real-language translation) and showing the SAME structural equality holds —
+  # with NO engine changes. If French needed an engine edit, the seam would have
+  # been Mystery-specific. Same invariant-property framing as R4-S05 (the repo's
+  # Gherkin parser does not accept a `Property:` keyword); the broad
+  # equivalence-class coverage lives in tests/property/test_obfuscation_gap.py
+  # (now parametrized over Mystery AND French), these pin the canonical example.
+
+  Scenario: FrenchSurface reports its variant in the GameStarted header
+    Given a Game driven via the French surface
+    Then the GameStarted header records surface_id "french"
+
+  Scenario: Paired classic and French runs produce identical internal trajectories
+    Given the same seed and a sequence of internal action intents
+    When the engine is driven once via the Yob surface and once via the French surface with translation-equivalent inputs
+    Then the Yob and French internal_state_hash sequence is identical at every turn
+    And the Yob and French rng_cursor sequence is identical at every turn
+
+  Scenario: French surface genuinely translates the rendered bytes
+    Given the same seed and a sequence of internal action intents
+    When the engine is driven once via the Yob surface and once via the French surface with translation-equivalent inputs
+    Then the rendered player-visible output of the French run differs from the Yob run

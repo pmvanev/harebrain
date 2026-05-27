@@ -117,12 +117,20 @@ def test_cli_exits_cleanly_on_session_ended() -> None:
 
 
 def test_cli_accepts_yob_surface_default_and_explicit_flag() -> None:
-    """`--surface yob` is the explicit default; `--surface mystery` is wired
-    at R4-S05. An unknown surface (e.g. 'french', R4-S06) is still rejected.
+    """`--surface yob` is the explicit default; `--surface mystery` (R4-S05)
+    and `--surface french` (R4-S06) are wired non-Yob surfaces. An unknown
+    surface is still rejected.
 
     A clear error means: exit non-zero, message on stderr-or-stdout naming
     the unknown surface. We use SystemExit (argparse's default) so the
     parent process sees a real exit code.
+
+    R4-S06 NOTE: this test previously asserted `--surface french` was REJECTED
+    (that was the R4-S05 contract — French was not yet wired). R4-S06 wires
+    French, so the requirement changed: French must now be ACCEPTED. The
+    assertion below is flipped accordingly (mirroring how R4-S05 flipped the
+    'mystery' assertion from rejected to accepted), and an explicitly-unknown
+    surface ('klingon') replaces 'french' as the rejection probe.
     """
     # Default + explicit "yob" should both succeed (we use the forced-loss
     # seed so the session is short).
@@ -137,19 +145,28 @@ def test_cli_accepts_yob_surface_default_and_explicit_flag() -> None:
         stdout=io.StringIO(),
     )
 
-    # R4-S05: 'mystery' is now a wired surface — it must NOT be rejected. We
-    # answer the mystery INSTRUCTIONS prompt with the mystery NO token ("K")
-    # so the run starts; stdin then reaches EOF and the loop exits cleanly.
+    # R4-S05: 'mystery' is a wired surface — it must NOT be rejected. We answer
+    # the mystery INSTRUCTIONS prompt with the mystery NO token ("K") so the
+    # run starts; stdin then reaches EOF and the loop exits cleanly.
     cli.main(
         argv=["--seed", str(_FORCED_LOSS_SEED), "--surface", "mystery"],
         stdin=io.StringIO("K\n"),
         stdout=io.StringIO(),
     )
 
+    # R4-S06: 'french' is now a wired surface — it must NOT be rejected. We
+    # answer the French INSTRUCTIONS prompt with the French NO token ("N") so
+    # the run starts; stdin then reaches EOF and the loop exits cleanly.
+    cli.main(
+        argv=["--seed", str(_FORCED_LOSS_SEED), "--surface", "french"],
+        stdin=io.StringIO("N\n"),
+        stdout=io.StringIO(),
+    )
+
     # An unsupported surface must still exit non-zero.
     with pytest.raises(SystemExit) as excinfo:
         cli.main(
-            argv=["--seed", "0", "--surface", "french"],
+            argv=["--seed", "0", "--surface", "klingon"],
             stdin=io.StringIO(""),
             stdout=io.StringIO(),
         )
