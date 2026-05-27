@@ -5123,3 +5123,62 @@ Each carries an inline `> SUPERSEDED → ADR-011` redirect; the originals are re
 ### Forced-termination seed placeholders
 
 `tests/conftest.py` `forced_loss_seed → 17` / `forced_win_seed → 99` were flagged "pinned during R1-S10 BASIC capture." With no capture session, **pin them to engine-discovered seeds instead** (run the engine to find seeds that force a loss/win) — tracked as a small follow-up, not a blocker. `seed=3` is already engine-verified as a forced pit-fall (see the golden-master suite) and can replace the `forced_loss_seed` placeholder.
+
+---
+
+## Wave: DELIVER / [REF] R1 CLI-Fidelity Completion (Slice Proposal — PENDING APPROVAL)
+
+**Status: PROPOSED, recorded 2026-05-27. No implementation yet — awaiting approval.** This section re-examines what dropping R1-S10's byte-parity (ADR-011) inadvertently cost, and proposes slices to recover the parts we still want. The "no exact byte match to PC-BASIC" decision (ADR-011) **stands** — this is about structural/rendered fidelity to Yob, verified against the goals-doc verbatim catalogue and a golden rendered-transcript, NOT against a running interpreter.
+
+### Why this exists
+
+Byte-comparison against `wumpus.gwbasic.bas` (the old R1-S10) was implicitly the *only* check that the playable CLI **reads and behaves like Yob** — every prompt, every verbatim message, the input flow, and graceful handling of bad input. Our acceptance suite covers the *mechanics/events* thoroughly but asserts little about the *rendered* experience or the *input protocol*. When byte-parity went (correctly), that layer lost its net. Driving the CLI on 2026-05-27 surfaced the gaps below. The requirement these violate is `wumpus_python_goals.md` § Goal 1 ("Messages — verbatim" + "Inputs and outputs — verbatim").
+
+### Gap catalogue (evidence: live CLI runs, 2026-05-27)
+
+| # | Gap | Status |
+|---|---|---|
+| G1 | Starting room (`YOU ARE IN ROOM  <n>` / `TUNNELS LEAD TO …`) is NOT rendered at game start — only after the first move | missing |
+| G2 | Top-level `SHOOT OR MOVE (S-M)?` action prompt is never emitted (no `PromptIssued`; `pending_prompt=None` between turns) | missing |
+| G3 | Shoot sub-prompts `NO. OF ROOMS(1-5)?` / `ROOM #?` are emitted (R1-S05) but NOT rendered to the player | render gap |
+| G4 | Arrow-outcome messages (`MISSED`, `AHA! YOU GOT THE WUMPUS!`, `OUCH! ARROW GOT YOU!`) and hazard messages (`...OOPS! BUMPED A WUMPUS!`, `ZAP--SUPER BAT SNATCH! …`) not rendered | render gap |
+| G5 | `WHERE TO?` prompt + Yob's two-step move not implemented — engine only accepts combined `move <N>` | missing |
+| G6 | Unrecognized input (e.g. `M`) raises an **uncaught `ValueError`** that crashes the CLI, instead of `NOT POSSIBLE -` + re-prompt without consuming the turn | bug |
+
+Working correctly (not in scope): terminal text (`FELL IN PIT`, win/loss `HA HA HA`/`HEE HEE HEE` swap, `SAME SET-UP (Y-N)?`), and sense + location-after-move rendering (delivered R4-S03b).
+
+### Decision (user-approved 2026-05-27): Yob-faithful two-step input
+
+The CLI input flow matches Yob exactly: single-letter `S`/`M`/`Y`/`N` and integers only.
+- `M` → emit `WHERE TO?` (`PromptKind="move_target"`, park) → next integer resolves the move.
+- `S` → emit `NO. OF ROOMS(1-5)?` → per-slot `ROOM #?` (the R1-S05 shoot sub-state-machine already parks this way; this slice renders its prompts).
+- Each base turn: after the location render, emit the `SHOOT OR MOVE (S-M)?` action prompt and park.
+- Any unrecognized/off-graph input re-prompts (with `NOT POSSIBLE -` for off-graph moves) without consuming the turn — never crashes.
+
+**Churn flag:** the existing suite drives the engine with the combined `move <N>` form and bare `S`, across R1 acceptance step defs, the property-test action strategy, and the pexpect/wexpect smoke tests. Going two-step means those inputs migrate to `M`/`<int>` (mirroring how shoot tests already feed `S`/`<int>`). Decision for slice-time: whether to **retain `move <N>` as a documented programmatic-only convenience alias** on `Game.step()` (minimizes test churn; CLI still strictly two-step) or **remove it** (maximal fidelity, larger migration). The error message "R0 engine accepts only 'move <N>'" shows the parser is still at R0 level regardless.
+
+### Acceptance-net approach (the structural successor to R1-S10)
+
+Two layers, consistent with ADR-011 (no BASIC interpreter in the loop):
+1. **Rendered-experience acceptance scenarios** — drive a real session and assert each goals-doc verbatim string renders at the correct point and in the correct order (engine output vs. the § Goal 1 "Messages — verbatim" catalogue).
+2. **Golden rendered-transcript regression** — capture the engine's *own* full rendered stdout for a few fixed `(seed, Yob-input-script)` → terminal sessions, pin them as golden files, and characterization-test against them (engine-vs-pinned-self). Analogous to `tests/regression/test_determinism_golden_master.py`; catches any rendering regression. Re-bless deliberately on intended changes.
+
+### Proposed slices
+
+**R1-S11 — Yob-faithful input protocol + robust re-prompt (fixes G2-emit, G5, G6).**
+- Add `PromptKind` values for the action prompt and `move_target`; emit `SHOOT OR MOVE (S-M)?` after each location render and `WHERE TO?` after `M`, mirroring the R1-S05 shoot machine.
+- Wrap CLI/`step()` input handling so invalid/unrecognized input → re-prompt (off-graph → `NOT POSSIBLE -`), never an uncaught exception.
+- Resolve the `move <N>` alias decision above.
+- AC sketch: *Given* a fresh game past instructions, *Then* `SHOOT OR MOVE (S-M)?` is the awaited prompt; *When* `M` then `<adjacent room>`, *Then* `WHERE TO?` is shown and the move resolves; *When* an off-graph or unknown token, *Then* `NOT POSSIBLE -` (or re-prompt) and the turn is not consumed and the process does not crash.
+
+**R1-S12 — Render the full per-turn Yob transcript (fixes G1, G3, G4).**
+- Wire the remaining surface-rendered lines into `Observation.rendered_lines`: starting location at game start (G1); shoot prompts (G3); arrow-outcome + hazard messages (G4). All strings via `YobSurface` (SC8 — no engine string literals).
+- AC sketch: *Given* a driven session that starts, smells/feels/hears, shoots (hit and miss), bumps the wumpus, and gets bat-snatched, *Then* each corresponding § Goal 1 verbatim string appears in `rendered_lines` at the right turn, in Yob's order.
+
+**R1-S13 — Golden rendered-transcript regression net (locks it down).**
+- ~3 fixed `(seed, input-script)` full sessions to distinct terminals (pit loss, wumpus kill/win, out-of-arrows), engine stdout pinned as golden files + characterization test; plus one acceptance scenario cross-checking a transcript against the § Goal 1 catalogue. This is the structural replacement for the withdrawn R1-S10 BASIC fixtures.
+
+These three could collapse to two (S11 interaction + S12 render together, S13 the net) if each stays ≤1 day; granularity is a slice-time call.
+
+### Explicitly out of scope (still dropped, per ADR-011)
+- Byte-identical comparison against PC-BASIC / GW-BASIC RND parity. The golden transcript pins the engine's *own* faithful rendering, not a BASIC interpreter's output.
