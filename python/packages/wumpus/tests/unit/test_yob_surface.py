@@ -99,12 +99,10 @@ def test_yob_surface_renders_hazard_kind_to_yob_verbatim_string(
             "lose",
             ("TSK TSK TSK- WUMPUS GOT YOU!", "HA HA HA - YOU LOSE!"),
         ),
-        # Loss: fell in a pit.
-        (
-            "fell_in_pit",
-            "lose",
-            ("YYYIIIIEEEE . . . FELL IN PIT", "HA HA HA - YOU LOSE!"),
-        ),
+        # Loss: fell in a pit — just the lose tag. The pit line is rendered
+        # ONCE via the prior HazardTriggered(PIT) event (wumpus.gwbasic.bas:4230
+        # prints it once); a terminal-reason entry would double-render it.
+        ("fell_in_pit", "lose", ("HA HA HA - YOU LOSE!",)),
         # Loss: out of arrows — no extra reason line, just the lose tag
         # (the prior ArrowMissed/ArrowCountChanged narrated the run-out).
         ("out_of_arrows", "lose", ("HA HA HA - YOU LOSE!",)),

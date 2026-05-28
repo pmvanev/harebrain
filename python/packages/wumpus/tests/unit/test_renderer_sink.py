@@ -138,9 +138,11 @@ def test_renderer_sink_skips_events_with_no_surface_mapping() -> None:
 
 
 def test_renderer_sink_records_terminal_outcome_lines() -> None:
-    """A GameEnded(fell_in_pit, lose) event lands as its Yob reason line +
-    swap-tag on the sink's stream. This is the same path the pexpect smoke
-    test asserts on (the harness sees the lose-tag before EOF)."""
+    """A GameEnded(fell_in_pit, lose) event lands as JUST the lose-tag on the
+    sink's stream — the pit reason line is rendered by the prior
+    HazardTriggered(PIT) (wumpus.gwbasic.bas:4230 prints it once), not by the
+    terminal event. This is the same path the pexpect smoke test asserts on
+    (the harness sees the lose-tag before EOF)."""
     buffer = io.StringIO()
     sink = RendererSink(stream=buffer)
 
@@ -158,5 +160,7 @@ def test_renderer_sink_records_terminal_outcome_lines() -> None:
     )
 
     output = buffer.getvalue()
-    assert yob_surface.HAZARD_PIT in output
     assert yob_surface.LOSE_TAG in output
+    # The pit hazard line is rendered by HazardTriggered(PIT), not duplicated
+    # here. Guards the fix for the original double-render fidelity bug.
+    assert yob_surface.HAZARD_PIT not in output

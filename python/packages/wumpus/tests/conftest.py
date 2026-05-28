@@ -63,15 +63,22 @@ def canonical_seed() -> int:
 
 @pytest.fixture
 def forced_loss_seed() -> int:
-    """Seed chosen during R1-S10 fixture capture that produces a forced loss
-    within ~3 turns. Used by acceptance + subprocess smoke tests once R1 lands.
+    """Engine-discovered seed that forces a loss in two inputs.
+
+    seed=3 places the player adjacent to a pit at room 19; ``step("N")`` then
+    ``step("move 19")`` walks straight into it. Verified by the determinism
+    golden master (``tests/regression/test_determinism_golden_master.py``) and
+    the R1-S13 rendered transcript (``pit_fall_seed3.txt``).
     """
-    return 17  # placeholder; actual value pinned during R1-S10 BASIC capture
+    return 3
 
 
 @pytest.fixture
 def forced_win_seed() -> int:
-    """Seed chosen during R1-S10 fixture capture that produces a forced win.
-    Placeholder; actual value pinned during R1-S10 BASIC capture.
+    """Engine-discovered seed that forces a wumpus-kill win in a short shoot.
+
+    seed=15 places the player at room 8 with the wumpus adjacent in room 7;
+    ``step("N")`` then ``S`` / ``1`` / ``7`` (a one-room arrow) kills it.
+    Verified by the R1-S13 rendered transcript (``wumpus_kill_seed15.txt``).
     """
-    return 99  # placeholder
+    return 15

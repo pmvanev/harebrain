@@ -157,7 +157,10 @@ def render_hazard(event: HazardTriggered) -> tuple[str, ...]:
 _TERMINAL_REASON_BY_OUTCOME: dict[str, str] = {
     "wumpus_shot": TERMINAL_WUMPUS_SHOT,
     "eaten_after_bump": TERMINAL_WUMPUS_GOT_YOU,
-    "fell_in_pit": HAZARD_PIT,
+    # "fell_in_pit" deliberately omitted — wumpus.gwbasic.bas:4230 prints the
+    # pit line ONCE, rendered via HazardTriggered(PIT) -> hazard_name above.
+    # Putting HAZARD_PIT here too double-renders. terminal_lines("fell_in_pit",
+    # "lose") therefore returns just (HA HA HA - YOU LOSE!,).
     # out_of_arrows has no extra reason line in Yob's source — the prior
     # ArrowMissed + ArrowCountChanged(new_count=0) chain already narrated
     # what happened. The terminal turn just gets the lose tag.

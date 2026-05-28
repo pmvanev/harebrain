@@ -114,7 +114,10 @@ _ARROW_OUTCOME_BY_KIND: dict[str, str] = {
 _TERMINAL_REASON_BY_OUTCOME: dict[str, str] = {
     "wumpus_shot": "YOUR BOLT PIERCES THE GLORP",
     "eaten_after_bump": "THE GLORP DEVOURS YOU",
-    "fell_in_pit": "THE VOID SWALLOWS YOU",
+    # "fell_in_pit" deliberately omitted to mirror Yob's structure — the pit
+    # line is rendered ONCE via HazardTriggered(PIT) -> hazard_name (the Mystery
+    # equivalent is "THE VOID SWALLOWS YOU"); a terminal-reason entry here
+    # would double-render it. See yob.py for the matching note.
     "out_of_arrows": "",
 }
 

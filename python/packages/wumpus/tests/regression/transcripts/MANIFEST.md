@@ -37,11 +37,13 @@ single-letter `N`/`S`/`M`/`Y` and bare integers, one per line, ending with
   exercises the `BATS NEARBY!` sense line (seed=18 has a bat adjacent to room 7),
   broadening verbatim-string coverage beyond the other two transcripts.
 
-## Observed rendering characteristic (not a bug to fix here)
+## Resolved: double `FELL IN PIT` render (2026-05-28)
 
-The pit-fall transcript renders `YYYIIIIEEEE . . . FELL IN PIT` **twice** — once
-on `HazardTriggered(PIT)` and once on `GameEnded(fell_in_pit)`. That is the
-engine's existing per-event rendering behavior (each event independently maps to
-its surface line). R1-S13 is a test-only slice: it pins the engine's OWN output
-as-is. If the double-render is ever judged undesirable, that is a separate
-render-layer change with its own slice — re-bless these fixtures then.
+Original observation (R1-S13 time): the pit-fall transcript rendered
+`YYYIIIIEEEE . . . FELL IN PIT` **twice** — once on `HazardTriggered(PIT)` and
+once on `GameEnded(fell_in_pit)`. Verified against `wumpus.gwbasic.bas:4230`:
+Yob's source prints the pit line **once**, so the double-render was a real
+fidelity bug. Fixed by removing the `fell_in_pit` entry from each surface's
+`_TERMINAL_REASON_BY_OUTCOME` map (the `hazard_name("PIT")` path already
+renders the line); `pit_fall_seed3.txt` was re-blessed to drop the duplicate.
+See `yob.py` for the in-code note pointing at .bas:4230.

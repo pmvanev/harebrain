@@ -63,8 +63,7 @@ def test_pexpect_drives_wumpus_to_forced_loss() -> None:
         child.expect_exact("INSTRUCTIONS (Y-N)?", timeout=10)
         child.sendline("N")  # skip the verbatim instructions
         # "move 19" walks straight into pit room 19. The surface renders:
-        #   "YYYIIIIEEEE . . . FELL IN PIT" (hazard line)
-        #   "YYYIIIIEEEE . . . FELL IN PIT" (terminal reason)
+        #   "YYYIIIIEEEE . . . FELL IN PIT" (hazard line — Yob bas:4230, once)
         #   "HA HA HA - YOU LOSE!"          (D11 swap tag)
         #   "SAME SET-UP (Y-N)?"
         child.sendline("move 19")
