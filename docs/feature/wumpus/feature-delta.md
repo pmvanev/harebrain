@@ -4522,7 +4522,7 @@ Each KPI maps to a CI job; passing/failing the job is the KPI's signal. README b
 [![byte-fidelity](https://github.com/pmvanev/harebrain/actions/workflows/pr.yml/badge.svg?branch=main)](https://github.com/pmvanev/harebrain/actions/workflows/pr.yml)
 [![audits](https://github.com/pmvanev/harebrain/actions/workflows/audits.yml/badge.svg?branch=main)](https://github.com/pmvanev/harebrain/actions/workflows/audits.yml)
 [![nightly](https://github.com/pmvanev/harebrain/actions/workflows/nightly.yml/badge.svg?branch=main)](https://github.com/pmvanev/harebrain/actions/workflows/nightly.yml)
-[![mutation](https://github.com/pmvanev/harebrain/actions/workflows/mutation.yml/badge.svg?branch=main)](https://github.com/pmvanev/harebrain/actions/workflows/mutation.yml)
+<!-- mutation badge removed 2026-05-27: workflow deleted; mutation testing moved to local developer practice — see CLAUDE.md § Mutation Testing Strategy. -->
 ```
 
 Per-job badges (K-1/K-2/K-3/K-4 individually) require either job-level workflow runs (separate workflow files per KPI — heavier) or a third-party badge service. The single-workflow-with-multiple-steps approach above keeps the workflow count low; individual KPI status surfaces through the PR-checks list rather than badges. Acceptable trade-off; can split if needed.
@@ -4606,6 +4606,8 @@ Mutation testing (`ci/mutation-per-feature`) runs *post-merge* on main; it does 
 ---
 
 ## Wave: DEVOPS / [REF] Mutation Testing Configuration
+
+> **SUPERSEDED 2026-05-27 — historical record only.** The CI mutation gate (`mutation.yml`) was deleted; mutation testing is now a **local developer practice**. The CI workflow had been silently no-op'ing on every push (uv couldn't locate the mutmut binary from the workspace root + `|| true` swallowed the failure + `TOTAL=0` was treated as PASS), and CI mutation testing is the wrong feedback loop for a single-developer local repo at this stage. See `CLAUDE.md` § Mutation Testing Strategy for the current policy. The configuration + workflow YAML below describe what *was* designed at DEVOPS time.
 
 **Tool:** `mutmut` (Python's most ecosystem-common mutation tester; faster than `cosmic-ray` for typical projects; configurable via `setup.cfg` or `pyproject.toml`).
 

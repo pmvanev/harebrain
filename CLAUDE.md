@@ -15,13 +15,11 @@ The paradigm decision is recorded in `docs/feature/wumpus/feature-delta.md` § `
 
 ## Mutation Testing Strategy
 
-This project uses **per-feature** mutation testing. Runs after refactoring during each delivery, scoped to modified files. Kill rate gate: **≥ 80%**.
+`mutmut` is used as a **local developer practice** during slice completion — not a CI gate. Run mutmut locally to find weak spots in the test suite; surviving mutants either get killing tests in the same slice or a documented exemption in `MUTATION_EXEMPTIONS.md`. Kill-rate target: **≥ 80%** for the slice's modified files.
 
-Tool: `mutmut` (configured in `python/packages/wumpus/pyproject.toml` under `[tool.mutmut]`).
+Tool: `mutmut` (configured in `python/packages/wumpus/pyproject.toml` under `[tool.mutmut]`). **Windows note:** mutmut 3.x has no native Windows support ([issue #397](https://github.com/boxed/mutmut/issues/397)) — use WSL on this platform.
 
-Workflow: CI runs `mutation.yml` post-merge to main, scoped to files changed in the most recent merge. Surviving mutations either get killing tests on the next slice or a documented exemption in `MUTATION_EXEMPTIONS.md`.
-
-The mutation-testing decision is recorded in `docs/feature/wumpus/feature-delta.md` § `## Wave: DEVOPS / [REF] Mutation Testing Configuration`.
+The DEVOPS-wave CI-gate design (`mutation.yml`, removed 2026-05-27 — the gate had been silently no-op'ing, and CI mutation testing is the wrong shape of feedback loop for a single-developer local repo) is superseded by this policy. See `docs/feature/wumpus/feature-delta.md` § `## Wave: DEVOPS / [REF] Mutation Testing Configuration` for the historical record.
 
 ## Feature documentation convention
 
