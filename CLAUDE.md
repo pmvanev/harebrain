@@ -15,11 +15,24 @@ The paradigm decision is recorded in `docs/feature/wumpus/feature-delta.md` § `
 
 ## Mutation Testing Strategy
 
-`mutmut` is used as a **local developer practice** during slice completion — not a CI gate. Run mutmut locally to find weak spots in the test suite; surviving mutants either get killing tests in the same slice or a documented exemption in `MUTATION_EXEMPTIONS.md`. Kill-rate target: **≥ 80%** for the slice's modified files.
+Mutation testing is a **local developer practice** during slice completion — not a CI gate. Run it locally to find weak spots in the test suite; surviving mutants either get killing tests in the same slice or a documented exemption in `MUTATION_EXEMPTIONS.md`. Kill-rate target: **≥ 80 %** on the slice's modified files (excluding equivalent mutants).
 
-Tool: `mutmut` (configured in `python/packages/wumpus/pyproject.toml` under `[tool.mutmut]`). **Windows note:** mutmut 3.x has no native Windows support ([issue #397](https://github.com/boxed/mutmut/issues/397)) — use WSL on this platform.
+**Tool:** [cosmic-ray](https://github.com/sixty-north/cosmic-ray) — Windows-native, actively maintained. Install: `uv tool install cosmic-ray`. Config lives at `docs/feature/<feature>/deliver/mutation/cosmic-ray.toml`; sessions are kept alongside but gitignored.
 
-The DEVOPS-wave CI-gate design (`mutation.yml`, removed 2026-05-27 — the gate had been silently no-op'ing, and CI mutation testing is the wrong shape of feedback loop for a single-developer local repo) is superseded by this policy. See `docs/feature/wumpus/feature-delta.md` § `## Wave: DEVOPS / [REF] Mutation Testing Configuration` for the historical record.
+Run (from `python/packages/wumpus/`):
+
+```
+CONF=../../../docs/feature/wumpus/deliver/mutation/cosmic-ray.toml
+SESS=../../../docs/feature/wumpus/deliver/mutation/session.sqlite
+uv tool run --from cosmic-ray cosmic-ray init "$CONF" "$SESS"
+uv tool run --from cosmic-ray cosmic-ray baseline "$CONF"
+uv tool run --from cosmic-ray cosmic-ray --verbosity INFO exec "$CONF" "$SESS"
+uv tool run --from cosmic-ray cosmic-ray dump "$SESS"
+```
+
+Cosmic-ray applies + reverts each mutation around the test run — no in-place corruption on interrupt. The current baseline + actionable findings live at `docs/feature/wumpus/deliver/mutation/mutation-report.md`.
+
+**Why not mutmut:** the project's original `[tool.mutmut]` block was written for mutmut 2.x (now unmaintained); mutmut 3.x has no native Windows support ([issue #397](https://github.com/boxed/mutmut/issues/397)) *and* a breaking config-schema rewrite, so it didn't work in either CI (silent no-op) or Docker (config-parse bug). Cosmic-ray is the pragmatic Windows-native alternative. The historical mutmut design lives in `docs/feature/wumpus/feature-delta.md` § DEVOPS / Mutation Testing Configuration (marked superseded).
 
 ## Feature documentation convention
 

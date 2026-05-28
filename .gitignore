@@ -1,1 +1,5 @@
 .hypothesis/
+
+# Mutation testing — cosmic-ray session DBs are runtime artifacts, not source
+# of truth. Per-run; checked-in baseline lives in mutation-report.md instead.
+docs/feature/*/deliver/mutation/session*.sqlite

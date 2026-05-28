@@ -1,0 +1,34 @@
+# cosmic-ray — mutation testing config for the wumpus feature.
+#
+# Invoked from python/packages/wumpus/ so the relative paths below resolve:
+#   cd python/packages/wumpus
+#   cosmic-ray init  ../../../docs/feature/wumpus/deliver/mutation/cosmic-ray.toml  session.sqlite
+#   cosmic-ray baseline session.sqlite
+#   cosmic-ray exec  ../../../docs/feature/wumpus/deliver/mutation/cosmic-ray.toml  session.sqlite
+#   cosmic-ray dump  session.sqlite  >  dump.json
+#
+# Tool choice (cosmic-ray vs mutmut): mutmut 3.x has no native Windows support
+# and a config-schema rewrite incompatible with the project's previous
+# [tool.mutmut] block. Cosmic-ray runs natively on Windows and is actively
+# maintained.  See CLAUDE.md § Mutation Testing Strategy.
+
+[cosmic-ray]
+# Start scoped to ONE small new-this-session file to validate the pipeline.
+# Expand to the engine + the other surfaces + audits once we have a real
+# kill-rate number for this first target.
+module-path = "src/wumpus/surfaces/mystery.py"
+
+# Per-mutation timeout. The wumpus test suite (minus subprocess) finishes in
+# ~6s when green; bumped to 60 to absorb headroom on slower mutations that
+# hit Hypothesis property tests.
+timeout = 60.0
+
+excluded-modules = []
+
+# Excludes the wexpect subprocess smoke (hangs on this Windows machine — the
+# session-wide gotcha; see CLAUDE.md). The local property + acceptance suite is
+# the meaningful kill signal for this scope.
+test-command = "uv run pytest tests -x --ignore=tests/subprocess -q"
+
+[cosmic-ray.distributor]
+name = "local"

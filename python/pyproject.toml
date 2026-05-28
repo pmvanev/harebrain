@@ -24,7 +24,9 @@ dev = [
     "jsonschema>=4",
     "mypy>=1.11",
     "ruff>=0.6",
-    "mutmut>=2.5",
+    # Mutation testing uses cosmic-ray installed as a uv tool (not a project
+    # dep) — see CLAUDE.md § Mutation Testing Strategy. Previously "mutmut>=2.5"
+    # here; removed 2026-05-28 (see CLAUDE.md for the why).
     # R1-S09 subprocess smoke harnesses. pexpect is the POSIX driver
     # (Linux/macOS); wexpect is the Windows fork. The CI matrix runs
     # each on its native OS; both are dev-only.

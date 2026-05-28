@@ -40,15 +40,9 @@ precision = 1
 show_missing = true
 skip_empty = true
 
-[tool.mutmut]
-paths_to_mutate = [
-  "src/wumpus/engine",
-  "src/wumpus/types",
-  "src/wumpus/events",
-  "src/wumpus/surfaces",
-  "src/wumpus/sinks",
-  "src/wumpus/taxonomy",
-]
-backup = false
-runner = "uv run pytest python/packages/wumpus/tests -x --ff -q"
-tests_dir = "tests"
+# Mutation testing config lives at
+# docs/feature/wumpus/deliver/mutation/cosmic-ray.toml (cosmic-ray, not mutmut —
+# see CLAUDE.md § Mutation Testing Strategy). The previous [tool.mutmut] block
+# was removed 2026-05-28: mutmut 3.x has no native Windows support and a
+# breaking config-schema rewrite incompatible with this project's pre-existing
+# mutmut 2.x-style config; cosmic-ray is the Windows-native alternative.
