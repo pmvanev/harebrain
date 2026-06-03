@@ -1,0 +1,102 @@
+<svg viewBox="0 0 680 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two-column mapping: tri-agent constructs on the left in oxblood connect by dashed arrows to harebrain primitives on the right in blueprint. QCA maps to the LLM at the leaf, RA to EDD adversarial review, EA to a soft critic, Q_gt to the oracle and ground truth, the clarify loop to an ask-until-bound chart subgraph, and synthetic ablation to slow-clock authoring.">
+  <style>
+    .paper          { color: #f3eddc; }
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .blueprint      { color: #1f4f7a; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
+    .oxblood        { color: #8b1f2c; }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage           { color: #4f6b3f; }
+    @media (prefers-color-scheme: dark) {
+      .paper          { color: #14130c; }
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .blueprint      { color: #88c0e8; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood        { color: #e09098; }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage           { color: #b1c98c; }
+    }
+  </style>
+
+  <!-- column headers -->
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="150" y="28" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle">tri-agent framework</text>
+  </g>
+  <g class="blueprint" stroke="none" fill="currentColor">
+    <text x="530" y="28" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle">harebrain</text>
+  </g>
+
+  <!-- helper rows: left box, right box, dashed arrow -->
+  <!-- row 1 -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="44" width="260" height="42" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor"><rect x="20" y="44" width="260" height="42" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="32" y="62" font-family="JetBrains Mono, monospace" font-size="10" stroke="none">QCA</text>
+    <text x="32" y="78" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">candidate generator + spec refiner</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="400" y="44" width="260" height="42" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor"><rect x="400" y="44" width="260" height="42" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="412" y="62" font-family="JetBrains Mono, monospace" font-size="10" stroke="none">LLM at the leaf</text>
+    <text x="412" y="78" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">one call per state, behind a guard</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="280" y1="65" x2="396" y2="65" stroke-width="1.1" stroke-dasharray="4 3"/><polygon points="400,65 393,61 393,69" stroke="none"/></g>
+
+  <!-- row 2 -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="96" width="260" height="42" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor"><rect x="20" y="96" width="260" height="42" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="32" y="114" font-family="JetBrains Mono, monospace" font-size="10" stroke="none">RA &#183; adversarial persona</text>
+    <text x="32" y="130" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">vague / evasive / unsupported replies</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="400" y="96" width="260" height="42" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor"><rect x="400" y="96" width="260" height="42" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="412" y="114" font-family="JetBrains Mono, monospace" font-size="10" stroke="none">EDD adversarial review</text>
+    <text x="412" y="130" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">simulated environment, automated</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="280" y1="117" x2="396" y2="117" stroke-width="1.1" stroke-dasharray="4 3"/><polygon points="400,117 393,113 393,121" stroke="none"/></g>
+
+  <!-- row 3 -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="148" width="260" height="42" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor"><rect x="20" y="148" width="260" height="42" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="32" y="166" font-family="JetBrains Mono, monospace" font-size="10" stroke="none">EA &#183; LLM-as-judge</text>
+    <text x="32" y="182" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">1&#8211;5 rubric scores</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="400" y="148" width="260" height="42" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor"><rect x="400" y="148" width="260" height="42" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="412" y="166" font-family="JetBrains Mono, monospace" font-size="10" stroke="none">soft critic</text>
+    <text x="412" y="182" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">graded verdict &#8212; not sound</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="280" y1="169" x2="396" y2="169" stroke-width="1.1" stroke-dasharray="4 3"/><polygon points="400,169 393,165 393,173" stroke="none"/></g>
+
+  <!-- row 4 -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="200" width="260" height="42" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor"><rect x="20" y="200" width="260" height="42" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="32" y="218" font-family="JetBrains Mono, monospace" font-size="10" stroke="none">Q_gt &#183; ground-truth query</text>
+    <text x="32" y="234" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">the answer key, mandatory slots</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="400" y="200" width="260" height="42" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor"><rect x="400" y="200" width="260" height="42" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="412" y="218" font-family="JetBrains Mono, monospace" font-size="10" stroke="none">oracle / ground truth</text>
+    <text x="412" y="234" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">slot equality is a hard check</text></g>
+  <g class="sage" stroke="currentColor" fill="currentColor"><line x1="280" y1="221" x2="396" y2="221" stroke-width="1.4" stroke-dasharray="4 3"/><polygon points="400,221 393,217 393,225" stroke="none"/></g>
+
+  <!-- row 5 -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="252" width="260" height="42" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor"><rect x="20" y="252" width="260" height="42" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="32" y="270" font-family="JetBrains Mono, monospace" font-size="10" stroke="none">clarify loop &#183; CQ&#x1d62; / R&#x1d62;</text>
+    <text x="32" y="286" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">ask until intent is resolved</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="400" y="252" width="260" height="42" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor"><rect x="400" y="252" width="260" height="42" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="412" y="270" font-family="JetBrains Mono, monospace" font-size="10" stroke="none">ask-until-bound subgraph</text>
+    <text x="412" y="286" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">guard blocks exit till slots filled</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="280" y1="273" x2="396" y2="273" stroke-width="1.1" stroke-dasharray="4 3"/><polygon points="400,273 393,269 393,277" stroke="none"/></g>
+
+  <!-- row 6 -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="304" width="260" height="42" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor"><rect x="20" y="304" width="260" height="42" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="32" y="322" font-family="JetBrains Mono, monospace" font-size="10" stroke="none">synthetic ablation</text>
+    <text x="32" y="338" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">author Q_gt, omit to make Q_orig</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="400" y="304" width="260" height="42" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor"><rect x="400" y="304" width="260" height="42" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="412" y="322" font-family="JetBrains Mono, monospace" font-size="10" stroke="none">slow-clock authoring</text>
+    <text x="412" y="338" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">seed first, derive the test from it</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="280" y1="325" x2="396" y2="325" stroke-width="1.1" stroke-dasharray="4 3"/><polygon points="400,325 393,321 393,329" stroke="none"/></g>
+
+  <!-- note: the sage arrow (row 4) is the one place a hard check is available -->
+  <g class="sage" stroke="none" fill="currentColor">
+    <text x="340" y="368" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">green seam = the one place a sound check is free: bound-slot equality, not a judge</text>
+  </g>
+</svg>

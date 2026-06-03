@@ -1,0 +1,121 @@
+<svg viewBox="0 0 680 410" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The QCA scorecard over 200 supply-chain dialogues, judged by the Evaluator Agent. Six metric categories on a 1-to-5 scale: Ambiguity Detection 0.92 accuracy, Completeness of Clarification 4.15, Question Relevance 4.48, Clarity and Conciseness 4.25, Handling of Unsupported Inputs 3.75 (the weak point), Semantic Fidelity 4.38, Precision 4.29, and average 4.83 turns. Overall Task Success rate 87 percent.">
+  <style>
+    .paper          { color: #f3eddc; }
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .blueprint      { color: #1f4f7a; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.14); }
+    .oxblood        { color: #8b1f2c; }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.16); }
+    .sage           { color: #4f6b3f; }
+    .sage-tint      { color: rgba(79, 107, 63, 0.16); }
+    .muted-tint     { color: rgba(93, 85, 63, 0.07); }
+    @media (prefers-color-scheme: dark) {
+      .paper          { color: #14130c; }
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .blueprint      { color: #88c0e8; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.20); }
+      .oxblood        { color: #e09098; }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.22); }
+      .sage           { color: #b1c98c; }
+      .sage-tint      { color: rgba(177, 201, 140, 0.20); }
+      .muted-tint     { color: rgba(168, 156, 125, 0.10); }
+    }
+  </style>
+
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="20" y="26" font-family="JetBrains Mono, monospace" font-size="9" letter-spacing="0.06em">EA SCORECARD &#8201;&#183;&#8201; 200 dialogues &#183; Claude 3.5 Sonnet as all three agents</text>
+  </g>
+
+  <!-- scale grid : bars run x=210..610 for 1..5 -->
+  <!-- gridlines at 1,2,3,4,5 -->
+  <g class="rule-soft" stroke="currentColor" fill="none" stroke-width="0.8">
+    <line x1="210" y1="44" x2="210" y2="320"/>
+    <line x1="310" y1="44" x2="310" y2="320"/>
+    <line x1="410" y1="44" x2="410" y2="320"/>
+    <line x1="510" y1="44" x2="510" y2="320"/>
+    <line x1="610" y1="44" x2="610" y2="320"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">
+    <text x="210" y="40">1</text><text x="310" y="40">2</text><text x="410" y="40">3</text><text x="510" y="40">4</text><text x="610" y="40">5</text>
+  </g>
+
+  <!-- helper: bar baseline at x=210 (score 1) ; per-unit = 100px ; width = (score-1)*100 -->
+  <!-- row 1 : AH-CC 4.15 -> width 315 -->
+  <g font-family="JetBrains Mono, monospace" font-size="9">
+    <g class="muted" stroke="none" fill="currentColor"><text x="20" y="63">AH-CC &#183; completeness</text></g>
+    <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="210" y="52" width="315" height="16" rx="2"/></g>
+    <g class="blueprint" stroke="currentColor" fill="currentColor"><rect x="210" y="52" width="315" height="16" rx="2" stroke-width="1.2" fill="none"/><text x="533" y="64" font-size="9" stroke="none">4.15</text></g>
+  </g>
+  <!-- row 2 : QQ-Rel 4.48 -> 348 -->
+  <g font-family="JetBrains Mono, monospace" font-size="9">
+    <g class="muted" stroke="none" fill="currentColor"><text x="20" y="91">QQ-Rel &#183; relevance</text></g>
+    <g class="sage-tint" stroke="none" fill="currentColor"><rect x="210" y="80" width="348" height="16" rx="2"/></g>
+    <g class="sage" stroke="currentColor" fill="currentColor"><rect x="210" y="80" width="348" height="16" rx="2" stroke-width="1.2" fill="none"/><text x="566" y="92" font-size="9" stroke="none">4.48</text></g>
+  </g>
+  <!-- row 3 : QQ-CC 4.25 -> 325 -->
+  <g font-family="JetBrains Mono, monospace" font-size="9">
+    <g class="muted" stroke="none" fill="currentColor"><text x="20" y="119">QQ-CC &#183; clarity</text></g>
+    <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="210" y="108" width="325" height="16" rx="2"/></g>
+    <g class="blueprint" stroke="currentColor" fill="currentColor"><rect x="210" y="108" width="325" height="16" rx="2" stroke-width="1.2" fill="none"/><text x="543" y="120" font-size="9" stroke="none">4.25</text></g>
+  </g>
+  <!-- row 4 : LA-Uns 3.75 -> 275  (the weak one, oxblood) -->
+  <g font-family="JetBrains Mono, monospace" font-size="9">
+    <g class="oxblood" stroke="none" fill="currentColor"><text x="20" y="147">LA-Uns &#183; unsupported</text></g>
+    <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="210" y="136" width="275" height="16" rx="2"/></g>
+    <g class="oxblood" stroke="currentColor" fill="currentColor"><rect x="210" y="136" width="275" height="16" rx="2" stroke-width="1.4" fill="none"/><text x="493" y="148" font-size="9" stroke="none">3.75</text></g>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="166" y="148" font-family="JetBrains Mono, monospace" font-size="11" text-anchor="middle">&#9664;</text></g>
+  <!-- row 5 : FQA-SF 4.38 -> 338 -->
+  <g font-family="JetBrains Mono, monospace" font-size="9">
+    <g class="muted" stroke="none" fill="currentColor"><text x="20" y="175">FQA-SF &#183; fidelity</text></g>
+    <g class="sage-tint" stroke="none" fill="currentColor"><rect x="210" y="164" width="338" height="16" rx="2"/></g>
+    <g class="sage" stroke="currentColor" fill="currentColor"><rect x="210" y="164" width="338" height="16" rx="2" stroke-width="1.2" fill="none"/><text x="556" y="176" font-size="9" stroke="none">4.38</text></g>
+  </g>
+  <!-- row 6 : FQA-Prec 4.29 -> 329 -->
+  <g font-family="JetBrains Mono, monospace" font-size="9">
+    <g class="muted" stroke="none" fill="currentColor"><text x="20" y="203">FQA-Prec &#183; precision</text></g>
+    <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="210" y="192" width="329" height="16" rx="2"/></g>
+    <g class="blueprint" stroke="currentColor" fill="currentColor"><rect x="210" y="192" width="329" height="16" rx="2" stroke-width="1.2" fill="none"/><text x="547" y="204" font-size="9" stroke="none">4.29</text></g>
+  </g>
+
+  <!-- divider for the non-1to5 metrics -->
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="20" y1="224" x2="610" y2="224" stroke-width="1"/></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="20" y="240" font-family="JetBrains Mono, monospace" font-size="8" letter-spacing="0.06em">OTHER SCALES</text></g>
+
+  <!-- AH-DA accuracy 0.92 -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="20" y="250" width="200" height="52" rx="6"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="20" y="250" width="200" height="52" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="120" y="272" font-family="JetBrains Mono, monospace" font-size="22" text-anchor="middle" stroke="none">0.92</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="120" y="292" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">AH-DA &#183; ambiguity detected</text></g>
+
+  <!-- DE-Turns 4.83 -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="240" y="250" width="200" height="52" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="240" y="250" width="200" height="52" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="340" y="272" font-family="JetBrains Mono, monospace" font-size="22" text-anchor="middle" stroke="none">4.83</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="340" y="292" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">DE-Turns &#183; avg to resolve</text></g>
+
+  <!-- OTS 87% -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="460" y="250" width="200" height="52" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="460" y="250" width="200" height="52" rx="6" stroke-width="1.8" fill="none"/>
+    <text x="560" y="272" font-family="JetBrains Mono, monospace" font-size="22" text-anchor="middle" stroke="none">87%</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="560" y="292" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">OTS &#183; overall task success</text></g>
+
+  <!-- failure-mode footnote -->
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="20" y="320" width="640" height="74" rx="6" stroke-width="1.2" stroke-dasharray="4 3"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="34" y="340" font-family="Fraunces, serif" font-size="11" font-style="italic">the ~13% that failed &#8212; two patterns</text></g>
+  <g class="ink" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="8.5">
+    <text x="34" y="358">1 &#183; premature termination &#8212; accepted &#8220;upcoming summer month&#8221; as if it bound the Date slot</text>
+    <text x="34" y="372">2 &#183; missed mandatory entity &#8212; captured &#8220;all products&#8221; but dropped a required date range</text>
+    <text x="34" y="386">both are guard-shaped: a slot left unbound the agent should not have been allowed to leave</text>
+  </g>
+</svg>

@@ -1,0 +1,179 @@
+<svg viewBox="0 0 680 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The tri-agent loop: an ambiguous initial query Q_orig is presented to the Question Clarifying Agent, which trades clarifying questions and responses with the Respondent Agent over multiple turns. The QCA emits a final clarified question; the full transcript plus the ground-truth query Q_gt go to the Evaluator Agent, an LLM-as-judge, which scores the dialogue. Q_gt also secretly guides the Respondent Agent.">
+  <style>
+    .paper          { color: #f3eddc; }
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .blueprint      { color: #1f4f7a; }
+    .blueprint-deep { color: #143553; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
+    .oxblood        { color: #8b1f2c; }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage           { color: #4f6b3f; }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    .muted-tint     { color: rgba(93, 85, 63, 0.05); }
+    @media (prefers-color-scheme: dark) {
+      .paper          { color: #14130c; }
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .blueprint      { color: #88c0e8; }
+      .blueprint-deep { color: #bcdcf2; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood        { color: #e09098; }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage           { color: #b1c98c; }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+      .muted-tint     { color: rgba(168, 156, 125, 0.10); }
+    }
+  </style>
+
+  <!-- ============== Q_orig (top-left) ============== -->
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="14" y="30" width="150" height="56" rx="6"/></g>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="14" y="30" width="150" height="56" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="89" y="50" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle" stroke="none">Q&#8338;&#7523;&#7522;&#8336; &#8201;&#8212;&#8201; the ask</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="89" y="68" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">ambiguous &#183; underspecified</text>
+    <text x="89" y="79" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">&#8220;what is the forecast?&#8221;</text>
+  </g>
+
+  <!-- ============== QCA (center-left) ============== -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="36" y="150" width="180" height="120" rx="10"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="36" y="150" width="180" height="120" rx="10" stroke-width="2" fill="none"/>
+  </g>
+  <g class="paper" stroke="none" fill="currentColor"><ellipse cx="126" cy="196" rx="60" ry="20"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><ellipse cx="126" cy="196" rx="60" ry="20" stroke-width="1.4"/></g>
+  <g class="blueprint-deep" stroke="none" fill="currentColor">
+    <text x="126" y="201" font-family="JetBrains Mono, monospace" font-size="16" text-anchor="middle" letter-spacing="0.1em">QCA</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="126" y="232" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">detect &#183; ask &#183; integrate</text>
+    <text x="126" y="244" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">confirm &#183; finalize</text>
+  </g>
+  <g class="blueprint" stroke="none" fill="currentColor">
+    <text x="126" y="261" font-family="Fraunces, serif" font-size="9" font-style="italic" text-anchor="middle">system under evaluation</text>
+  </g>
+
+  <!-- ============== RA (center-right) ============== -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="436" y="150" width="180" height="120" rx="10"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="436" y="150" width="180" height="120" rx="10" stroke-width="2" fill="none"/>
+  </g>
+  <g class="paper" stroke="none" fill="currentColor"><ellipse cx="526" cy="196" rx="56" ry="20"/></g>
+  <g class="sage" stroke="currentColor" fill="none"><ellipse cx="526" cy="196" rx="56" ry="20" stroke-width="1.4"/></g>
+  <g class="sage" stroke="none" fill="currentColor">
+    <text x="526" y="201" font-family="JetBrains Mono, monospace" font-size="16" text-anchor="middle" letter-spacing="0.12em">RA</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="526" y="232" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">simulated user</text>
+    <text x="526" y="244" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">persona: vague &#183; evasive &#183; adversarial</text>
+  </g>
+  <g class="sage" stroke="none" fill="currentColor">
+    <text x="526" y="261" font-family="Fraunces, serif" font-size="9" font-style="italic" text-anchor="middle">guided secretly by Q_gt</text>
+  </g>
+
+  <!-- ============== Q_gt (top-right) ============== -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="516" y="30" width="150" height="56" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="516" y="30" width="150" height="56" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="591" y="50" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle" stroke="none">Q_gt &#8201;&#8212;&#8201; ground truth</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="591" y="68" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">the well-specified intent</text>
+    <text x="591" y="79" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">authored first, then ablated</text>
+  </g>
+
+  <!-- ============== Transcript (bottom-center) ============== -->
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="206" y="312" width="220" height="80" rx="6"/></g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <rect x="206" y="312" width="220" height="80" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="316" y="330" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">dialogue transcript</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="216" y1="338" x2="416" y2="338" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="9">
+    <text x="218" y="354">Q_orig</text>
+    <text x="218" y="368">{ CQ&#x1d62; , R&#x1d62; } &#215; turns</text>
+    <text x="218" y="382">Q_final</text>
+  </g>
+
+  <!-- ============== EA (right) ============== -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="476" y="306" width="190" height="96" rx="8"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="476" y="306" width="190" height="96" rx="8" stroke-width="1.8" fill="none"/>
+    <text x="571" y="326" font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle" letter-spacing="0.1em" stroke="none">EA</text>
+    <text x="571" y="341" font-family="Fraunces, serif" font-size="9" font-style="italic" text-anchor="middle" stroke="none">LLM-as-judge &#183; soft critic</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="8">
+    <text x="486" y="360">scores Q_final vs Q_gt</text>
+    <text x="486" y="373">AH &#183; QQ &#183; DE &#183; LA &#183; FQA</text>
+    <text x="486" y="386">&#8594; 1&#8211;5 per metric, OTS y/n</text>
+  </g>
+
+  <!-- ====================== arrows ====================== -->
+  <!-- (1) Q_orig -> QCA -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <path d="M 89 86 Q 89 118 110 150" stroke-width="1.3" fill="none"/>
+    <polygon points="110,150 104,146 109,142" stroke="none"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <circle cx="83" cy="118" r="8" stroke-width="1.2" fill="none"/>
+    <text x="83" y="121" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">1</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="98" y="118" font-family="JetBrains Mono, monospace" font-size="8">present</text></g>
+
+  <!-- (2a) QCA -> RA : clarifying question (top) -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <line x1="216" y1="182" x2="434" y2="182" stroke-width="1.4"/>
+    <polygon points="437,182 430,178 430,186" stroke="none"/>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="326" y="176" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">CQ&#x1d62; &#8201; clarifying question</text></g>
+  <!-- (2b) RA -> QCA : response (bottom, dashed) -->
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <line x1="434" y1="216" x2="218" y2="216" stroke-width="1.4" stroke-dasharray="4 3"/>
+    <polygon points="215,216 222,212 222,220" stroke="none"/>
+  </g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="326" y="232" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">R&#x1d62; &#8201; response</text></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <circle cx="326" cy="150" r="8" stroke-width="1.2" fill="none"/>
+    <text x="326" y="153" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">2</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="345" y="153" font-family="JetBrains Mono, monospace" font-size="8">loop until resolved</text></g>
+
+  <!-- (3) QCA -> transcript : Q_final -->
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <path d="M 150 270 Q 170 300 230 312" stroke-width="1.3" fill="none"/>
+    <polygon points="230,312 223,310 226,304" stroke="none"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <circle cx="168" cy="294" r="8" stroke-width="1.2" fill="none"/>
+    <text x="168" y="297" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">3</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="184" y="297" font-family="JetBrains Mono, monospace" font-size="8">finalize</text></g>
+
+  <!-- (4) transcript -> EA -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <line x1="426" y1="352" x2="473" y2="352" stroke-width="1.4"/>
+    <polygon points="476,352 469,348 469,356" stroke="none"/>
+    <circle cx="451" cy="334" r="8" stroke-width="1.2" fill="none"/>
+    <text x="451" y="337" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">4</text>
+  </g>
+
+  <!-- (5) Q_gt -> EA (dashed, the answer key) -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <path d="M 640 86 Q 656 200 600 306" stroke-width="1.2" fill="none" stroke-dasharray="4 3"/>
+    <polygon points="600,306 603,299 597,300" stroke="none"/>
+    <circle cx="643" cy="190" r="8" stroke-width="1.2" fill="none"/>
+    <text x="643" y="193" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">5</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="655" y="210" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="end">answer key</text></g>
+
+  <!-- (*) Q_gt -> RA (dashed, secret guide) -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <path d="M 560 86 Q 545 118 530 150" stroke-width="1.1" fill="none" stroke-dasharray="3 3"/>
+    <polygon points="530,150 530,143 536,146" stroke="none"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="556" y="120" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="end">secret guide</text></g>
+</svg>

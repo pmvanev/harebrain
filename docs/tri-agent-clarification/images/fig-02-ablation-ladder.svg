@@ -1,0 +1,136 @@
+<svg viewBox="0 0 680 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Manufacturing ambiguity: a fully specified ground-truth query Q_gt is built from a base question by binding mandatory and optional entity slots, then strategically ablated by omitting entity values to produce a ladder of initial queries Q_orig at increasing ambiguity. The QCA's job is to climb back up the ladder through clarifying questions.">
+  <style>
+    .paper          { color: #f3eddc; }
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .blueprint      { color: #1f4f7a; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
+    .oxblood        { color: #8b1f2c; }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage           { color: #4f6b3f; }
+    .sage-tint      { color: rgba(79, 107, 63, 0.10); }
+    .muted-tint     { color: rgba(93, 85, 63, 0.05); }
+    @media (prefers-color-scheme: dark) {
+      .paper          { color: #14130c; }
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .blueprint      { color: #88c0e8; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood        { color: #e09098; }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage           { color: #b1c98c; }
+      .sage-tint      { color: rgba(177, 201, 140, 0.12); }
+      .muted-tint     { color: rgba(168, 156, 125, 0.10); }
+    }
+  </style>
+
+  <!-- base question (top) -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="20" y="28" font-family="JetBrains Mono, monospace" font-size="9" letter-spacing="0.06em">BASE QUESTION &#8201;&#183;&#8201; supply-chain domain</text>
+  </g>
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="20" y="38" width="300" height="58" rx="6"/></g>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="20" y="38" width="300" height="58" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="34" y="60" font-family="Fraunces, serif" font-size="13" font-style="italic" stroke="none">&#8220;What is the forecast?&#8221;</text>
+  </g>
+  <!-- entity slot chips -->
+  <g font-family="JetBrains Mono, monospace" font-size="8">
+    <g class="sage" stroke="currentColor" fill="currentColor">
+      <rect x="34" y="72" width="78" height="16" rx="3" stroke-width="1" fill="none"/>
+      <text x="40" y="83" stroke="none">Product &#183; O</text>
+    </g>
+    <g class="sage" stroke="currentColor" fill="currentColor">
+      <rect x="118" y="72" width="62" height="16" rx="3" stroke-width="1" fill="none"/>
+      <text x="124" y="83" stroke="none">Site &#183; O</text>
+    </g>
+    <g class="oxblood" stroke="currentColor" fill="currentColor">
+      <rect x="186" y="72" width="66" height="16" rx="3" stroke-width="1.2" fill="none"/>
+      <text x="192" y="83" stroke="none">Date &#183; M</text>
+    </g>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="262" y="83" font-family="JetBrains Mono, monospace" font-size="7">M mandatory &#183; O optional</text>
+  </g>
+
+  <!-- Q_gt (right, full) -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="392" y="38" width="268" height="58" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="392" y="38" width="268" height="58" rx="6" stroke-width="1.6" fill="none"/>
+    <text x="406" y="58" font-family="Fraunces, serif" font-size="11" font-style="italic" stroke="none">Q_gt &#8201;&#8212;&#8201; bind the slots</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="8.5">
+    <text x="406" y="76">forecast &#183; SKU123 &#183; Warehouse-A</text>
+    <text x="406" y="88">&#183; next month</text>
+  </g>
+
+  <!-- base -> Q_gt arrow -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <line x1="320" y1="67" x2="389" y2="67" stroke-width="1.3"/>
+    <polygon points="392,67 385,63 385,71" stroke="none"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="355" y="61" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">instantiate</text></g>
+
+  <!-- big ablate arrow Q_gt down-left to the ladder -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <path d="M 526 96 Q 526 140 360 156" stroke-width="1.5" fill="none" stroke-dasharray="5 3"/>
+    <polygon points="360,156 367,153 366,160" stroke="none"/>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="470" y="132" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle">strategically omit values</text>
+  </g>
+
+  <!-- ladder header -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="20" y="150" font-family="JetBrains Mono, monospace" font-size="9" letter-spacing="0.06em">Q_orig LADDER &#8201;&#183;&#8201; what the QCA actually receives</text>
+  </g>
+
+  <!-- rung 1 : partial (least ambiguous) -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="20" y="162" width="440" height="40" rx="5"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="20" y="162" width="440" height="40" rx="5" stroke-width="1.2" fill="none"/>
+    <text x="34" y="180" font-family="Fraunces, serif" font-size="11" font-style="italic" stroke="none">&#8220;&#8230;forecast for next month at Warehouse-A?&#8221;</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="34" y="195" font-family="JetBrains Mono, monospace" font-size="8">missing: Product &#8226; lightly underspecified</text></g>
+
+  <!-- rung 2 : partial-mid -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="20" y="210" width="440" height="40" rx="5"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="20" y="210" width="440" height="40" rx="5" stroke-width="1.2" fill="none"/>
+    <text x="34" y="228" font-family="Fraunces, serif" font-size="11" font-style="italic" stroke="none">&#8220;What is the forecast for product SKU123?&#8221;</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="34" y="243" font-family="JetBrains Mono, monospace" font-size="8">missing: Site, Date (mandatory!) &#8226; partial ambiguity</text></g>
+
+  <!-- rung 3 : base (max ambiguity) -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="258" width="440" height="40" rx="5"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="20" y="258" width="440" height="40" rx="5" stroke-width="1.4" fill="none"/>
+    <text x="34" y="276" font-family="Fraunces, serif" font-size="11" font-style="italic" stroke="none">&#8220;What is the forecast?&#8221;</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="34" y="291" font-family="JetBrains Mono, monospace" font-size="8">nothing bound &#8226; maximum ambiguity</text></g>
+
+  <!-- ambiguity gradient axis (left) -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="10" y1="162" x2="10" y2="298" stroke-width="1.1"/>
+    <polygon points="10,300 7,293 13,293" stroke="none"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="6" y="160" font-family="JetBrains Mono, monospace" font-size="7" transform="rotate(-90 6 230)" text-anchor="middle">ambiguity &#8593;</text>
+  </g>
+
+  <!-- recovery arrow : QCA must climb back -->
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <path d="M 540 278 Q 600 220 600 100" stroke-width="1.6" fill="none"/>
+    <polygon points="600,98 596,105 604,105" stroke="none"/>
+  </g>
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="476" y="232" width="190" height="64" rx="6"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="476" y="232" width="190" height="64" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="571" y="252" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">the QCA&#8217;s job</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="8">
+    <text x="571" y="270" text-anchor="middle">climb back to Q_gt by asking</text>
+    <text x="571" y="283" text-anchor="middle">&#8212; without ever seeing it</text>
+  </g>
+</svg>
