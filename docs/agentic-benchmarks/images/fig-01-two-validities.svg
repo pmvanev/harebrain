@@ -1,0 +1,116 @@
+<svg viewBox="0 0 560 236" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="An operational pipeline (agent, task, outcome, evaluation, result) sits above a conceptual chain (target capability, task success, positive result). Task validity is the equivalence between capability and task success; outcome validity is the equivalence between task success and positive result. Each can break.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.08); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .muted-tint     { color: rgba(93, 85, 63, 0.06); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .muted-tint     { color: rgba(168, 156, 125, 0.10); }
+    }
+  </style>
+
+  <!-- operational strip -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="20" y="26" font-family="JetBrains Mono, monospace" font-size="8" letter-spacing="0.1em">OPERATIONAL &#8212; what actually runs</text>
+  </g>
+  <g class="muted-tint" stroke="none" fill="currentColor">
+    <rect x="20" y="34" width="86" height="30" rx="4"/><rect x="140" y="34" width="96" height="30" rx="4"/>
+    <rect x="270" y="34" width="96" height="30" rx="4"/><rect x="400" y="34" width="96" height="30" rx="4"/>
+  </g>
+  <g class="muted" stroke="currentColor" fill="currentColor" font-family="Spectral, serif" font-size="9">
+    <rect x="20" y="34" width="86" height="30" rx="4" stroke-width="1" fill="none"/>
+    <rect x="140" y="34" width="96" height="30" rx="4" stroke-width="1" fill="none"/>
+    <rect x="270" y="34" width="96" height="30" rx="4" stroke-width="1" fill="none"/>
+    <rect x="400" y="34" width="96" height="30" rx="4" stroke-width="1" fill="none"/>
+    <text x="63" y="53" text-anchor="middle" stroke="none">agent</text>
+    <text x="188" y="49" text-anchor="middle" stroke="none">task</text>
+    <text x="188" y="60" text-anchor="middle" stroke="none" font-size="7" font-family="JetBrains Mono, monospace">env + tools</text>
+    <text x="318" y="49" text-anchor="middle" stroke="none">outcome</text>
+    <text x="318" y="60" text-anchor="middle" stroke="none" font-size="7" font-family="JetBrains Mono, monospace">code / state</text>
+    <text x="448" y="49" text-anchor="middle" stroke="none">evaluation</text>
+    <text x="448" y="60" text-anchor="middle" stroke="none" font-size="7" font-family="JetBrains Mono, monospace">tests / checks</text>
+  </g>
+  <g class="muted" stroke="currentColor" fill="currentColor" stroke-width="1.1">
+    <line x1="107" y1="49" x2="137" y2="49"/><polygon points="139,49 133,46 133,52" stroke="none"/>
+    <line x1="237" y1="49" x2="268" y2="49"/><polygon points="270,49 264,46 264,52" stroke="none"/>
+    <line x1="367" y1="49" x2="398" y2="49"/><polygon points="400,49 394,46 394,52" stroke="none"/>
+  </g>
+
+  <!-- conceptual chain -->
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="20" y="106" font-family="JetBrains Mono, monospace" font-size="8" letter-spacing="0.1em" class="muted">CONCEPTUAL &#8212; what it should mean</text>
+  </g>
+  <!-- node 1 capability -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="22" y="118" width="140" height="48" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="22" y="118" width="140" height="48" rx="6" stroke-width="1.6" fill="none"/>
+    <text x="92" y="140" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">target capability</text>
+    <text x="92" y="156" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">what we want to measure</text>
+  </g>
+  <!-- node 2 task success -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="210" y="118" width="140" height="48" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="210" y="118" width="140" height="48" rx="6" stroke-width="1.6" fill="none"/>
+    <text x="280" y="140" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">task success</text>
+    <text x="280" y="156" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">the task is truly solved</text>
+  </g>
+  <!-- node 3 positive result -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="398" y="118" width="140" height="48" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="398" y="118" width="140" height="48" rx="6" stroke-width="1.6" fill="none"/>
+    <text x="468" y="140" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">positive result</text>
+    <text x="468" y="156" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">the eval says pass</text>
+  </g>
+
+  <!-- equivalence 1 : task validity -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <line x1="166" y1="142" x2="206" y2="142" stroke-width="1.5"/>
+    <polygon points="166,142 172,139 172,145" stroke="none"/>
+    <polygon points="206,142 200,139 200,145" stroke="none"/>
+    <text x="186" y="112" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle" stroke="none" letter-spacing="0.05em">task validity</text>
+  </g>
+  <!-- equivalence 2 : outcome validity -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <line x1="354" y1="142" x2="394" y2="142" stroke-width="1.5"/>
+    <polygon points="354,142 360,139 360,145" stroke="none"/>
+    <polygon points="394,142 388,139 388,145" stroke="none"/>
+    <text x="374" y="112" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle" stroke="none" letter-spacing="0.05em">outcome validity</text>
+  </g>
+
+  <!-- failure annotations -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="96" y="182" width="180" height="42" rx="5"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="186" y="197" font-family="Spectral, serif" font-size="9" font-style="italic" text-anchor="middle">breaks via</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="186" y="210" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">shortcuts (false pass)</text>
+    <text x="186" y="220" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">impossible tasks (false fail)</text>
+  </g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="284" y="182" width="180" height="42" rx="5"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="374" y="197" font-family="Spectral, serif" font-size="9" font-style="italic" text-anchor="middle">breaks via</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="374" y="210" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">faulty tests / gameable checks</text>
+    <text x="374" y="220" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">an unvalidated LLM judge</text>
+  </g>
+
+  <!-- dashed links from concept nodes down to failures -->
+  <g class="rule-soft" stroke="currentColor" fill="none" stroke-width="1" stroke-dasharray="2 2">
+    <line x1="186" y1="142" x2="186" y2="182"/>
+    <line x1="374" y1="142" x2="374" y2="182"/>
+  </g>
+</svg>

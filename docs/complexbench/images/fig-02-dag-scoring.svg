@@ -1,0 +1,88 @@
+<svg viewBox="0 0 560 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Left: a dependency DAG where a failed prerequisite question forces every question depending on it to fail, regardless of the actual text. Right: rule-augmented evaluation routes each question to a deterministic rule or an LLM evaluator.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.08); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.12); }
+    }
+  </style>
+
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="150" y="18" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle" letter-spacing="0.1em">A FAILED PREREQUISITE VOIDS WHAT HANGS BELOW</text>
+    <text x="440" y="18" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle" letter-spacing="0.1em">EACH QUESTION, ROUTED</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none" stroke-width="0.8"><line x1="316" y1="30" x2="316" y2="232"/></g>
+
+  <!-- ===== LEFT: dependency DAG ===== -->
+  <!-- prerequisite Q1 (composition): fails -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="24" y="40" width="150" height="30" rx="5"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none" stroke-width="1.5"><rect x="24" y="40" width="150" height="30" rx="5"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="40" y="59" font-family="Spectral, serif" font-size="9.5">Q1 &#183; correct branch chosen?</text></g>
+  <g class="oxblood" stroke="currentColor" fill="none" stroke-width="1.7" stroke-linecap="round">
+    <line x1="158" y1="50" x2="166" y2="60"/><line x1="166" y1="50" x2="158" y2="60"/>
+  </g>
+
+  <!-- dependents forced No -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor" stroke-width="1.2">
+    <path d="M 70 70 q 0 16 -8 24" fill="none" stroke-dasharray="3 2"/><polygon points="60,96 60,89 66,92" stroke="none"/>
+    <path d="M 120 70 q 0 16 8 24" fill="none" stroke-dasharray="3 2"/><polygon points="130,96 124,92 130,89" stroke="none"/>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none" stroke-width="1.3"><rect x="20" y="98" width="120" height="28" rx="5"/></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="30" y="116" font-family="Spectral, serif" font-size="9">Q2 &#183; branch in English</text></g>
+  <g class="oxblood" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round"><line x1="126" y1="106" x2="133" y2="118"/><line x1="133" y1="106" x2="126" y2="118"/></g>
+  <g class="rule-soft" stroke="currentColor" fill="none" stroke-width="1.3"><rect x="150" y="98" width="120" height="28" rx="5"/></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="160" y="116" font-family="Spectral, serif" font-size="9">Q3 &#183; under 100 words</text></g>
+  <g class="oxblood" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round"><line x1="256" y1="106" x2="263" y2="118"/><line x1="263" y1="106" x2="256" y2="118"/></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="150" y="142" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle"><tspan font-style="italic">the text may be perfect &#8212; it scores zero anyway</tspan></text></g>
+
+  <!-- independent Q4 passes -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="60" y="158" width="180" height="28" rx="5"/></g>
+  <g class="sage" stroke="currentColor" fill="none" stroke-width="1.4"><rect x="60" y="158" width="180" height="28" rx="5"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="74" y="176" font-family="Spectral, serif" font-size="9.5">Q4 &#183; topic is the Mona Lisa</text></g>
+  <g class="sage" stroke="currentColor" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="222,172 226,176 232,167"/></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="150" y="202" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">no dependency &#183; scored on its own</text></g>
+
+  <!-- formula -->
+  <g class="ink" stroke="none" fill="currentColor"><text x="150" y="226" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">r&#8242;_q = r_q &#8743; ( &#8896; r_p over deps )</text></g>
+
+  <!-- ===== RIGHT: RAL routing ===== -->
+  <g class="muted" stroke="currentColor" fill="none" stroke-width="1.4"><rect x="408" y="40" width="64" height="26" rx="13"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="440" y="57" font-family="Spectral, serif" font-size="9" text-anchor="middle">a question</text></g>
+  <!-- diamond rule-verifiable? -->
+  <g class="muted" stroke="currentColor" fill="none" stroke-width="1.3"><rect x="421" y="80" width="38" height="38" rx="3" transform="rotate(45 440 99)"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="440" y="96" font-family="JetBrains Mono, monospace" font-size="6.5" text-anchor="middle">rule-</text><text x="440" y="105" font-family="JetBrains Mono, monospace" font-size="6.5" text-anchor="middle">checkable?</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor" stroke-width="1.2"><line x1="440" y1="66" x2="440" y2="78"/><polygon points="440,80 437,74 443,74" stroke="none"/></g>
+
+  <!-- yes -> hard (sage) -->
+  <g class="sage" stroke="currentColor" fill="currentColor" stroke-width="1.3"><line x1="416" y1="110" x2="372" y2="146" fill="none"/><polygon points="370,148 372,141 376,146" stroke="none"/></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="386" y="130" font-family="JetBrains Mono, monospace" font-size="7">yes</text></g>
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="324" y="150" width="100" height="46" rx="5"/></g>
+  <g class="sage" stroke="currentColor" fill="none" stroke-width="1.4"><rect x="324" y="150" width="100" height="46" rx="5"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="374" y="168" font-family="Spectral, serif" font-size="9" text-anchor="middle">extractor + rule</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="374" y="182" font-family="JetBrains Mono, monospace" font-size="6.5" text-anchor="middle">deterministic &#183; 95% agree</text></g>
+
+  <!-- no -> soft (blueprint) -->
+  <g class="blueprint" stroke="currentColor" fill="currentColor" stroke-width="1.3"><line x1="464" y1="110" x2="500" y2="146" fill="none"/><polygon points="502,148 496,146 500,141" stroke="none"/></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="486" y="130" font-family="JetBrains Mono, monospace" font-size="7">no</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="456" y="150" width="96" height="46" rx="5"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none" stroke-width="1.4"><rect x="456" y="150" width="96" height="46" rx="5"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="504" y="168" font-family="Spectral, serif" font-size="9" text-anchor="middle">LLM evaluator</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="504" y="182" font-family="JetBrains Mono, monospace" font-size="6.5" text-anchor="middle">judgment &#183; for the fuzzy</text></g>
+
+  <g class="muted" stroke="none" fill="currentColor"><text x="440" y="222" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">hard where it can be &#183; soft only where it must</text></g>
+</svg>

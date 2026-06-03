@@ -1,0 +1,133 @@
+<svg viewBox="0 0 560 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The RIFL pipeline: a fine-tuned rubric generator turns a prompt into criteria, the policy produces a response, a fine-tuned verifier checks each criterion, reward shaping collapses the checks into an all-or-nothing reward, and the reward updates the policy.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.08); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.12); }
+    }
+  </style>
+
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="280" y="18" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" letter-spacing="0.12em">RIFL &#183; RUBRIC-BASED INSTRUCTION-FOLLOWING LEARNING</text>
+  </g>
+
+  <!-- prompt -->
+  <g class="muted-tint" stroke="none" fill="currentColor"></g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <rect x="22" y="120" width="78" height="40" rx="5" stroke-width="1.3" fill="none"/>
+    <text x="61" y="138" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">prompt</text>
+    <text x="61" y="152" font-family="JetBrains Mono, monospace" font-size="6.5" text-anchor="middle" stroke="none">vendor-written</text>
+  </g>
+
+  <!-- rubric generator (top branch) -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="150" y="34" width="120" height="48" rx="6"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="150" y="34" width="120" height="48" rx="6" stroke-width="1.5" fill="none"/>
+    <text x="210" y="54" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">rubric generator</text>
+    <text x="210" y="70" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">fine-tuned &#183; F1 0.79</text>
+  </g>
+  <!-- rubric criteria -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="300" y="34" width="96" height="48" rx="6"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="300" y="34" width="96" height="48" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="348" y="51" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle" stroke="none">criteria r&#8321;..r&#8340;</text>
+  </g>
+  <g class="muted" stroke="currentColor" fill="none" stroke-width="1">
+    <line x1="312" y1="63" x2="384" y2="63"/>
+    <line x1="312" y1="72" x2="384" y2="72"/>
+  </g>
+
+  <!-- policy (center) -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="150" y="120" width="120" height="48" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="150" y="120" width="120" height="48" rx="6" stroke-width="1.8" fill="none"/>
+    <text x="210" y="140" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle" stroke="none">policy LLM</text>
+    <text x="210" y="156" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">Llama 4 Maverick</text>
+  </g>
+  <!-- response -->
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="300" y="120" width="96" height="48" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="348" y="148" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">response</text>
+  </g>
+
+  <!-- verifier (right) -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="430" y="74" width="108" height="84" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="430" y="74" width="108" height="84" rx="6" stroke-width="1.6" fill="none"/>
+    <text x="484" y="92" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">verifier</text>
+    <text x="484" y="105" font-family="JetBrains Mono, monospace" font-size="6.5" text-anchor="middle" stroke="none">fine-tuned &#183; F1 0.73</text>
+  </g>
+  <g class="sage" stroke="currentColor" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="444,120 447,123 452,116"/>
+    <polyline points="444,133 447,136 452,129"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="none" stroke-width="1.6" stroke-linecap="round">
+    <line x1="444" y1="143" x2="451" y2="150"/>
+    <line x1="451" y1="143" x2="444" y2="150"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="7">
+    <text x="460" y="123">criterion 1 &#10003;</text>
+    <text x="460" y="136">criterion 2 &#10003;</text>
+    <text x="460" y="151">criterion d &#10007;</text>
+  </g>
+
+  <!-- reward shaping -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="396" y="186" width="142" height="60" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="396" y="186" width="142" height="60" rx="6" stroke-width="1.5" fill="none"/>
+    <text x="467" y="204" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">reward shaping</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="7.5">
+    <text x="467" y="220" text-anchor="middle">R = &#120128;[ all criteria = 1 ]</text>
+    <text x="467" y="234" text-anchor="middle" class="muted">+2 anti-hacking checks</text>
+  </g>
+
+  <!-- arrows -->
+  <g class="muted" stroke="currentColor" fill="currentColor" stroke-width="1.3">
+    <!-- prompt up to generator -->
+    <path d="M 100 130 q 30 -76 48 -88" fill="none"/>
+    <polygon points="150 41 142 43 146 49" stroke="none"/>
+    <!-- prompt to policy -->
+    <line x1="100" y1="144" x2="146" y2="144"/>
+    <polygon points="149,144 143,141 143,147" stroke="none"/>
+    <!-- generator to criteria -->
+    <line x1="270" y1="58" x2="296" y2="58"/>
+    <polygon points="299,58 293,55 293,61" stroke="none"/>
+    <!-- policy to response -->
+    <line x1="270" y1="144" x2="296" y2="144"/>
+    <polygon points="299,144 293,141 293,147" stroke="none"/>
+  </g>
+  <!-- criteria + response into verifier -->
+  <g class="muted" stroke="currentColor" fill="currentColor" stroke-width="1.2">
+    <path d="M 396 60 q 24 0 30 14" fill="none"/>
+    <polygon points="427 76 420 73 423 79" stroke="none"/>
+    <path d="M 396 140 q 18 0 26 -8" fill="none"/>
+    <polygon points="424 130 417 132 420 137" stroke="none"/>
+  </g>
+  <!-- verifier to shaping -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor" stroke-width="1.3">
+    <line x1="484" y1="158" x2="478" y2="184"/>
+    <polygon points="477,187 473,180 482,181" stroke="none"/>
+  </g>
+  <!-- reward back to policy (the loop) -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor" stroke-width="1.4">
+    <path d="M 396 226 q -190 30 -186 -54" fill="none" stroke-dasharray="4 3"/>
+    <polygon points="210,168 206,176 214,176" stroke="none"/>
+    <text x="250" y="262" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none" letter-spacing="0.1em">REWARD UPDATES THE POLICY</text>
+  </g>
+</svg>
