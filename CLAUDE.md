@@ -46,6 +46,36 @@ When invoked for a wave, agents:
 3. Do NOT create separate files under `docs/feature/<feature>/<wave>/`
 4. Do NOT modify SSOT files at `docs/product/` directly unless explicitly directed (the orchestrator handles that)
 
+## Research summaries
+
+`docs/research-summaries/<slug>/` holds **research summaries** — the repo's term for an opinionated, house-style distillation of one external paper or article. A research summary is *not* a neutral abstract. It (a) extracts the load-bearing ideas in the project's voice, (b) redraws the source's key diagrams in the harebrain visual language, and (c) maps the work back onto the **harebrain hypothesis** (`harebrain = fast LLM brain × structured game-AI cage`). Use `docs/research-summaries/llm-modulo/` as the canonical template.
+
+**When the user says "make me a research summary on X":** resolve X to its source, create `docs/research-summaries/<slug>/`, and follow the template below. If X is downloadable (an arXiv paper, a public PDF), fetch it into the folder — for arXiv, `https://arxiv.org/pdf/<id>` → save as a descriptive filename. Read the full source before writing.
+
+Directory shape:
+
+- `<slug>/<slug>.md` — the summary
+- `<slug>/images/glyph.svg` — masthead glyph
+- `<slug>/images/fig-0N-*.svg` — original figures redrawn for the page
+- `<slug>/<descriptive-name>-<arxiv-id>.pdf` — the source PDF when one exists
+
+`.md` structure (mirror an existing summary):
+
+1. masthead line: `![alt](images/glyph.svg)`
+2. `# <Title>, *<gerund>*` — the gerund is the house tic (*distilled*, *redrawn*, *graded*, *audited*, *composed*, *staged*)
+3. an italic subtitle line naming the source and its tie to harebrain
+4. a `---` rule
+5. opinionated body — prose, tables, `> **callout.**` blockquotes, and the redrawn figures inline with italic captions
+6. a `## Where this sits in the harebrain hypothesis` section anchored by a two-column mapping figure (source constructs ↔ harebrain primitives)
+7. a `**Sources.**` footer: full citation, arXiv id, and a link to the local PDF
+
+**SVG conventions** (theme-adaptive — see the [[harebrain-md-layout]] memory and any existing `glyph.svg`):
+
+- Class-based `currentColor` + an `@media (prefers-color-scheme: dark)` block. Never hardcode a single-mode palette — Phil reads markdown in dark mode locally.
+- Reference SVGs as `<img>` via markdown `![]()`. GitHub's sanitizer strips inline `<svg>`; loading via `<img>` preserves the embedded `<style>`/media query.
+- Palette tokens (light / dark): ink `#1a1810`/`#ede2c4`, muted `#5d553f`/`#a89c7d`, **oxblood** `#8b1f2c`/`#e09098` (the external/source side), **blueprint** `#1f4f7a`/`#88c0e8` (the harebrain side), sage `#4f6b3f`/`#b1c98c`, plus `*-tint` fills at ~6–10 % alpha.
+- Fonts: `Fraunces, serif` for headings/labels (often `font-style="italic"`), `JetBrains Mono`/`ui-monospace` for code-ish labels.
+
 ## Repository layout
 
 - `python/packages/` — uv workspace packages (wumpus engine + sibling packages)
@@ -53,6 +83,7 @@ When invoked for a wave, agents:
 - `docs/feature/<feature-id>/feature-delta.md` — canonical SSOT for each feature's wave artifacts
 - `docs/product/` — product-level SSOT (architecture pointer, journeys, jobs, KPI contracts)
 - `docs/research/` — evidence-backed research documents
+- `docs/research-summaries/<slug>/` — house-style distillations of external papers (see § Research summaries)
 - `.github/workflows/` — CI workflows (materialized from `## Wave: DEVOPS / [REF] CI Workflows` specs in feature-delta files)
 
 ## Active features

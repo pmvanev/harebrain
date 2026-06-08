@@ -1,0 +1,90 @@
+<svg viewBox="0 0 620 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Anatomy of an AgentSpec rule: a five-part block (rule id, trigger event, check predicates, enforce actions, end) with each line annotated by its role — the triple of triggering event, predicate set, and enforcement sequence.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.12); }
+    }
+  </style>
+
+  <!-- title -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="30" y="26" font-family="Fraunces, serif" font-size="13" font-style="italic">One rule, five lines, one triple: (event, predicates, enforcement)</text>
+  </g>
+
+  <!-- code block frame -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="30" y="44" width="320" height="220" rx="6"/></g>
+  <g class="rule-soft" stroke="currentColor" fill="none"><rect x="30" y="44" width="320" height="220" rx="6" stroke-width="1"/></g>
+
+  <!-- line 1: rule @id -->
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="48" y="78" font-family="JetBrains Mono, monospace" font-size="13"><tspan class="oxblood">rule</tspan> @inspect_transfer</text>
+  </g>
+  <!-- line 2: trigger -->
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="48" y="112" font-family="JetBrains Mono, monospace" font-size="13"><tspan class="oxblood">trigger</tspan> Transfer</text>
+  </g>
+  <!-- line 3-4: check -->
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="48" y="146" font-family="JetBrains Mono, monospace" font-size="13"><tspan class="oxblood">check</tspan></text>
+    <text x="74" y="170" font-family="JetBrains Mono, monospace" font-size="13">!is_to_family_member</text>
+  </g>
+  <!-- line 5-6: enforce -->
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="48" y="204" font-family="JetBrains Mono, monospace" font-size="13"><tspan class="oxblood">enforce</tspan></text>
+    <text x="74" y="228" font-family="JetBrains Mono, monospace" font-size="13">user_inspection</text>
+  </g>
+  <!-- line 7: end -->
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="48" y="252" font-family="JetBrains Mono, monospace" font-size="13"><tspan class="oxblood">end</tspan></text>
+  </g>
+
+  <!-- annotation brackets on the right -->
+  <!-- trigger -->
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <line x1="358" y1="102" x2="370" y2="102" stroke-width="1.2"/>
+    <text x="378" y="98" font-family="Fraunces, serif" font-size="11" font-style="italic" stroke="none">&#951;&#7523; &#183; triggering event</text>
+    <text x="378" y="113" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">before_action / state_change / agent_finish</text>
+  </g>
+  <!-- check -->
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <line x1="358" y1="158" x2="370" y2="158" stroke-width="1.2"/>
+    <text x="378" y="154" font-family="Fraunces, serif" font-size="11" font-style="italic" stroke="none">&#119927;&#7523; &#183; predicate set</text>
+    <text x="378" y="169" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">conjunction of booleans over (s&#7522;, &#964;&#7522;)</text>
+  </g>
+  <!-- enforce -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <line x1="358" y1="216" x2="370" y2="216" stroke-width="1.2"/>
+    <text x="378" y="212" font-family="Fraunces, serif" font-size="11" font-style="italic" stroke="none">&#8496;&#7523; &#183; enforcement sequence</text>
+    <text x="378" y="227" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">stop / user_inspection / invoke_action / llm_self_examine</text>
+  </g>
+
+  <!-- footer note -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="378" y="262" font-family="JetBrains Mono, monospace" font-size="8">if every predicate holds when &#951;&#7523; fires,</text>
+    <text x="378" y="274" font-family="JetBrains Mono, monospace" font-size="8">the enforcements rewrite the trajectory &#964;&#7522; in order</text>
+  </g>
+
+  <!-- bottom rule -->
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="30" y1="294" x2="590" y2="294" stroke-width="1"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="30" y="312" font-family="JetBrains Mono, monospace" font-size="8">a rule is a guard: it does not propose the action &#8212; it judges the one the LLM already proposed</text>
+  </g>
+</svg>

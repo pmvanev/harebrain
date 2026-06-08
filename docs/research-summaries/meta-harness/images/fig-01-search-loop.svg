@@ -1,0 +1,109 @@
+<svg viewBox="0 0 620 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The Meta-Harness search loop: a coding-agent proposer reads a filesystem of prior harness source code, scores and execution traces; it proposes k new harness variants; an evaluator runs them on the search set; code, scores and traces are written back to the filesystem; the loop repeats for N iterations.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.07); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+    }
+  </style>
+
+  <!-- title -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="310" y="24" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle">arg max_H  E[ r(&#964;, x) ]  &#183;  a coding agent with a filesystem for memory</text>
+  </g>
+
+  <!-- Proposer (left) -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="30" y="60" width="150" height="74" rx="8"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="30" y="60" width="150" height="74" rx="8" stroke-width="1.4" fill="none"/>
+    <text x="105" y="84" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">proposer</text>
+    <text x="105" y="103" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">Claude Code &#183; Opus-4.6</text>
+    <text x="105" y="120" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">proposes k variants</text>
+  </g>
+
+  <!-- Filesystem ledger (center) -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="235" y="48" width="150" height="98" rx="8"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="235" y="48" width="150" height="98" rx="8" stroke-width="1.4" fill="none"/>
+    <text x="310" y="68" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle" stroke="none">filesystem</text>
+    <text x="310" y="88" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">source code</text>
+    <text x="310" y="103" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">scores</text>
+    <text x="310" y="118" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">execution traces</text>
+    <text x="310" y="137" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">~82 files read / iter</text>
+  </g>
+
+  <!-- Evaluator (right) -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="440" y="60" width="150" height="74" rx="8"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="440" y="60" width="150" height="74" rx="8" stroke-width="1.4" fill="none"/>
+    <text x="515" y="84" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">evaluator</text>
+    <text x="515" y="103" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">run on search set</text>
+    <text x="515" y="120" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">r(&#964;, x)</text>
+  </g>
+
+  <!-- arrow: proposer -> filesystem (write code) -->
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <line x1="180" y1="92" x2="232" y2="92" stroke-width="1.3"/>
+    <polygon points="235,92 229,89 229,95" stroke="none"/>
+    <text x="206" y="86" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">write</text>
+  </g>
+  <!-- arrow: filesystem -> evaluator (candidates) -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <line x1="385" y1="92" x2="437" y2="92" stroke-width="1.3"/>
+    <polygon points="440,92 434,89 434,95" stroke="none"/>
+    <text x="412" y="86" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">k variants</text>
+  </g>
+
+  <!-- arrow: evaluator -> filesystem (write scores+traces, down-and-back) -->
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <path d="M 515 134 L 515 178 L 310 178 L 310 148" stroke-width="1.3" fill="none" stroke-dasharray="3 3"/>
+    <polygon points="310,146 307,153 313,153" stroke="none"/>
+    <text x="412" y="173" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">scores + traces written back</text>
+  </g>
+
+  <!-- arrow: filesystem -> proposer (read raw history, down-and-back) -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <path d="M 235 130 L 105 130 L 105 136" stroke-width="1.3" fill="none"/>
+    <polygon points="105,138 102,131 108,131" stroke="none"/>
+  </g>
+
+  <!-- loop label -->
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="40" y1="210" x2="580" y2="210" stroke-width="1"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="310" y="234" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">repeat &#215; N iterations &#183; ~60 harnesses over ~20 iters &#183; a few hours wall-clock</text>
+  </g>
+
+  <!-- the no-compression note -->
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="310" y="270" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle">The one novel choice: no compression.</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="310" y="290" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">prior optimizers hand the proposer a scalar score or a short summary;</text>
+    <text x="310" y="304" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">Meta-Harness exposes the raw code + traces of &gt;20 prior candidates,</text>
+    <text x="310" y="318" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">so the proposer can diagnose WHICH earlier design choice caused a late failure.</text>
+  </g>
+
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="40" y1="334" x2="580" y2="334" stroke-width="1"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="310" y="351" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">the proposer is a design-time author &#183; what ships is the produced harness, a readable 100&#8211;1000-line program</text>
+  </g>
+</svg>

@@ -1,0 +1,100 @@
+<svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AgentSpec intercepts the LangChain agent loop at three decision points: before an action (AgentAction), after the observation (AgentStep), and at task completion (AgentFinish). At each point a rule check runs; a satisfied check fires an enforcement that rewrites the trajectory before control returns to the loop.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.12); }
+    }
+  </style>
+
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="30" y="26" font-family="Fraunces, serif" font-size="13" font-style="italic">Three hooks in iter_next_step &#8212; the loop runs unchanged between them</text>
+  </g>
+
+  <!-- the agent loop band -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="30" y="44" width="580" height="96" rx="8"/></g>
+  <g class="rule-soft" stroke="currentColor" fill="none"><rect x="30" y="44" width="580" height="96" rx="8" stroke-width="1"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor">
+    <text x="44" y="62" font-family="JetBrains Mono, monospace" font-size="9" letter-spacing="0.1em">LANGCHAIN AGENT LOOP</text>
+  </g>
+
+  <!-- loop nodes -->
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="56" y="78" width="78" height="40" rx="5" stroke-width="1.3" fill="none"/>
+    <text x="95" y="102" font-family="Fraunces, serif" font-size="11" text-anchor="middle" stroke="none">plan</text>
+    <rect x="266" y="78" width="78" height="40" rx="5" stroke-width="1.3" fill="none"/>
+    <text x="305" y="102" font-family="Fraunces, serif" font-size="11" text-anchor="middle" stroke="none">act</text>
+    <rect x="476" y="78" width="78" height="40" rx="5" stroke-width="1.3" fill="none"/>
+    <text x="515" y="102" font-family="Fraunces, serif" font-size="11" text-anchor="middle" stroke="none">observe</text>
+  </g>
+  <!-- loop arrows -->
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <line x1="134" y1="98" x2="262" y2="98" stroke-width="1.2"/><polygon points="265,98 259,95 259,101" stroke="none"/>
+    <line x1="344" y1="98" x2="472" y2="98" stroke-width="1.2"/><polygon points="475,98 469,95 469,101" stroke="none"/>
+    <!-- loop back -->
+    <path d="M 554 118 q 30 30 -230 30 q -260 0 -230 -30" stroke-width="1.2" fill="none" stroke-dasharray="3 3"/>
+    <polygon points="95,121 92,127 98,127" stroke="none"/>
+  </g>
+
+  <!-- hook ticks -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <line x1="200" y1="98" x2="200" y2="190" stroke-width="1.2" stroke-dasharray="2 2"/>
+    <line x1="410" y1="98" x2="410" y2="190" stroke-width="1.2" stroke-dasharray="2 2"/>
+    <line x1="582" y1="118" x2="582" y2="190" stroke-width="1.2" stroke-dasharray="2 2"/>
+  </g>
+
+  <!-- gate boxes -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor">
+    <rect x="120" y="192" width="160" height="58" rx="6"/>
+    <rect x="330" y="192" width="160" height="58" rx="6"/>
+    <rect x="500" y="192" width="110" height="58" rx="6"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="120" y="192" width="160" height="58" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="200" y="210" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" stroke="none">AgentAction</text>
+    <text x="200" y="226" font-family="Fraunces, serif" font-size="9" font-style="italic" text-anchor="middle" stroke="none">before_action</text>
+    <text x="200" y="241" font-family="Fraunces, serif" font-size="8" text-anchor="middle" stroke="none">vet the planned action</text>
+
+    <rect x="330" y="192" width="160" height="58" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="410" y="210" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" stroke="none">AgentStep</text>
+    <text x="410" y="226" font-family="Fraunces, serif" font-size="9" font-style="italic" text-anchor="middle" stroke="none">state_change</text>
+    <text x="410" y="241" font-family="Fraunces, serif" font-size="8" text-anchor="middle" stroke="none">vet the observation</text>
+
+    <rect x="500" y="192" width="110" height="58" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="555" y="210" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" stroke="none">AgentFinish</text>
+    <text x="555" y="226" font-family="Fraunces, serif" font-size="9" font-style="italic" text-anchor="middle" stroke="none">agent_finish</text>
+    <text x="555" y="241" font-family="Fraunces, serif" font-size="8" text-anchor="middle" stroke="none">vet the exit</text>
+  </g>
+
+  <!-- AgentSpec band -->
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="30" y="284" font-family="JetBrains Mono, monospace" font-size="9" letter-spacing="0.1em">AGENTSPEC</text>
+  </g>
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="120" y="290" width="490" height="40" rx="6"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="120" y="290" width="490" height="40" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="365" y="306" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">check predicates &#8594; on a hit, run enforcement &#8594; rewrite &#964;&#7522;</text>
+    <text x="365" y="322" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">stop &#183; user_inspection &#183; invoke_action(&#8230;) &#183; llm_self_examine</text>
+  </g>
+  <!-- connectors gate->band -->
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <line x1="200" y1="250" x2="200" y2="288" stroke-width="1"/><polygon points="200,290 197,284 203,284" stroke="none"/>
+    <line x1="410" y1="250" x2="410" y2="288" stroke-width="1"/><polygon points="410,290 407,284 413,284" stroke="none"/>
+    <line x1="555" y1="250" x2="555" y2="288" stroke-width="1"/><polygon points="555,290 552,284 558,284" stroke="none"/>
+  </g>
+</svg>

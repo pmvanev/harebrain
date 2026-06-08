@@ -28,6 +28,10 @@ Distilled readings of external papers and articles, under [`docs/research-summar
 | [Rigorous agentic benchmarks, *audited*](docs/research-summaries/agentic-benchmarks/agentic-benchmarks.md) | Best practices for building rigorous agentic benchmarks (PDF included). |
 | [ComplexBench, *composed*](docs/research-summaries/complexbench/complexbench.md) | Benchmarking complex instruction following with multiple-constraint composition (PDF included). |
 | [The tri-agent clarification framework, *staged*](docs/research-summaries/tri-agent-clarification/tri-agent-clarification.md) | Evaluating and aligning question-clarification capabilities of LLMs (PDF included). |
+| [AgentSpec, *fenced*](docs/research-summaries/agentspec/agentspec.md) | A trigger–predicate–enforce DSL that intercepts the agent loop at runtime for safe, reliable LLM agents (PDF included). |
+| [OS-Symphony, *conducted*](docs/research-summaries/os-symphony/os-symphony.md) | A computer-using-agent framework with milestone-driven long-term memory and trajectory-level self-correction — 65.84% on OSWorld (PDF included). |
+| [Natural-Language Agent Harnesses, *interpreted*](docs/research-summaries/nlah/nlah.md) | Agent harnesses as editable natural-language documents interpreted by a runtime (IHR) (PDF included). |
+| [Meta-Harness, *searched*](docs/research-summaries/meta-harness/meta-harness.md) | End-to-end search for the harness code that stores, retrieves, and presents context to the model (PDF included). |
 | [A harness for every task](docs/research-summaries/dynamic-workflows/article.md) | Dynamic workflows in Claude Code ([summary](docs/research-summaries/dynamic-workflows/summary.md)). |
 
 ## Primary source

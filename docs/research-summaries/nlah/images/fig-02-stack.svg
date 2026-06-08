@@ -1,0 +1,118 @@
+<svg viewBox="0 0 620 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Four-layer NLAH plus IHR stack: a base agent (minimal LLM loop with terminal access) at the bottom, a fixed runtime policy above it, the replaceable NLAH document above that carrying per-harness policy, and scripts and adapters off to the side for exact operations. The runtime interprets the NLAH and spawns child task agents.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.07); }
+    .muted-tint     { color: rgba(93, 85, 63, 0.07); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+      .muted-tint     { color: rgba(168, 156, 125, 0.10); }
+    }
+  </style>
+
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="220" y="26" font-family="Fraunces, serif" font-size="14" font-style="italic" text-anchor="middle">the NLAH+IHR stack</text>
+  </g>
+
+  <!-- Layer 3: NLAH (replaceable NL) -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="40" y="44" width="360" height="58" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="40" y="44" width="360" height="58" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="54" y="64" font-family="Fraunces, serif" font-size="12" font-style="italic" stroke="none">NLAH</text>
+    <text x="54" y="80" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">replaceable NL &#183; stages &#183; roles &#183; state rules</text>
+    <text x="54" y="93" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">validation gates &#183; recovery &#183; stopping</text>
+  </g>
+
+  <!-- Layer 2: Runtime policy (fixed NL) -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="40" y="116" width="360" height="48" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="40" y="116" width="360" height="48" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="54" y="136" font-family="Fraunces, serif" font-size="12" font-style="italic" stroke="none">Runtime policy (IHR)</text>
+    <text x="54" y="152" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">fixed NL &#183; how ANY NLAH is interpreted &#183; parent/child rules</text>
+  </g>
+
+  <!-- Layer 1: Base agent (code) -->
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="40" y="178" width="360" height="48" rx="6"/></g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <rect x="40" y="178" width="360" height="48" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="54" y="198" font-family="Fraunces, serif" font-size="12" font-style="italic" stroke="none">Base agent</text>
+    <text x="54" y="214" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">code &#183; minimal LLM loop &#183; one tool: the terminal</text>
+  </g>
+
+  <!-- interpretation arrow down NLAH -> runtime -->
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <line x1="220" y1="102" x2="220" y2="114" stroke-width="1.3"/>
+    <polygon points="220,116 217,110 223,110" stroke="none"/>
+    <text x="232" y="112" font-family="JetBrains Mono, monospace" font-size="7" stroke="none">interpret</text>
+  </g>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <line x1="220" y1="164" x2="220" y2="176" stroke-width="1.3"/>
+    <polygon points="220,178 217,172 223,172" stroke="none"/>
+  </g>
+
+  <!-- Scripts/adapters (right column, code hooks) -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="430" y="116" width="150" height="110" rx="6"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="430" y="116" width="150" height="110" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="444" y="136" font-family="Fraunces, serif" font-size="12" font-style="italic" stroke="none">Scripts / adapters</text>
+    <text x="444" y="154" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">code hooks</text>
+    <text x="444" y="170" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">tests</text>
+    <text x="444" y="184" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">validators / parsers</text>
+    <text x="444" y="198" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">benchmark wrappers</text>
+    <text x="444" y="212" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">post-processing</text>
+  </g>
+  <!-- can-call arrow runtime <-> adapters -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="400" y1="200" x2="428" y2="170" stroke-width="1.1" stroke-dasharray="3 3"/>
+    <polygon points="430,168 423,169 426,174" stroke="none"/>
+    <text x="402" y="158" font-family="JetBrains Mono, monospace" font-size="7" stroke="none">calls</text>
+  </g>
+
+  <!-- child task agents spawned -->
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <line x1="120" y1="226" x2="120" y2="266" stroke-width="1.2"/>
+    <polygon points="120,269 117,263 123,263" stroke="none"/>
+    <line x1="220" y1="226" x2="220" y2="266" stroke-width="1.2"/>
+    <polygon points="220,269 217,263 223,263" stroke="none"/>
+    <line x1="320" y1="226" x2="320" y2="266" stroke-width="1.2"/>
+    <polygon points="320,269 317,263 323,263" stroke="none"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="220" y="262" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">spawn child = new self via terminal</text>
+  </g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor">
+    <ellipse cx="120" cy="284" rx="34" ry="11"/>
+    <ellipse cx="220" cy="284" rx="34" ry="11"/>
+    <ellipse cx="320" cy="284" rx="34" ry="11"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <ellipse cx="120" cy="284" rx="34" ry="11" stroke-width="1.3" fill="none"/>
+    <text x="120" y="287" font-family="ui-monospace, monospace" font-size="8" text-anchor="middle" stroke="none">task agent</text>
+    <ellipse cx="220" cy="284" rx="34" ry="11" stroke-width="1.3" fill="none"/>
+    <text x="220" y="287" font-family="ui-monospace, monospace" font-size="8" text-anchor="middle" stroke="none">task agent</text>
+    <ellipse cx="320" cy="284" rx="34" ry="11" stroke-width="1.3" fill="none"/>
+    <text x="320" y="287" font-family="ui-monospace, monospace" font-size="8" text-anchor="middle" stroke="none">task agent</text>
+  </g>
+
+  <!-- footer -->
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="40" y1="320" x2="580" y2="320" stroke-width="1"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="310" y="340" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">only the NLAH layer changes per task family &#183; everything else is fixed</text>
+  </g>
+</svg>

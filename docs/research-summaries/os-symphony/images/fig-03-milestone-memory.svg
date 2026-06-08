@@ -1,0 +1,114 @@
+<svg viewBox="0 0 640 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Milestone-gated long-term memory: a left-to-right trajectory of step cards, each carrying a text summary; only the milestone-marked steps retain a screenshot thumbnail while the non-milestone steps drop their pixels, shown greyed and crossed out. A binary milestone marker beneath each step gates retention.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .muted-tint     { color: rgba(93, 85, 63, 0.06); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .muted-tint     { color: rgba(168, 156, 125, 0.08); }
+    }
+  </style>
+
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="20" y="24" font-family="Fraunces, serif" font-size="12" font-style="italic">trajectory  &#8594;  time</text>
+  </g>
+
+  <!-- five step cards -->
+  <!-- card 1 : milestone -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="20" y="40" width="110" height="120" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="20" y="40" width="110" height="120" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="30" y="58" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">Step 1</text>
+    <text x="30" y="74" font-family="JetBrains Mono, monospace" font-size="6.5" stroke="none">summary Sⱼ</text>
+    <line x1="30" y1="80" x2="118" y2="80" stroke-width="0.6"/>
+    <line x1="30" y1="88" x2="110" y2="88" stroke-width="0.6"/>
+    <rect x="30" y="98" width="90" height="50" rx="2" stroke-width="1.2" fill="none"/>
+    <text x="75" y="126" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">screenshot</text>
+  </g>
+  <!-- card 2 : dropped -->
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="145" y="40" width="110" height="120" rx="6"/></g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <rect x="145" y="40" width="110" height="120" rx="6" stroke-width="1" fill="none"/>
+    <text x="155" y="58" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">Step 2</text>
+    <text x="155" y="74" font-family="JetBrains Mono, monospace" font-size="6.5" stroke="none">summary Sⱼ</text>
+    <line x1="155" y1="80" x2="243" y2="80" stroke-width="0.6"/>
+    <line x1="155" y1="88" x2="235" y2="88" stroke-width="0.6"/>
+    <rect x="155" y="98" width="90" height="50" rx="2" stroke-width="0.8" fill="none" stroke-dasharray="3 3"/>
+    <line x1="158" y1="100" x2="242" y2="146" stroke-width="0.9"/>
+    <text x="200" y="126" font-family="JetBrains Mono, monospace" font-size="6.5" text-anchor="middle" stroke="none">pixels dropped</text>
+  </g>
+  <!-- card 3 : dropped -->
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="270" y="40" width="110" height="120" rx="6"/></g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <rect x="270" y="40" width="110" height="120" rx="6" stroke-width="1" fill="none"/>
+    <text x="280" y="58" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">Step 3</text>
+    <text x="280" y="74" font-family="JetBrains Mono, monospace" font-size="6.5" stroke="none">summary Sⱼ</text>
+    <line x1="280" y1="80" x2="368" y2="80" stroke-width="0.6"/>
+    <line x1="280" y1="88" x2="360" y2="88" stroke-width="0.6"/>
+    <rect x="280" y="98" width="90" height="50" rx="2" stroke-width="0.8" fill="none" stroke-dasharray="3 3"/>
+    <line x1="283" y1="100" x2="367" y2="146" stroke-width="0.9"/>
+    <text x="325" y="126" font-family="JetBrains Mono, monospace" font-size="6.5" text-anchor="middle" stroke="none">pixels dropped</text>
+  </g>
+  <!-- card 4 : milestone -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="395" y="40" width="110" height="120" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="395" y="40" width="110" height="120" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="405" y="58" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">Step t</text>
+    <text x="405" y="74" font-family="JetBrains Mono, monospace" font-size="6.5" stroke="none">summary Sⱼ</text>
+    <line x1="405" y1="80" x2="493" y2="80" stroke-width="0.6"/>
+    <line x1="405" y1="88" x2="485" y2="88" stroke-width="0.6"/>
+    <rect x="405" y="98" width="90" height="50" rx="2" stroke-width="1.2" fill="none"/>
+    <text x="450" y="126" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">screenshot</text>
+  </g>
+  <!-- RMA box (far right) -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="520" y="40" width="100" height="120" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="520" y="40" width="100" height="120" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="570" y="60" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">RMA</text>
+    <text x="530" y="82" font-family="JetBrains Mono, monospace" font-size="6.5" stroke="none">milestone</text>
+    <text x="530" y="94" font-family="JetBrains Mono, monospace" font-size="6.5" stroke="none">evaluation</text>
+    <text x="530" y="114" font-family="JetBrains Mono, monospace" font-size="6.5" stroke="none">reflection Rᵢ</text>
+    <text x="530" y="134" font-family="JetBrains Mono, monospace" font-size="6.5" stroke="none">knowledge kᵢ</text>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <line x1="505" y1="100" x2="518" y2="100" stroke-width="1.2"/>
+    <polygon points="521,100 515,97.5 515,102.5" stroke="none"/>
+  </g>
+
+  <!-- milestone markers row -->
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="20" y1="180" x2="505" y2="180" stroke-width="1"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="20" y="202" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">mⱼ :</text>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <circle cx="75" cy="198" r="6" stroke-width="1.2" fill="none"/>
+    <text x="75" y="201" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">1</text>
+    <circle cx="450" cy="198" r="6" stroke-width="1.2" fill="none"/>
+    <text x="450" y="201" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">1</text>
+  </g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <circle cx="200" cy="198" r="6" stroke-width="1" fill="none"/>
+    <text x="200" y="201" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">0</text>
+    <circle cx="325" cy="198" r="6" stroke-width="1" fill="none"/>
+    <text x="325" y="201" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">0</text>
+  </g>
+
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="20" y="234" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">mⱼ = 1  &#8594;  retain pixels  ·  mⱼ = 0  &#8594;  keep text summary only, drop pixels</text>
+  </g>
+</svg>

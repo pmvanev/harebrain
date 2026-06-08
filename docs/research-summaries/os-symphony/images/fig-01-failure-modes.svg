@@ -1,0 +1,92 @@
+<svg viewBox="0 0 620 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The two failure modes OS-Symphony targets: top-left short-term memory drowning in redundant frames with limited memory, top-right long-term memory suffering context overload or visual loss; bottom RAG split into noisy online text-with-visual-loss and costly offline transfer failure.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+    }
+  </style>
+
+  <!-- top heading -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="20" y="20" font-family="Fraunces, serif" font-size="12" font-style="italic">gap 1 &#183; memory</text>
+  </g>
+  <!-- Short-term panel -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="30" width="270" height="100" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="20" y="30" width="270" height="100" rx="6" stroke-width="1.2" fill="none"/>
+    <text x="32" y="48" font-family="JetBrains Mono, monospace" font-size="9" stroke="none">short-term</text>
+  </g>
+  <!-- redundant frames stack -->
+  <g class="muted" stroke="currentColor" fill="none">
+    <rect x="34" y="60" width="34" height="26" rx="2" stroke-width="1"/>
+    <rect x="40" y="66" width="34" height="26" rx="2" stroke-width="1"/>
+    <rect x="46" y="72" width="34" height="26" rx="2" stroke-width="1"/>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="100" y="80" font-family="JetBrains Mono, monospace" font-size="8.5" stroke="none">redundant frames</text>
+    <text x="100" y="96" font-family="JetBrains Mono, monospace" font-size="8.5" stroke="none">&#9888; limited memory</text>
+  </g>
+
+  <!-- Long-term panel -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="320" y="30" width="280" height="100" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="320" y="30" width="280" height="100" rx="6" stroke-width="1.2" fill="none"/>
+    <text x="332" y="48" font-family="JetBrains Mono, monospace" font-size="9" stroke="none">long-term</text>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="338" y="74" font-family="JetBrains Mono, monospace" font-size="8.5" stroke="none">&#9888; keep all  &#8594;  context overload</text>
+    <text x="338" y="96" font-family="JetBrains Mono, monospace" font-size="8.5" stroke="none">&#9888; to text  &#8594;  visual loss</text>
+    <text x="338" y="116" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">no granular control over pixels kept</text>
+  </g>
+
+  <!-- divider -->
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="20" y1="150" x2="600" y2="150" stroke-width="1"/>
+  </g>
+
+  <!-- bottom heading -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="20" y="178" font-family="Fraunces, serif" font-size="12" font-style="italic">gap 2 &#183; retrieval (RAG)</text>
+  </g>
+  <!-- Online panel -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="190" width="270" height="100" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="20" y="190" width="270" height="100" rx="6" stroke-width="1.2" fill="none"/>
+    <text x="32" y="208" font-family="JetBrains Mono, monospace" font-size="9" stroke="none">online (web search)</text>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="32" y="234" font-family="JetBrains Mono, monospace" font-size="8.5" stroke="none">&#9888; noisy text</text>
+    <text x="32" y="256" font-family="JetBrains Mono, monospace" font-size="8.5" stroke="none">&#9888; visual loss (pages parsed to text)</text>
+    <text x="32" y="278" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">unimodal: layout &amp; cues discarded</text>
+  </g>
+  <!-- Offline panel -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="320" y="190" width="280" height="100" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="320" y="190" width="280" height="100" rx="6" stroke-width="1.2" fill="none"/>
+    <text x="332" y="208" font-family="JetBrains Mono, monospace" font-size="9" stroke="none">offline (local KB)</text>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="332" y="234" font-family="JetBrains Mono, monospace" font-size="8.5" stroke="none">&#9888; transfer failure on new software</text>
+    <text x="332" y="256" font-family="JetBrains Mono, monospace" font-size="8.5" stroke="none">&#9888; costly to update</text>
+    <text x="332" y="278" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">stale: built once, drifts from reality</text>
+  </g>
+
+  <!-- footer -->
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="20" y1="306" x2="600" y2="306" stroke-width="1"/>
+  </g>
+</svg>
