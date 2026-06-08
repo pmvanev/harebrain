@@ -12,18 +12,18 @@
 
 # add these to definitions.md (with reference/resource links)
 
-- Sweep Bench
+- [x] Sweep Bench (= SWE-Bench) — § Agentic & coding benchmarks
 
-- NLAH
+- [x] NLAH — § Agent-harness research
 
-- OS-Symphony
+- [x] OS-Symphony — § Agent-harness research
 
-- TerminalBench2.0
+- [x] TerminalBench2.0 (Terminal-Bench 2.0) — § Agentic & coding benchmarks
 
-- AWS agentcore cli
+- [x] AWS agentcore cli (Amazon Bedrock AgentCore) — § Agent dev tooling (CLIs & MCP)
 
-- Google agents-cli
+- [x] Google agents-cli (Google ADK / `adk` CLI) — § Agent dev tooling (CLIs & MCP)
 
-- Claude agent sdk
+- [x] Claude agent sdk — § Anthropic agent products
 
-- Paywright mcp
+- [x] Paywright mcp (Playwright MCP) — § Agent dev tooling (CLIs & MCP)
