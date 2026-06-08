@@ -1,0 +1,85 @@
+<svg viewBox="0 0 620 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A rap sheet of broken agent benchmarks. tau-bench: do-nothing agent passes 38 percent, a shortcut. SWE-bench: thin unit tests reshuffle 41 percent of Lite and 24 percent of Verified leaderboard ranks. KernelBench: random tensor values miss memory and shape bugs. OSWorld: stale website selectors underestimate the best agent by 28 percent. SWE-Lancer: insecure test files can be overwritten. WebArena: judge arithmetic errors cause 1.6 to 5.2 percent misestimation. Tally: 7 of 10 break task validity, 7 of 10 break outcome validity, 8 of 10 hide known issues.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+    }
+  </style>
+
+  <!-- title -->
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="30" y="26" font-family="Fraunces, serif" font-style="italic" font-size="15">the rap sheet</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="30" y="42" font-family="JetBrains Mono, monospace" font-size="8.5">ten audited benchmarks &#183; flaw &#183; size of the error it introduces</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="30" y1="52" x2="590" y2="52" stroke-width="1"/>
+  </g>
+
+  <!-- rows -->
+  <!-- row 1 -->
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="30" y="76" font-family="JetBrains Mono, monospace" font-size="11">&#964;-bench</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="150" y="76" font-family="JetBrains Mono, monospace" font-size="9">&#8220;leave env unchanged&#8221; grading &#8212; do-nothing passes</text></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="588" y="76" font-family="Fraunces, serif" font-style="italic" font-size="14" text-anchor="end">38% free</text></g>
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="30" y1="86" x2="590" y2="86" stroke-width="0.75" stroke-dasharray="2 3"/></g>
+
+  <!-- row 2 -->
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="30" y="110" font-family="JetBrains Mono, monospace" font-size="11">SWE-bench</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="150" y="110" font-family="JetBrains Mono, monospace" font-size="9">thin unit tests pass wrong patches &#8212; ranks reshuffle</text></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="588" y="110" font-family="Fraunces, serif" font-style="italic" font-size="14" text-anchor="end">41% / 24%</text></g>
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="30" y1="120" x2="590" y2="120" stroke-width="0.75" stroke-dasharray="2 3"/></g>
+
+  <!-- row 3 -->
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="30" y="144" font-family="JetBrains Mono, monospace" font-size="11">SWE-Lancer</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="150" y="144" font-family="JetBrains Mono, monospace" font-size="9">overwritable tests &#8212; replace with assert 1==1</text></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="588" y="144" font-family="Fraunces, serif" font-style="italic" font-size="14" text-anchor="end">100%</text></g>
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="30" y1="154" x2="590" y2="154" stroke-width="0.75" stroke-dasharray="2 3"/></g>
+
+  <!-- row 4 -->
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="30" y="178" font-family="JetBrains Mono, monospace" font-size="11">KernelBench</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="150" y="178" font-family="JetBrains Mono, monospace" font-size="9">fuzzer varies values, not shapes &#8212; misses real bugs</text></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="588" y="178" font-family="Fraunces, serif" font-style="italic" font-size="14" text-anchor="end">over-est.</text></g>
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="30" y1="188" x2="590" y2="188" stroke-width="0.75" stroke-dasharray="2 3"/></g>
+
+  <!-- row 5 -->
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="30" y="212" font-family="JetBrains Mono, monospace" font-size="11">OSWorld</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="150" y="212" font-family="JetBrains Mono, monospace" font-size="9">live-site selectors drift &#8212; the rare under-count</text></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="588" y="212" font-family="Fraunces, serif" font-style="italic" font-size="14" text-anchor="end">-28%</text></g>
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="30" y1="222" x2="590" y2="222" stroke-width="0.75" stroke-dasharray="2 3"/></g>
+
+  <!-- row 6 -->
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="30" y="246" font-family="JetBrains Mono, monospace" font-size="11">WebArena</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="150" y="246" font-family="JetBrains Mono, monospace" font-size="9">judge can&#8217;t add: &#8220;45 + 8&#8221; marked = 63</text></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="588" y="246" font-family="Fraunces, serif" font-style="italic" font-size="14" text-anchor="end">1.6&#8211;5.2%</text></g>
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="30" y1="256" x2="590" y2="256" stroke-width="1"/></g>
+
+  <!-- tally box -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="30" y="272" width="560" height="68" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="30" y="272" width="560" height="68" rx="6" stroke-width="1.3"/></g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="50" y="296" font-family="Fraunces, serif" font-style="italic" font-size="13">the tally, across all ten</text>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="80"  y="326" font-family="Fraunces, serif" font-style="italic" font-size="22" text-anchor="middle">7/10</text>
+    <text x="290" y="326" font-family="Fraunces, serif" font-style="italic" font-size="22" text-anchor="middle">7/10</text>
+    <text x="500" y="326" font-family="Fraunces, serif" font-style="italic" font-size="22" text-anchor="middle">8/10</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="80"  y="338" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">break task validity</text>
+    <text x="290" y="338" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">break outcome validity</text>
+    <text x="500" y="338" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">hide known issues</text>
+  </g>
+</svg>

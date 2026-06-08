@@ -1,12 +1,14 @@
 # make sure we have these paper summaries in docs:
 
-- [x] [2503.18666] AgentSpec: Customizable Runtime Enforcement for Safe and Reliable LLM Agents — `docs/research-summaries/agentspec/`
+- [x] https://martinfowler.com/articles/harness-engineering.html — `docs/research-summaries/harness-engineering/`
 
-- [x] [2601.07779] OS-Symphony: A Holistic Framework for Robust and Generalist Computer-Using Agent — `docs/research-summaries/os-symphony/`
+- [x] 2603.08938v2 (AgentOS: A Natural Language-Driven Data Ecosystem) — `docs/research-summaries/agentos/`
 
-- [x] [2603.25723] Natural-Language Agent Harnesses — `docs/research-summaries/nlah/`
+- [x] [2507.02825] Establishing Best Practices for Building Rigorous Agentic Benchmarks — already done: `docs/research-summaries/agentic-benchmarks/`
 
-- [x] [2603.28052] Meta-Harness: End-to-End Optimization of Model Harnesses (was https://share.google/yHFP1phlOi5CLCL41) — `docs/research-summaries/meta-harness/`
+- [x] AI Agent Benchmarks are Broken — by Daniel Kang | Medium — `docs/research-summaries/benchmarks-broken/`
+
+- [x] The Anatomy of an Agent Harness (LangChain) — `docs/research-summaries/agent-harness-anatomy/`
 
 # add these to definitions.md (with reference/resource links)
 

@@ -173,8 +173,8 @@ Companion notes in this series:
 
 | Note | Why it's adjacent |
 |---|---|
-| [Traditional Game AI Primitives](../game-ai/game-ai.md) | Working-memory facts with confidence are the lightweight cousin of the MEBN approach — same need, different ambition. |
-| [Harebrain, sketched](../harebrain/harebrain.md) | The blackboard discussion lands here. MEBN/PR-OWL is the formal upgrade path beyond F.E.A.R.-style facts and beyond the MPLv2 Manifest. |
+| [Traditional Game AI Primitives](../../game-ai/game-ai.md) | Working-memory facts with confidence are the lightweight cousin of the MEBN approach — same need, different ambition. |
+| [Harebrain, sketched](../../harebrain/harebrain.md) | The blackboard discussion lands here. MEBN/PR-OWL is the formal upgrade path beyond F.E.A.R.-style facts and beyond the MPLv2 Manifest. |
 
 ---
 

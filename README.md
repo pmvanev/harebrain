@@ -32,6 +32,10 @@ Distilled readings of external papers and articles, under [`docs/research-summar
 | [OS-Symphony, *conducted*](docs/research-summaries/os-symphony/os-symphony.md) | A computer-using-agent framework with milestone-driven long-term memory and trajectory-level self-correction — 65.84% on OSWorld (PDF included). |
 | [Natural-Language Agent Harnesses, *interpreted*](docs/research-summaries/nlah/nlah.md) | Agent harnesses as editable natural-language documents interpreted by a runtime (IHR) (PDF included). |
 | [Meta-Harness, *searched*](docs/research-summaries/meta-harness/meta-harness.md) | End-to-end search for the harness code that stores, retrieves, and presents context to the model (PDF included). |
+| [AgentOS, *envisioning*](docs/research-summaries/agentos/agentos.md) | A natural-language-driven agent operating system: NUI portal, Skills-as-Modules, intent mining over a personal knowledge graph (PDF included). |
+| [Harness Engineering, *practised*](docs/research-summaries/harness-engineering/harness-engineering.md) | Böckeler's practitioner taxonomy of the outer harness teams build around coding agents (martinfowler.com). |
+| [The Anatomy of an Agent Harness, *dissected*](docs/research-summaries/agent-harness-anatomy/agent-harness-anatomy.md) | Decomposing `Agent = Model + Harness` into its component organs (LangChain blog). |
+| [AI agent benchmarks are broken, *indicted*](docs/research-summaries/benchmarks-broken/benchmarks-broken.md) | Daniel Kang's polemic on broken task/outcome validity — the op-ed companion to the ABC paper (Medium). |
 | [A harness for every task](docs/research-summaries/dynamic-workflows/article.md) | Dynamic workflows in Claude Code ([summary](docs/research-summaries/dynamic-workflows/summary.md)). |
 
 ## Primary source

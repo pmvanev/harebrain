@@ -1,0 +1,119 @@
+<svg viewBox="0 0 620 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A two-column derivation. On the left, a stack of desired agent behaviors; each maps rightward by a dashed arrow to the harness organ that earns it. Persist work across steps maps to filesystem and git. Act without bespoke tools maps to bash and code execution. Run model-written code safely maps to sandbox. Learn across sessions and stay current maps to memory and search. Survive long horizons maps to compaction, loops, and the Ralph loop.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.12); }
+    }
+  </style>
+
+  <!-- headers -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="150" y="26" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle">behavior we want</text>
+    <text x="470" y="26" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle">harness organ that earns it</text>
+    <text x="310" y="24" font-family="JetBrains Mono, monospace" font-size="11" text-anchor="middle">&#x2192;</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="40" y1="38" x2="580" y2="38" stroke-width="1"/>
+  </g>
+
+  <!-- Row 1 -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="24" y="56" width="252" height="48" rx="6"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="24" y="56" width="252" height="48" rx="6" stroke-width="1.2" fill="none"/>
+    <text x="36" y="78" font-family="Fraunces, serif" font-size="11.5" font-style="italic" stroke="none">persist work across steps</text>
+    <text x="36" y="95" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">don&#8217;t lose state between calls</text>
+  </g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="344" y="56" width="252" height="48" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="344" y="56" width="252" height="48" rx="6" stroke-width="1.2" fill="none"/>
+    <text x="356" y="78" font-family="Fraunces, serif" font-size="11.5" font-style="italic" stroke="none">filesystem + git</text>
+    <text x="356" y="95" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">&#8220;most foundational primitive&#8221;</text>
+  </g>
+
+  <!-- Row 2 -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="24" y="116" width="252" height="48" rx="6"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="24" y="116" width="252" height="48" rx="6" stroke-width="1.2" fill="none"/>
+    <text x="36" y="138" font-family="Fraunces, serif" font-size="11.5" font-style="italic" stroke="none">act without bespoke tools</text>
+    <text x="36" y="155" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">solve by writing code, not wiring</text>
+  </g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="344" y="116" width="252" height="48" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="344" y="116" width="252" height="48" rx="6" stroke-width="1.2" fill="none"/>
+    <text x="356" y="138" font-family="Fraunces, serif" font-size="11.5" font-style="italic" stroke="none">bash + code execution</text>
+    <text x="356" y="155" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">one general-purpose tool</text>
+  </g>
+
+  <!-- Row 3 -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="24" y="176" width="252" height="48" rx="6"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="24" y="176" width="252" height="48" rx="6" stroke-width="1.2" fill="none"/>
+    <text x="36" y="198" font-family="Fraunces, serif" font-size="11.5" font-style="italic" stroke="none">run model code safely</text>
+    <text x="36" y="215" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">isolate blast radius</text>
+  </g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="344" y="176" width="252" height="48" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="344" y="176" width="252" height="48" rx="6" stroke-width="1.2" fill="none"/>
+    <text x="356" y="198" font-family="Fraunces, serif" font-size="11.5" font-style="italic" stroke="none">sandbox</text>
+    <text x="356" y="215" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">allow-list &#183; network isolation</text>
+  </g>
+
+  <!-- Row 4 -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="24" y="236" width="252" height="48" rx="6"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="24" y="236" width="252" height="48" rx="6" stroke-width="1.2" fill="none"/>
+    <text x="36" y="258" font-family="Fraunces, serif" font-size="11.5" font-style="italic" stroke="none">learn &amp; stay current</text>
+    <text x="36" y="275" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">past the knowledge cutoff</text>
+  </g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="344" y="236" width="252" height="48" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="344" y="236" width="252" height="48" rx="6" stroke-width="1.2" fill="none"/>
+    <text x="356" y="258" font-family="Fraunces, serif" font-size="11.5" font-style="italic" stroke="none">memory + search</text>
+    <text x="356" y="275" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">AGENTS.md &#183; web / MCP search</text>
+  </g>
+
+  <!-- Row 5 -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="24" y="296" width="252" height="48" rx="6"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="24" y="296" width="252" height="48" rx="6" stroke-width="1.2" fill="none"/>
+    <text x="36" y="318" font-family="Fraunces, serif" font-size="11.5" font-style="italic" stroke="none">survive long horizons</text>
+    <text x="36" y="335" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">fight context rot &#183; don&#8217;t stop early</text>
+  </g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="344" y="296" width="252" height="48" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="344" y="296" width="252" height="48" rx="6" stroke-width="1.2" fill="none"/>
+    <text x="356" y="318" font-family="Fraunces, serif" font-size="11.5" font-style="italic" stroke="none">compaction + Ralph loop</text>
+    <text x="356" y="335" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">reinject prompt in clean window</text>
+  </g>
+
+  <!-- arrows -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="278" y1="80"  x2="342" y2="80"  stroke-width="1" stroke-dasharray="3 3"/><polygon points="342,80 336,77 336,83" stroke="none"/>
+    <line x1="278" y1="140" x2="342" y2="140" stroke-width="1" stroke-dasharray="3 3"/><polygon points="342,140 336,137 336,143" stroke="none"/>
+    <line x1="278" y1="200" x2="342" y2="200" stroke-width="1" stroke-dasharray="3 3"/><polygon points="342,200 336,197 336,203" stroke="none"/>
+    <line x1="278" y1="260" x2="342" y2="260" stroke-width="1" stroke-dasharray="3 3"/><polygon points="342,260 336,257 336,263" stroke="none"/>
+    <line x1="278" y1="320" x2="342" y2="320" stroke-width="1" stroke-dasharray="3 3"/><polygon points="342,320 336,317 336,323" stroke="none"/>
+  </g>
+
+  <!-- footer -->
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="40" y1="372" x2="580" y2="372" stroke-width="1"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="310" y="392" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">&#8220;Behavior we want (or want to fix) &#8594; Harness Design to help the model achieve this.&#8221;</text>
+  </g>
+</svg>

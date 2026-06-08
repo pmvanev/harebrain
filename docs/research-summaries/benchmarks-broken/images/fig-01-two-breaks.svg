@@ -1,0 +1,99 @@
+<svg viewBox="0 0 620 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two ways a benchmark breaks. Task validity break: a do-nothing agent passes tau-bench at 38 percent without the capability, a false positive. Outcome validity break: WebArena marks the answer 45 plus 8 minutes correct though the answer is 63 minutes, a false pass. Both detach the reported score from real capability.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+    }
+  </style>
+
+  <!-- title -->
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="310" y="26" font-family="Fraunces, serif" font-style="italic" font-size="15" text-anchor="middle">two ways the score detaches from the capability</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="30" y1="38" x2="590" y2="38" stroke-width="1"/>
+  </g>
+
+  <!-- LEFT: task validity break -->
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="40" y="62" font-family="JetBrains Mono, monospace" font-size="10" letter-spacing="0.06em">TASK VALIDITY breaks</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="40" y="78" font-family="JetBrains Mono, monospace" font-size="8">a shortcut lets a no-capability agent pass</text>
+  </g>
+  <!-- do-nothing agent box -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="40" y="92" width="118" height="40" rx="5"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="40" y="92" width="118" height="40" rx="5" stroke-width="1.3" fill="none"/>
+    <text x="50" y="110" font-family="Fraunces, serif" font-style="italic" font-size="11" stroke="none">do-nothing agent</text>
+    <text x="50" y="125" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">returns empty / no edit</text>
+  </g>
+  <!-- arrow -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="158" y1="112" x2="206" y2="112" stroke-width="1.2"/>
+    <polygon points="209,112 203,109 203,115" stroke="none"/>
+  </g>
+  <!-- score -->
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="218" y="118" font-family="Fraunces, serif" font-style="italic" font-size="26">38%</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="218" y="135" font-family="JetBrains Mono, monospace" font-size="8">&#964;-bench &#183; beats a GPT-4o agent</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="40" y="162" font-family="JetBrains Mono, monospace" font-size="8">verdict: false positive &#8212; capability &#8800; success</text>
+  </g>
+
+  <!-- divider -->
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="30" y1="186" x2="590" y2="186" stroke-width="1" stroke-dasharray="3 3"/>
+  </g>
+
+  <!-- RIGHT/BOTTOM: outcome validity break -->
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="40" y="210" font-family="JetBrains Mono, monospace" font-size="10" letter-spacing="0.06em">OUTCOME VALIDITY breaks</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="40" y="226" font-family="JetBrains Mono, monospace" font-size="8">the judge can&#8217;t do arithmetic</text>
+  </g>
+  <!-- answer box -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="40" y="240" width="150" height="40" rx="5"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="40" y="240" width="150" height="40" rx="5" stroke-width="1.3" fill="none"/>
+    <text x="50" y="258" font-family="JetBrains Mono, monospace" font-size="10" stroke="none">&#8220;45 + 8 minutes&#8221;</text>
+    <text x="50" y="273" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">truth: 63 minutes</text>
+  </g>
+  <!-- arrow -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="190" y1="260" x2="238" y2="260" stroke-width="1.2"/>
+    <polygon points="241,260 235,257 235,263" stroke="none"/>
+  </g>
+  <!-- verdict stamp -->
+  <g class="oxblood" stroke="currentColor" fill="none">
+    <rect x="248" y="246" width="84" height="28" rx="3" stroke-width="1.4"/>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="290" y="265" font-family="Fraunces, serif" font-style="italic" font-size="14" text-anchor="middle">CORRECT</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="345" y="258" font-family="JetBrains Mono, monospace" font-size="8">WebArena LLM judge</text>
+    <text x="345" y="270" font-family="JetBrains Mono, monospace" font-size="8">1.6&#8211;5.2% abs. misestimate</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="40" y="296" font-family="JetBrains Mono, monospace" font-size="8">verdict: false pass &#8212; success &#8800; positive result</text>
+  </g>
+</svg>

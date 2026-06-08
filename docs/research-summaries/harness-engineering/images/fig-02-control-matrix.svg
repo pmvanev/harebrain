@@ -1,0 +1,104 @@
+<svg viewBox="0 0 620 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A two-by-two matrix of harness controls: the vertical axis is direction (feedforward guides that steer before the agent acts, feedback sensors that observe after), the horizontal axis is execution type (computational, deterministic and CPU-run, versus inferential, semantic and model-run). Cells hold example implementations: feedforward-computational holds code mods such as OpenRewrite recipes; feedforward-inferential holds coding conventions in AGENTS.md and skills; feedback-computational holds structural tests such as ArchUnit pre-commit hooks, linters, and mutation testing; feedback-inferential holds LLM-as-judge code-review skills.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.12); }
+    }
+  </style>
+
+  <!-- title -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="310" y="24" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle">two axes of control: when it fires &#215; what runs it</text>
+  </g>
+
+  <!-- column headers (execution) -->
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="245" y="58" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle">computational</text>
+    <text x="475" y="58" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle">inferential</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="245" y="72" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">CPU &#183; deterministic &#183; ms&#8211;s</text>
+    <text x="475" y="72" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">GPU/NPU &#183; semantic &#183; non-det</text>
+  </g>
+
+  <!-- row headers (direction) -->
+  <g class="sage" stroke="none" fill="currentColor">
+    <text x="60" y="135" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle" transform="rotate(-90 60 135)">feedforward</text>
+    <text x="74" y="135" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" transform="rotate(-90 74 135)">guides &#183; before</text>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="60" y="290" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle" transform="rotate(-90 60 290)">feedback</text>
+    <text x="74" y="290" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" transform="rotate(-90 74 290)">sensors &#183; after</text>
+  </g>
+
+  <!-- Cell: feedforward x computational -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="130" y="85" width="230" height="100" rx="6"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="130" y="85" width="230" height="100" rx="6" stroke-width="1.2" fill="none"/>
+    <text x="145" y="108" font-family="Fraunces, serif" font-size="11" font-style="italic" stroke="none">code mods</text>
+    <text x="145" y="128" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">OpenRewrite recipes</text>
+    <text x="145" y="144" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">bootstrap scripts</text>
+    <text x="145" y="168" font-family="JetBrains Mono, monospace" font-size="7" stroke="none" class="muted">deterministic edits, applied not asked</text>
+  </g>
+
+  <!-- Cell: feedforward x inferential -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="365" y="85" width="225" height="100" rx="6"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="365" y="85" width="225" height="100" rx="6" stroke-width="1.2" fill="none"/>
+    <text x="380" y="108" font-family="Fraunces, serif" font-size="11" font-style="italic" stroke="none">coding conventions</text>
+    <text x="380" y="128" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">AGENTS.md &#183; CLAUDE.md</text>
+    <text x="380" y="144" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">skills</text>
+    <text x="380" y="168" font-family="JetBrains Mono, monospace" font-size="7" stroke="none" class="muted">prose the model reads &amp; may ignore</text>
+  </g>
+
+  <!-- Cell: feedback x computational -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="130" y="195" width="230" height="100" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="130" y="195" width="230" height="100" rx="6" stroke-width="1.2" fill="none"/>
+    <text x="145" y="218" font-family="Fraunces, serif" font-size="11" font-style="italic" stroke="none">structural tests</text>
+    <text x="145" y="238" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">ArchUnit pre-commit hooks</text>
+    <text x="145" y="254" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">linters &#183; type checks &#183; mutation</text>
+    <text x="145" y="278" font-family="JetBrains Mono, monospace" font-size="7" stroke="none" class="muted">sound: a red bar is a red bar</text>
+  </g>
+
+  <!-- Cell: feedback x inferential -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="365" y="195" width="225" height="100" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="365" y="195" width="225" height="100" rx="6" stroke-width="1.2" fill="none"/>
+    <text x="380" y="218" font-family="Fraunces, serif" font-size="11" font-style="italic" stroke="none">review instructions</text>
+    <text x="380" y="238" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">LLM-as-judge &#183; review skills</text>
+    <text x="380" y="254" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">semantic critique</text>
+    <text x="380" y="278" font-family="JetBrains Mono, monospace" font-size="7" stroke="none" class="muted">soft: a verdict, not a proof</text>
+  </g>
+
+  <!-- the hardness gradient annotation -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="130" y1="320" x2="590" y2="320" stroke-width="1" stroke-dasharray="2 3"/>
+    <text x="130" y="338" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">&#8592; hard / sound</text>
+    <text x="590" y="338" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="end" stroke="none">soft / advisory &#8594;</text>
+  </g>
+
+  <!-- footer -->
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="40" y1="372" x2="580" y2="372" stroke-width="1"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="310" y="394" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">the computational column is the hard-critic floor &#183; the inferential column is the soft-critic loop</text>
+  </g>
+</svg>

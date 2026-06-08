@@ -1,0 +1,98 @@
+<svg viewBox="0 0 620 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The Agent Kernel with a northbound interface that parses ambiguous human input into structured intents, an LLM resource scheduler multiplexing context windows across concurrent agent threads, and a southbound interface that orchestrates a multi-agent system over MCP into the legacy kernel.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.12); }
+    }
+  </style>
+
+  <!-- title -->
+  <g class="blueprint" stroke="none" fill="currentColor">
+    <text x="310" y="26" font-family="Fraunces, serif" font-size="14" font-style="italic" text-anchor="middle">the Agent Kernel</text>
+  </g>
+
+  <!-- human input (oxblood, top-left) -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="30" y="50" width="150" height="46" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="30" y="50" width="150" height="46" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="105" y="70" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">ambiguous input</text>
+    <text x="105" y="86" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">&#x201C;pay that invoice&#x201D;</text>
+  </g>
+
+  <!-- NORTHBOUND arrow -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <line x1="180" y1="73" x2="232" y2="100" stroke-width="1.3"/>
+    <polygon points="235,102 228,99 230,105" stroke="none"/>
+    <text x="186" y="92" font-family="JetBrains Mono, monospace" font-size="7" stroke="none">northbound</text>
+  </g>
+
+  <!-- kernel body -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="200" y="96" width="220" height="168" rx="10"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="200" y="96" width="220" height="168" rx="10" stroke-width="1.5" fill="none"/>
+    <!-- intent parser -->
+    <rect x="218" y="112" width="184" height="34" rx="5" stroke-width="1.1" fill="none"/>
+    <text x="310" y="129" font-family="Fraunces, serif" font-size="10" font-style="italic" text-anchor="middle" stroke="none">intent parser</text>
+    <text x="310" y="140" font-family="JetBrains Mono, monospace" font-size="6.5" text-anchor="middle" stroke="none">&#x2192; structured machine-executable intent</text>
+    <!-- scheduler -->
+    <rect x="218" y="154" width="184" height="50" rx="5" stroke-width="1.1" fill="none"/>
+    <text x="310" y="170" font-family="Fraunces, serif" font-size="10" font-style="italic" text-anchor="middle" stroke="none">LLM resource scheduler</text>
+  </g>
+  <!-- context-window thread bars inside scheduler -->
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="232" y="178" width="48" height="16" rx="2" stroke-width="0.9" fill="none"/>
+    <rect x="286" y="178" width="48" height="16" rx="2" stroke-width="0.9" fill="none"/>
+    <rect x="340" y="178" width="48" height="16" rx="2" stroke-width="0.9" fill="none"/>
+    <text x="256" y="189" font-family="JetBrains Mono, monospace" font-size="6" text-anchor="middle" stroke="none">ctx&#x2081;</text>
+    <text x="310" y="189" font-family="JetBrains Mono, monospace" font-size="6" text-anchor="middle" stroke="none">ctx&#x2082;</text>
+    <text x="364" y="189" font-family="JetBrains Mono, monospace" font-size="6" text-anchor="middle" stroke="none">ctx&#x2099;</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="310" y="222" font-family="JetBrains Mono, monospace" font-size="6.5" text-anchor="middle">multiplexes context windows + token budget across concurrent agent threads</text>
+  </g>
+  <!-- coordinator -->
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="218" y="232" width="184" height="22" rx="5" stroke-width="1.1" fill="none"/>
+    <text x="310" y="247" font-family="Fraunces, serif" font-size="10" font-style="italic" text-anchor="middle" stroke="none">multi-agent coordinator</text>
+  </g>
+
+  <!-- SOUTHBOUND arrow -->
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <line x1="420" y1="220" x2="472" y2="245" stroke-width="1.3"/>
+    <polygon points="475,247 468,244 470,250" stroke="none"/>
+    <text x="424" y="236" font-family="JetBrains Mono, monospace" font-size="7" stroke="none">southbound</text>
+    <text x="424" y="246" font-family="JetBrains Mono, monospace" font-size="7" stroke="none">via MCP</text>
+  </g>
+
+  <!-- legacy kernel (sage, bottom-right, demoted) -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="450" y="246" width="140" height="46" rx="6"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="450" y="246" width="140" height="46" rx="6" stroke-width="1.3" stroke-dasharray="4 3" fill="none"/>
+    <text x="520" y="266" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">legacy kernel</text>
+    <text x="520" y="282" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">invisible infrastructure</text>
+  </g>
+
+  <!-- footer caption -->
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="30" y1="312" x2="590" y2="312" stroke-width="1"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="310" y="332" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">northbound parses intent &#183; the middle multiplexes the scarce resource &#183; southbound drives the old kernel</text>
+  </g>
+</svg>
