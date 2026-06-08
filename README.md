@@ -38,6 +38,11 @@ Distilled readings of external papers and articles, under [`docs/research-summar
 | [AI agent benchmarks are broken, *indicted*](docs/research-summaries/benchmarks-broken/benchmarks-broken.md) | Daniel Kang's polemic on broken task/outcome validity — the op-ed companion to the ABC paper (Medium). |
 | [A harness for every task](docs/research-summaries/dynamic-workflows/article.md) | Dynamic workflows in Claude Code ([summary](docs/research-summaries/dynamic-workflows/summary.md)). |
 
+## Reference
+
+- [Benchmarks](benchmarks.md) — a categorized map of LLM & agent benchmarks (knowledge, coding, agents, computer-use, safety, methodology), with links and the build-vs-borrow framing for evaluating harebrain.
+- [Definitions](definitions.md) — glossary of harebrain, game-AI, and LLM-benchmark terms used across the repo.
+
 ## Primary source
 
 Harel, D., "Statecharts: A Visual Formalism for Complex Systems," *Science of Computer Programming* 8 (1987), pp. 231–274 — included here: [state-charts-harel.pdf](docs/research-summaries/harel/state-charts-harel.pdf).
