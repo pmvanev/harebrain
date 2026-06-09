@@ -1,0 +1,54 @@
+<svg width="216" height="60" viewBox="0 0 216 60" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Autorubric glyph: a single holistic score-blob is decomposed into a stack of independent per-criterion checkboxes, each with its own judge disc and a calibration dial; one checkbox carries a negative-weight penalty mark.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.08); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.08); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.10); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.12); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.14); }
+    }
+  </style>
+  <!-- holistic blob -->
+  <g class="muted" stroke="currentColor" fill="none" stroke-width="1.4"><circle cx="26" cy="30" r="16"/></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="26" y="33" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">0.72</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="26" y="52" font-family="Fraunces, serif" font-style="italic" font-size="7.5" text-anchor="middle">holistic</text></g>
+  <!-- decompose arrow -->
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="45" y1="30" x2="62" y2="30" stroke-width="1.2"/><polygon points="65,30 59,27 59,33" stroke="none"/></g>
+  <!-- three criterion rows, each with checkbox + judge disc -->
+  <g font-family="JetBrains Mono, monospace" font-size="7">
+    <!-- row 1 binary, met -->
+    <g class="blueprint" stroke="currentColor" fill="none" stroke-width="1.2"><rect x="72" y="10" width="11" height="11" rx="2"/></g>
+    <g class="sage" stroke="currentColor" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="74,15 77,18 81,12"/></g>
+    <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="88" y="10" width="60" height="11" rx="2"/></g>
+    <!-- row 2 ordinal -->
+    <g class="blueprint" stroke="currentColor" fill="none" stroke-width="1.2"><rect x="72" y="24" width="11" height="11" rx="2"/></g>
+    <g class="sage" stroke="currentColor" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="74,29 77,32 81,26"/></g>
+    <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="88" y="24" width="48" height="11" rx="2"/></g>
+    <!-- row 3 negative penalty criterion -->
+    <g class="oxblood" stroke="currentColor" fill="none" stroke-width="1.2"><rect x="72" y="38" width="11" height="11" rx="2"/></g>
+    <g class="oxblood" stroke="currentColor" fill="none" stroke-width="1.6" stroke-linecap="round"><line x1="75" y1="43.5" x2="80" y2="43.5"/></g>
+    <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="88" y="38" width="40" height="11" rx="2"/></g>
+    <g class="oxblood" stroke="none" fill="currentColor"><text x="133" y="47" font-size="7">&#8722;w</text></g>
+  </g>
+  <!-- per-criterion judge discs -->
+  <g class="blueprint" stroke="currentColor" fill="none" stroke-width="1.1">
+    <circle cx="158" cy="15" r="5"/><circle cx="158" cy="29" r="5"/><circle cx="158" cy="43" r="5"/>
+  </g>
+  <!-- calibration dial -->
+  <g class="sage" stroke="currentColor" fill="none" stroke-width="1.5">
+    <path d="M178 40 a14 14 0 0 1 26 0"/>
+    <line x1="191" y1="40" x2="198" y2="31" stroke-linecap="round"/>
+  </g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="191" y="52" font-family="Fraunces, serif" font-style="italic" font-size="7.5" text-anchor="middle">calibrate</text></g>
+</svg>

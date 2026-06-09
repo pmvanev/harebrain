@@ -1,0 +1,46 @@
+<svg width="216" height="60" viewBox="0 0 216 60" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CollabEval glyph: three independent evaluator discs feed a consensus gate; agreement exits early, a split enters a bounded discussion loop, and a deadlock escalates to a single strong final-judge disc.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.10); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.12); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.12); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.16); }
+    }
+  </style>
+  <!-- three independent evaluators -->
+  <g class="blueprint" stroke="currentColor" fill="none" stroke-width="1.3">
+    <circle cx="16" cy="14" r="7"/><circle cx="16" cy="30" r="7"/><circle cx="16" cy="46" r="7"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="16" y="58" font-family="JetBrains Mono, monospace" font-size="6" text-anchor="middle">indep</text></g>
+  <!-- feed to consensus gate -->
+  <g class="muted" stroke="currentColor" fill="none" stroke-width="1"><line x1="24" y1="14" x2="44" y2="28" stroke-dasharray="2 2"/><line x1="24" y1="30" x2="44" y2="30" stroke-dasharray="2 2"/><line x1="24" y1="46" x2="44" y2="32" stroke-dasharray="2 2"/></g>
+  <!-- consensus diamond -->
+  <g class="sage" stroke="currentColor" fill="none" stroke-width="1.4"><polygon points="58,30 70,20 82,30 70,40"/></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="70" y="33" font-family="JetBrains Mono, monospace" font-size="6.5" text-anchor="middle">=?</text></g>
+  <!-- early exit (agree) -->
+  <g class="sage" stroke="currentColor" fill="currentColor" stroke-width="1.2"><line x1="70" y1="40" x2="70" y2="52" /><polygon points="70,55 67,48 73,48" stroke="none"/></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="86" y="54" font-family="Fraunces, serif" font-style="italic" font-size="6.5">exit</text></g>
+  <!-- split -> discussion loop -->
+  <g class="muted" stroke="currentColor" fill="currentColor" stroke-width="1.2"><line x1="82" y1="30" x2="104" y2="30"/><polygon points="107,30 101,27 101,33" stroke="none"/></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="108" y="18" width="44" height="24" rx="4"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none" stroke-width="1.2"><rect x="108" y="18" width="44" height="24" rx="4"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="130" y="33" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">discuss</text></g>
+  <!-- loop arrow -->
+  <g class="blueprint" stroke="currentColor" fill="currentColor" stroke-width="1"><path d="M130 18 q0 -10 -11 -8" fill="none"/><polygon points="118,9 124,11 120,15" stroke="none"/></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="130" y="54" font-family="JetBrains Mono, monospace" font-size="6" text-anchor="middle">≤3 rounds</text></g>
+  <!-- deadlock -> final judge -->
+  <g class="muted" stroke="currentColor" fill="currentColor" stroke-width="1.2"><line x1="152" y1="30" x2="172" y2="30"/><polygon points="175,30 169,27 169,33" stroke="none"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none" stroke-width="1.6"><circle cx="190" cy="30" r="11"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="190" y="33" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">judge</text></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="190" y="52" font-family="Fraunces, serif" font-style="italic" font-size="6.5" text-anchor="middle">strong final</text></g>
+</svg>

@@ -1,0 +1,84 @@
+<svg viewBox="0 0 560 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A three-phase state machine. Phase 1 initial evaluation: three heterogeneous evaluators emit verdict plus confidence plus justification, a consensus check exits early on agreement. Phase 2 multi-round discussion: on disagreement evaluators re-judge with shuffled order, gated by consensus, max-rounds, and unchanged-results checks. Phase 3 final judgment: a deadlock escalates to a single strong model that rules on the full history.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.08); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.08); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.12); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.12); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.16); }
+    }
+  </style>
+
+  <g class="muted" stroke="none" fill="currentColor"><text x="280" y="20" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle">the soft-critic panel as a bounded, guarded state machine</text></g>
+
+  <!-- PHASE 1 -->
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="98" y="44" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle">Phase 1 · initial eval</text></g>
+  <g class="rule-soft" stroke="currentColor" fill="none" stroke-width="1"><rect x="20" y="52" width="156" height="140" rx="6"/></g>
+  <!-- evaluators -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="34" y="64" width="128" height="20" rx="3"/><rect x="34" y="90" width="128" height="20" rx="3"/><rect x="34" y="116" width="128" height="20" rx="3"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none" stroke-width="1.2"><circle cx="46" cy="74" r="6"/><circle cx="46" cy="100" r="6"/><circle cx="46" cy="126" r="6"/></g>
+  <g class="ink" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="7.5"><text x="100" y="77" text-anchor="middle">verdict + conf + why</text><text x="100" y="103" text-anchor="middle">verdict + conf + why</text><text x="100" y="129" text-anchor="middle">verdict + conf + why</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="100" y="152" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">heterogeneous models</text></g>
+  <!-- consensus diamond -->
+  <g class="sage" stroke="currentColor" fill="none" stroke-width="1.4"><polygon points="98,162 124,176 98,190 72,176"/></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="98" y="179" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">consensus?</text></g>
+  <!-- early exit down -->
+  <g class="sage" stroke="currentColor" fill="currentColor" stroke-width="1.3"><line x1="98" y1="190" x2="98" y2="214"/><polygon points="98,217 94,209 102,209" stroke="none"/></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="98" y="232" font-family="Fraunces, serif" font-style="italic" font-size="9" text-anchor="middle">agree → exit early</text></g>
+
+  <!-- arrow P1 -> P2 -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor" stroke-width="1.3"><line x1="124" y1="176" x2="200" y2="120"/><polygon points="203,118 195,118 200,124" stroke="none"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="166" y="138" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">disagree</text></g>
+
+  <!-- PHASE 2 -->
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="300" y="44" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle">Phase 2 · discussion</text></g>
+  <g class="rule-soft" stroke="currentColor" fill="none" stroke-width="1"><rect x="208" y="52" width="184" height="140" rx="6"/></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="222" y="64" width="156" height="38" rx="4"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none" stroke-width="1.2"><rect x="222" y="64" width="156" height="38" rx="4"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="300" y="80" font-family="Spectral, serif" font-size="9" font-style="italic" text-anchor="middle">see others' verdicts → re-judge</text><text x="300" y="95" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">order shuffled each round</text></g>
+  <!-- loop arrow -->
+  <g class="blueprint" stroke="currentColor" fill="currentColor" stroke-width="1.1"><path d="M222 83 q-14 0 -14 -16 q0 -14 14 -14" fill="none"/><polygon points="222,50 215,53 219,58" stroke="none"/></g>
+  <!-- three guards -->
+  <g font-family="JetBrains Mono, monospace" font-size="7">
+    <g class="sage" stroke="currentColor" fill="none" stroke-width="1.1"><rect x="222" y="116" width="156" height="16" rx="3"/></g>
+    <g class="ink" stroke="none" fill="currentColor"><text x="300" y="127" text-anchor="middle">guard: consensus reached?</text></g>
+    <g class="sage" stroke="currentColor" fill="none" stroke-width="1.1"><rect x="222" y="138" width="156" height="16" rx="3"/></g>
+    <g class="ink" stroke="none" fill="currentColor"><text x="300" y="149" text-anchor="middle">guard: max rounds (≤3)?</text></g>
+    <g class="sage" stroke="currentColor" fill="none" stroke-width="1.1"><rect x="222" y="160" width="156" height="16" rx="3"/></g>
+    <g class="ink" stroke="none" fill="currentColor"><text x="300" y="171" text-anchor="middle">guard: results unchanged?</text></g>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="300" y="188" font-family="JetBrains Mono, monospace" font-size="6.5" text-anchor="middle">avg 1.5–2.3 rounds · returns saturate past 2</text></g>
+  <!-- consensus exit from P2 -->
+  <g class="sage" stroke="currentColor" fill="currentColor" stroke-width="1.3"><line x1="300" y1="192" x2="300" y2="214"/><polygon points="300,217 296,209 304,209" stroke="none"/></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="300" y="232" font-family="Fraunces, serif" font-style="italic" font-size="9" text-anchor="middle">agree → exit</text></g>
+
+  <!-- arrow P2 -> P3 -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor" stroke-width="1.3"><line x1="392" y1="120" x2="424" y2="120"/><polygon points="427,120 419,117 419,123" stroke="none"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="409" y="112" font-family="JetBrains Mono, monospace" font-size="6.5" text-anchor="middle">deadlock</text></g>
+
+  <!-- PHASE 3 -->
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="492" y="44" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle">Phase 3 · final</text></g>
+  <g class="rule-soft" stroke="currentColor" fill="none" stroke-width="1"><rect x="432" y="52" width="104" height="140" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none" stroke-width="1.6"><circle cx="484" cy="108" r="20"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="484" y="112" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">judge</text></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="484" y="150" font-family="Spectral, serif" font-size="8.5" font-style="italic" text-anchor="middle">one strong model</text><text x="484" y="164" font-family="Spectral, serif" font-size="8.5" font-style="italic" text-anchor="middle">rules on full history</text></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor" stroke-width="1.3"><line x1="484" y1="178" x2="484" y2="214"/><polygon points="484,217 480,209 488,209" stroke="none"/></g>
+
+  <!-- bottom callout -->
+  <g class="rule-soft" stroke="currentColor" fill="none" stroke-width="1"><line x1="40" y1="252" x2="520" y2="252"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="280" y="276" font-family="Spectral, serif" font-size="10.5" font-style="italic" text-anchor="middle">every transition is gated — cheap cases exit in one round, hard cases pay for discussion</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="280" y="300" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">collaboration, not competitive debate — and the consensus gate is what keeps it affordable</text></g>
+</svg>

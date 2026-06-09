@@ -1,0 +1,69 @@
+<svg viewBox="0 0 560 314" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A consensus clock. Top: per-round correct-agent count modeled as a two-component Beta-Binomial mixture fit by EM. Middle: KS distance between consecutive rounds' fitted CDFs. Bottom: stop when KS stays below 0.05 for two consecutive rounds. A small table relates KS threshold to rounds processed.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.08); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.08); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.12); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.12); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.16); }
+    }
+  </style>
+
+  <g class="muted" stroke="none" fill="currentColor"><text x="280" y="20" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle">a consensus clock — stop when agreement stops moving</text></g>
+
+  <!-- top: Beta-Binomial mixture -->
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="150" y="46" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle">two-component Beta-Binomial</text></g>
+  <g class="rule-soft" stroke="currentColor" fill="none" stroke-width="1"><line x1="40" y1="120" x2="262" y2="120"/></g>
+  <!-- attentive component curve -->
+  <g class="sage" stroke="currentColor" fill="none" stroke-width="1.6"><path d="M44 118 C 120 118, 180 60, 256 56"/></g>
+  <!-- inattentive component curve -->
+  <g class="oxblood" stroke="currentColor" fill="none" stroke-width="1.4" stroke-dasharray="3 3"><path d="M44 70 C 110 60, 170 116, 256 118"/></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="232" y="50" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="end">attentive</text></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="56" y="62" font-family="JetBrains Mono, monospace" font-size="7">inattentive</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="150" y="136" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">fit each round by EM</text></g>
+
+  <!-- KS table on the right -->
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="412" y="46" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle">KS threshold ε trades</text><text x="412" y="60" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle">rounds for stability</text></g>
+  <g class="rule-soft" stroke="currentColor" fill="none" stroke-width="1"><rect x="318" y="72" width="190" height="78" rx="5"/><line x1="318" y1="92" x2="508" y2="92"/><line x1="408" y1="72" x2="408" y2="150"/></g>
+  <g class="muted" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="8"><text x="363" y="86" text-anchor="middle">ε</text><text x="458" y="86" text-anchor="middle">rounds</text></g>
+  <g class="ink" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="8">
+    <text x="363" y="106" text-anchor="middle">0.01</text><text x="458" y="106" text-anchor="middle">10 (never)</text>
+    <text x="363" y="126" text-anchor="middle">0.05</text><text x="458" y="126" text-anchor="middle">6</text>
+    <text x="363" y="144" text-anchor="middle">0.20</text><text x="458" y="144" text-anchor="middle">4 (early)</text>
+  </g>
+  <g class="sage" stroke="currentColor" fill="none" stroke-width="1.3"><rect x="318" y="116" width="190" height="14" rx="2"/></g>
+
+  <!-- middle/bottom: KS over rounds with stop -->
+  <g class="rule-soft" stroke="currentColor" fill="none" stroke-width="1"><line x1="40" y1="176" x2="520" y2="176"/></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="280" y="198" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">KS distance Dₜ between consecutive rounds' fitted CDFs</text></g>
+
+  <!-- axes -->
+  <g class="muted" stroke="currentColor" fill="none" stroke-width="1.1"><line x1="70" y1="216" x2="70" y2="288"/><line x1="70" y1="288" x2="500" y2="288"/></g>
+  <!-- threshold line -->
+  <g class="oxblood" stroke="currentColor" fill="none" stroke-width="1.2" stroke-dasharray="4 3"><line x1="70" y1="272" x2="500" y2="272"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="504" y="275" font-family="JetBrains Mono, monospace" font-size="7.5">ε=0.05</text></g>
+  <!-- KS curve dropping -->
+  <g class="blueprint" stroke="currentColor" fill="none" stroke-width="1.8"><polyline points="100,228 160,244 220,260 280,270 340,278 400,280 460,281"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor">
+    <circle cx="100" cy="228" r="2.6"/><circle cx="160" cy="244" r="2.6"/><circle cx="220" cy="260" r="2.6"/><circle cx="280" cy="270" r="2.6"/><circle cx="340" cy="278" r="2.6"/><circle cx="400" cy="280" r="2.6"/><circle cx="460" cy="281" r="2.6"/>
+  </g>
+  <!-- stop marker: two consecutive below threshold -->
+  <g class="sage" stroke="currentColor" fill="none" stroke-width="1.5"><circle cx="340" cy="278" r="6"/><circle cx="400" cy="280" r="6"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor" stroke-width="1.4"><line x1="400" y1="262" x2="400" y2="224"/><polygon points="400,220 396,228 404,228" stroke="none"/></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="400" y="214" font-family="Fraunces, serif" font-style="italic" font-size="9" text-anchor="middle">stop</text></g>
+  <g class="muted" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="7"><text x="70" y="300" text-anchor="middle">r1</text><text x="280" y="300" text-anchor="middle">debate round</text><text x="460" y="300" text-anchor="middle">r7</text></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="370" y="256" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">Dₜ &lt; ε for 2 rounds</text></g>
+</svg>

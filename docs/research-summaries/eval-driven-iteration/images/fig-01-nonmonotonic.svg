@@ -1,0 +1,87 @@
+<svg viewBox="0 0 560 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Top: for Llama-3-8B, the generic improved prompt moves three suites differently — extraction 100 to 90 percent, RAG 93.3 to 80 percent, instruction-following 53.3 to 66.7 percent. Bottom: a four-condition ablation showing A baseline, B add wrapper (no change), C add generic rules (extraction breaks), D full (RAG breaks, instruction helped), with the conclusion that generic rules conflict with task-specific constraints.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.10); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.10); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.14); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.12); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.14); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.18); }
+    }
+  </style>
+
+  <g class="muted" stroke="none" fill="currentColor"><text x="280" y="20" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle">the generic "improvement" pulls three suites three ways (Llama-3-8B)</text></g>
+
+  <!-- three suites: baseline -> improved arrows -->
+  <!-- extraction -->
+  <g class="muted" stroke="none" fill="currentColor"><text x="100" y="44" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">extraction</text></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="64" y="70" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">100%</text></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor" stroke-width="1.3"><line x1="86" y1="66" x2="120" y2="86"/><polygon points="123,88 115,87 118,81" stroke="none"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="140" y="92" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">90%</text></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="100" y="108" font-family="Spectral, serif" font-size="8.5" font-style="italic" text-anchor="middle">−10pp · markdown drift</text></g>
+
+  <!-- RAG -->
+  <g class="muted" stroke="none" fill="currentColor"><text x="280" y="44" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">RAG grounding</text></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="244" y="70" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">93.3%</text></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor" stroke-width="1.3"><line x1="268" y1="66" x2="300" y2="86"/><polygon points="303,88 295,87 298,81" stroke="none"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="322" y="92" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">80%</text></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="280" y="108" font-family="Spectral, serif" font-size="8.5" font-style="italic" text-anchor="middle">−13pp · unsupported claims</text></g>
+
+  <!-- instruction -->
+  <g class="muted" stroke="none" fill="currentColor"><text x="460" y="44" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">instruction-following</text></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="424" y="92" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">53.3%</text></g>
+  <g class="sage" stroke="currentColor" fill="currentColor" stroke-width="1.3"><line x1="448" y1="86" x2="480" y2="66"/><polygon points="483,64 475,65 478,71" stroke="none"/></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="502" y="70" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">66.7%</text></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="460" y="108" font-family="Spectral, serif" font-size="8.5" font-style="italic" text-anchor="middle">+13pp · refusal scaffolding</text></g>
+
+  <!-- ablation -->
+  <g class="rule-soft" stroke="currentColor" fill="none" stroke-width="1"><line x1="40" y1="128" x2="520" y2="128"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="280" y="150" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle">four-condition ablation — isolating the mechanism</text></g>
+
+  <g font-family="JetBrains Mono, monospace" font-size="8">
+    <!-- A -->
+    <g class="rule-soft" stroke="currentColor" fill="none"><rect x="48" y="166" width="104" height="60" rx="5" stroke-width="1.2"/></g>
+    <g class="ink" stroke="none" fill="currentColor"><text x="100" y="184" text-anchor="middle" font-family="Fraunces, serif" font-style="italic" font-size="10">A · baseline</text></g>
+    <g class="muted" stroke="none" fill="currentColor"><text x="100" y="202" text-anchor="middle">task-specific</text><text x="100" y="216" text-anchor="middle">prompt only</text></g>
+    <!-- B -->
+    <g class="sage-tint" stroke="none" fill="currentColor"><rect x="168" y="166" width="104" height="60" rx="5"/></g>
+    <g class="sage" stroke="currentColor" fill="none"><rect x="168" y="166" width="104" height="60" rx="5" stroke-width="1.2"/></g>
+    <g class="ink" stroke="none" fill="currentColor"><text x="220" y="184" text-anchor="middle" font-family="Fraunces, serif" font-style="italic" font-size="10">B · +wrapper</text></g>
+    <g class="sage" stroke="none" fill="currentColor"><text x="220" y="204" text-anchor="middle">no change</text></g>
+    <g class="muted" stroke="none" fill="currentColor"><text x="220" y="217" text-anchor="middle">(benign)</text></g>
+    <!-- C -->
+    <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="288" y="166" width="104" height="60" rx="5"/></g>
+    <g class="oxblood" stroke="currentColor" fill="none"><rect x="288" y="166" width="104" height="60" rx="5" stroke-width="1.2"/></g>
+    <g class="ink" stroke="none" fill="currentColor"><text x="340" y="184" text-anchor="middle" font-family="Fraunces, serif" font-style="italic" font-size="10">C · +rules</text></g>
+    <g class="oxblood" stroke="none" fill="currentColor"><text x="340" y="204" text-anchor="middle">extraction</text><text x="340" y="216" text-anchor="middle">breaks 100→90</text></g>
+    <!-- D -->
+    <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="408" y="166" width="104" height="60" rx="5"/></g>
+    <g class="oxblood" stroke="currentColor" fill="none"><rect x="408" y="166" width="104" height="60" rx="5" stroke-width="1.2"/></g>
+    <g class="ink" stroke="none" fill="currentColor"><text x="460" y="184" text-anchor="middle" font-family="Fraunces, serif" font-style="italic" font-size="10">D · full</text></g>
+    <g class="oxblood" stroke="none" fill="currentColor"><text x="460" y="204" text-anchor="middle">RAG breaks</text></g>
+    <g class="sage" stroke="none" fill="currentColor"><text x="460" y="216" text-anchor="middle">instruction helped</text></g>
+  </g>
+  <!-- arrows between conditions -->
+  <g class="muted" stroke="currentColor" fill="currentColor" stroke-width="1.1">
+    <line x1="152" y1="196" x2="166" y2="196"/><polygon points="168,196 163,193 163,199" stroke="none"/>
+    <line x1="272" y1="196" x2="286" y2="196"/><polygon points="288,196 283,193 283,199" stroke="none"/>
+    <line x1="392" y1="196" x2="406" y2="196"/><polygon points="408,196 403,193 403,199" stroke="none"/>
+  </g>
+
+  <g class="ink" stroke="none" fill="currentColor"><text x="280" y="252" font-family="Spectral, serif" font-size="10.5" font-style="italic" text-anchor="middle">the wrapper is benign — the generic RULES conflict with the task-specific contract</text></g>
+  <g class="rule-soft" stroke="currentColor" fill="none" stroke-width="1"><line x1="40" y1="266" x2="520" y2="266"/></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="280" y="290" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">"be helpful" made the model answer beyond its sources — the brain leaving the cage</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="280" y="308" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">and only the task-specific suite caught it — vibes would have shipped the regression</text></g>
+</svg>

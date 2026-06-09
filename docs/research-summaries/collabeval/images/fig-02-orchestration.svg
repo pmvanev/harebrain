@@ -1,0 +1,68 @@
+<svg viewBox="0 0 560 286" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two panels showing orchestration beats averaging. Left: Llama-3 alone shows a 100% over-evaluation ratio on relevance; CollabEval's discussion rebalances the panel to 31.9% over-evaluation. Right: Llama-3 alone scores 22.8% accuracy on relevance versus the CollabEval panel containing that weak model at 49.4% — the panel pulls the weak member up rather than sinking to it.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.10); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.10); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.14); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.12); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.14); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.18); }
+    }
+  </style>
+
+  <g class="muted" stroke="none" fill="currentColor"><text x="280" y="20" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle">orchestration, not averaging — the panel corrects the weak member</text></g>
+
+  <!-- LEFT: over-evaluation rebalanced -->
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="148" y="44" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle">bias on relevance (over-eval %)</text></g>
+  <!-- axis -->
+  <g class="muted" stroke="currentColor" fill="none" stroke-width="1.1"><line x1="70" y1="60" x2="70" y2="180"/><line x1="70" y1="180" x2="250" y2="180"/></g>
+  <!-- Llama3 100% bar -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="96" y="64" width="40" height="116"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none" stroke-width="1.3"><rect x="96" y="64" width="40" height="116"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="116" y="58" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">100%</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="116" y="194" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">Llama-3 alone</text></g>
+  <!-- CollabEval 31.9% bar -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="184" y="143" width="40" height="37"/></g>
+  <g class="sage" stroke="currentColor" fill="none" stroke-width="1.3"><rect x="184" y="143" width="40" height="37"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="204" y="137" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">31.9%</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="204" y="194" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">panel</text></g>
+  <!-- correction arrow -->
+  <g class="sage" stroke="currentColor" fill="currentColor" stroke-width="1.2"><path d="M140 70 q40 -2 42 66" fill="none"/><polygon points="183,140 178,132 186,133" stroke="none"/></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="170" y="92" font-family="Spectral, serif" font-size="8" font-style="italic" text-anchor="middle">contested down</text></g>
+
+  <!-- divider -->
+  <g class="rule-soft" stroke="currentColor" fill="none" stroke-width="1" stroke-dasharray="2 3"><line x1="290" y1="38" x2="290" y2="206"/></g>
+
+  <!-- RIGHT: accuracy not regressing to weak member -->
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="424" y="44" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle">accuracy on relevance</text></g>
+  <g class="muted" stroke="currentColor" fill="none" stroke-width="1.1"><line x1="330" y1="60" x2="330" y2="180"/><line x1="330" y1="180" x2="510" y2="180"/></g>
+  <!-- Llama3 22.8 -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="356" y="153" width="40" height="27"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none" stroke-width="1.3"><rect x="356" y="153" width="40" height="27"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="376" y="147" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">22.8%</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="376" y="194" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">Llama-3 alone</text></g>
+  <!-- panel 49.4 -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="444" y="122" width="40" height="58"/></g>
+  <g class="sage" stroke="currentColor" fill="none" stroke-width="1.3"><rect x="444" y="122" width="40" height="58"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="464" y="116" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">49.4%</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="464" y="194" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">panel (incl. Llama-3)</text></g>
+  <!-- lift arrow -->
+  <g class="sage" stroke="currentColor" fill="currentColor" stroke-width="1.2"><path d="M398 155 q40 6 44 -28" fill="none"/><polygon points="443,124 437,131 445,132" stroke="none"/></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="430" y="150" font-family="Spectral, serif" font-size="8" font-style="italic" text-anchor="middle">pulled up</text></g>
+
+  <g class="rule-soft" stroke="currentColor" fill="none" stroke-width="1"><line x1="40" y1="222" x2="520" y2="222"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="280" y="246" font-family="Spectral, serif" font-size="10" font-style="italic" text-anchor="middle">the panel doesn't regress to the weak member — stronger critics overrule its bias</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="280" y="272" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">active ingredient: heterogeneous, decorrelated models — same model × n has nothing to cross-validate</text></g>
+</svg>
