@@ -36,6 +36,9 @@ Distilled readings of external papers and articles, under [`docs/research-summar
 | [Harness Engineering, *practised*](docs/research-summaries/harness-engineering/harness-engineering.md) | Böckeler's practitioner taxonomy of the outer harness teams build around coding agents (martinfowler.com). |
 | [The Anatomy of an Agent Harness, *dissected*](docs/research-summaries/agent-harness-anatomy/agent-harness-anatomy.md) | Decomposing `Agent = Model + Harness` into its component organs (LangChain blog). |
 | [AI agent benchmarks are broken, *indicted*](docs/research-summaries/benchmarks-broken/benchmarks-broken.md) | Daniel Kang's polemic on broken task/outcome validity — the op-ed companion to the ABC paper (Medium). |
+| [Benchmark Data Contamination, *quarantined*](docs/research-summaries/benchmark-contamination/benchmark-contamination.md) | The survey under harebrain's "obfuscation gap" — detection loses the arms race, so the wumpus engine generates its problems instead of shipping them (PDF included). |
+| [Assessing LLM-as-a-Judge, *cross-examined*](docs/research-summaries/assessing-judges/assessing-judges.md) | Sage: validating the judge with no ground-truth key, via consistency axioms — the soft-critic validation harebrain's ABC pillar left open (PDF included). |
+| [Evaluation Engineering, *instrumented*](docs/research-summaries/evaluation-engineering/evaluation-engineering.md) | The eval harness as a software product with its own failure modes — operational reliability, orthogonal to benchmark validity; the wumpus runner is a harness (PDF included). |
 | [A harness for every task](docs/research-summaries/dynamic-workflows/article.md) | Dynamic workflows in Claude Code ([summary](docs/research-summaries/dynamic-workflows/summary.md)). |
 
 ## Reference

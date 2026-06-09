@@ -1,0 +1,58 @@
+<svg viewBox="0 0 560 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two orthogonal axes: horizontal is benchmark validity, vertical is operational reliability. The repo's other summaries ABC, contamination, judges cluster on the horizontal axis; this paper occupies the vertical. The top-right quadrant is a result you can trust; the bottom-right is valid metric but fragile runner, silently wrong.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.08); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.12); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.16); }
+    }
+  </style>
+
+  <!-- quadrant tints -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="290" y="40" width="210" height="110" rx="4"/></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="290" y="158" width="210" height="110" rx="4"/></g>
+
+  <!-- axes -->
+  <g class="ink" stroke="currentColor" fill="currentColor" stroke-width="1.6">
+    <line x1="80" y1="268" x2="500" y2="268"/><polygon points="504,268 496,264 496,272" stroke="none"/>
+    <line x1="290" y1="288" x2="290" y2="36"/><polygon points="290,32 286,40 294,40" stroke="none"/>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="400" y="286" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle">benchmark validity &#8594;</text>
+    <text x="270" y="150" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle" transform="rotate(-90 270 150)">operational reliability &#8593;</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="400" y="300" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">does the metric capture the construct?</text>
+  </g>
+
+  <!-- horizontal-axis cluster: the other summaries -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <circle cx="360" cy="262" r="3" stroke="none"/><circle cx="410" cy="262" r="3" stroke="none"/><circle cx="455" cy="262" r="3" stroke="none"/>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="408" y="250" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">ABC &#183; contamination &#183; judges</text></g>
+
+  <!-- this paper: vertical axis point -->
+  <g class="blueprint" stroke="currentColor" fill="currentColor"><circle cx="298" cy="120" r="3.5" stroke="none"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="304" y="112" font-family="JetBrains Mono, monospace" font-size="7.5">this paper &#8594; EvalEng</text></g>
+
+  <!-- quadrant labels -->
+  <g class="sage" stroke="none" fill="currentColor"><text x="395" y="98" font-family="Spectral, serif" font-size="11" font-style="italic" text-anchor="middle">a result you can trust</text></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="395" y="206" font-family="Spectral, serif" font-size="10.5" font-style="italic" text-anchor="middle">valid metric, fragile runner</text>
+    <text x="395" y="222" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" class="oxblood">&#8594; silently wrong</text></g>
+
+  <g class="muted" stroke="none" fill="currentColor"><text x="280" y="20" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle">two orthogonal axes &#8212; both must hold</text></g>
+</svg>

@@ -1,0 +1,72 @@
+<svg viewBox="0 0 560 286" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Left: a buggy scorer produces a plausible wrong number with no exception, labelled the harness grades its own homework, the test-oracle problem. Right: an independent reference (sound oracle plus complete ledger) sits beside the scorer and the mismatch lights up as a caught divergence event. Below: metamorphic testing (relabel input, score must be invariant) and differential testing (two independent implementations must agree).">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.08); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.10); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.12); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.14); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.16); }
+    }
+  </style>
+
+  <!-- LEFT: silent failure -->
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="145" y="22" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle">no reference</text></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="40" y="36" width="210" height="58" rx="5"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="40" y="36" width="210" height="58" rx="5" stroke-width="1.3"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="145" y="56" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">scorer &#8594; ROUGE-L &#8776; 1.0</text>
+    <text x="145" y="70" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">(mean_iou = recall)</text>
+    <text x="145" y="84" font-family="Spectral, serif" font-size="8.5" font-style="italic" text-anchor="middle">plausible. no exception.</text></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="145" y="112" font-family="Spectral, serif" font-size="9" font-style="italic" text-anchor="middle">the runner grades its own homework</text>
+    <text x="145" y="124" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">&#8212; the test-oracle problem</text></g>
+
+  <!-- divider -->
+  <g class="rule-soft" stroke="currentColor" fill="none" stroke-width="1" stroke-dasharray="2 3"><line x1="280" y1="30" x2="280" y2="138"/></g>
+
+  <!-- RIGHT: independent reference catches it -->
+  <g class="sage" stroke="none" fill="currentColor"><text x="420" y="22" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle">independent reference</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="312" y="36" width="100" height="40" rx="5"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="312" y="36" width="100" height="40" rx="5" stroke-width="1.3"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="362" y="54" font-family="Spectral, serif" font-size="9" font-style="italic" text-anchor="middle">scorer output</text>
+    <text x="362" y="67" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">narration</text></g>
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="430" y="36" width="100" height="40" rx="5"/></g>
+  <g class="sage" stroke="currentColor" fill="none"><rect x="430" y="36" width="100" height="40" rx="5" stroke-width="1.3"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="480" y="54" font-family="Spectral, serif" font-size="9" font-style="italic" text-anchor="middle">oracle + ledger</text>
+    <text x="480" y="67" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">true post-state</text></g>
+  <!-- mismatch spark -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor" stroke-width="1.5">
+    <polyline points="416,46 422,56 416,56 422,66" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="420" y="100" font-family="Spectral, serif" font-size="9.5" font-style="italic" text-anchor="middle">mismatch &#8594; caught</text>
+    <text x="420" y="113" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">divergence event</text></g>
+
+  <!-- bottom: two SE techniques -->
+  <g class="rule-soft" stroke="currentColor" fill="none" stroke-width="1"><line x1="40" y1="150" x2="520" y2="150"/></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="40" y="166" width="230" height="86" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="40" y="166" width="230" height="86" rx="6" stroke-width="1.2"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="155" y="186" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle">metamorphic test</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="155" y="204" font-family="Spectral, serif" font-size="9" text-anchor="middle">relabel the input &#8594; score must not move</text></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="155" y="226" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">= Wumpus &#8594; Mystery-Wumpus</text>
+    <text x="155" y="238" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">(the obfuscation gap)</text></g>
+
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="290" y="166" width="230" height="86" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="290" y="166" width="230" height="86" rx="6" stroke-width="1.2"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="405" y="186" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle">differential test</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="405" y="204" font-family="Spectral, serif" font-size="9" text-anchor="middle">two independent impls must agree</text></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="405" y="226" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">= cell C vs cell D,</text>
+    <text x="405" y="238" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">same cage, same seed</text></g>
+
+  <g class="muted" stroke="none" fill="currentColor"><text x="280" y="270" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">harebrain's oracle + ledger are the independent reference, built in &#8212; not bolted on</text></g>
+</svg>
