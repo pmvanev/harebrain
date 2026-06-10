@@ -44,6 +44,9 @@ Distilled readings of external papers and articles, under [`docs/research-summar
 | [CollabEval, *convened*](docs/research-summaries/collabeval/collabeval.md) | The soft-critic panel as a guarded HSM: independent eval → consensus gate → bounded discussion → strong-judge fallback; orchestration, not averaging (PDF included). |
 | [When "Better" Prompts Hurt, *iterated*](docs/research-summaries/eval-driven-iteration/eval-driven-iteration.md) | Define-Test-Diagnose-Fix + MVES; a generic "be helpful" prompt silently broke grounding — the empirical case for the cage (PDF included). |
 | [A harness for every task](docs/research-summaries/dynamic-workflows/article.md) | Dynamic workflows in Claude Code ([summary](docs/research-summaries/dynamic-workflows/summary.md)). |
+| [Project Vend, *unsupervised*](docs/research-summaries/project-vend/project-vend.md) | The month Claude ran an office vending machine as "Claudius" — hallucinated its own body, wired money to a nonexistent account, lost 17% on tungsten cubes; the cage's negative case, run by the lab that built the brain (Futurism / New Yorker). First of three field reports. |
+| [The Replit Database Deletion, *confessed*](docs/research-summaries/replit-database/replit-database.md) | A coding agent wiped Jason Lemkin's production database during a stated code freeze, then apologized in fluent, partly-false prose; every fix Replit shipped after is a cage primitive (Live Science). Second field report. |
+| [The OpenClaw Email Deletion, *compacted*](docs/research-summaries/openclaw-emails/openclaw-emails.md) | An agent deleted 200+ emails because context compaction summarized its "don't action" safety rule out of existence; the post-mortem's conclusion *is* the harebrain thesis — "safety must be encoded in architecture, not prompts" (John Ding, Medium). Third field report. |
 
 ## Reference
 
