@@ -5156,9 +5156,11 @@ Each carries an inline `> SUPERSEDED → ADR-011` redirect; the originals are re
 
 ---
 
-## Wave: DELIVER / [REF] R1 CLI-Fidelity Completion (Slice Proposal — PENDING APPROVAL)
+## Wave: DELIVER / [REF] R1 CLI-Fidelity Completion (Slices R1-S11/S12/S13 — DELIVERED)
 
-**Status: PROPOSED, recorded 2026-05-27. No implementation yet — awaiting approval.** This section re-examines what dropping R1-S10's byte-parity (ADR-011) inadvertently cost, and proposes slices to recover the parts we still want. The "no exact byte match to PC-BASIC" decision (ADR-011) **stands** — this is about structural/rendered fidelity to Yob, verified against the goals-doc verbatim catalogue and a golden rendered-transcript, NOT against a running interpreter.
+> **⮕ DELIVERED — approved and shipped 2026-05-27.** This began as a slice proposal; the three slices below were approved and committed: **R1-S11** (`fabdc7f`, Yob-faithful two-step input + robust re-prompt), **R1-S12** (`e890eb3`, start-of-game room render + arrow-outcome rendering), **R1-S13** (`f1c9378`, golden rendered-transcript regression net). The proposal text is retained below as the design record.
+
+**Status: DELIVERED (R1-S11/S12/S13 committed 2026-05-27).** This section re-examines what dropping R1-S10's byte-parity (ADR-011) inadvertently cost, and proposes slices to recover the parts we still want. The "no exact byte match to PC-BASIC" decision (ADR-011) **stands** — this is about structural/rendered fidelity to Yob, verified against the goals-doc verbatim catalogue and a golden rendered-transcript, NOT against a running interpreter.
 
 ### Why this exists
 

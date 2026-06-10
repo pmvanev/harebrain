@@ -90,4 +90,4 @@ Directory shape:
 
 | Feature | Wave status | SSOT |
 |---|---|---|
-| `wumpus` engine | DEVOPS wave complete (2026-05-22); DISTILL pending | `docs/feature/wumpus/feature-delta.md` |
+| `wumpus` engine | DELIVER nearly complete (2026-06-10) — all slices R0–R5 shipped incl. R5-S01 host-import (engine-side, via MPL spike); done-criterion #3b (real MPL binding) deferred. Pending: mutation testing + finalize. | `docs/feature/wumpus/feature-delta.md` |
