@@ -2171,6 +2171,8 @@ Scenario: Engine code did not change between R4-S05 (Mystery) and R4-S06 (French
 
 **Status:** **BLOCKED-ON-MPL-SPIKE** (R2 risk). DoR is NOT met until the spike completes. This story does NOT block R1–R4 from shipping.
 
+> **⮕ ENGINE-SIDE DELIVERED — MPL spike completed 2026-06-10 (PROMOTE).** The host-import contract is pinned and a thin adapter (`wumpus.host_import.step_from_snapshot`, zero `engine/*` edits) shipped with a green `@walking_skeleton @driving_port` round-trip test (`tests/acceptance/features/R5_host_import.feature`), which realizes the placeholder AC below. See `## Wave: SPIKE / [REF] Findings` and `## Wave: SPIKE / [REF] Wave Decisions`. Done-criterion #3 splits: **#3a (engine-side surface) DONE**; **#3b (bind to a real MPL runtime) deferred** — MPLv2 is not implemented in this repo, and the engine is forbidden from depending on it (goals §5.3), so #3b belongs to a future MPL feature.
+
 **As / Want / So.**
 - **As** mpl-cell-consumer
 - **I want** a thin adapter exposing the engine via the MPL host-import contract
@@ -5210,3 +5212,72 @@ These three could collapse to two (S11 interaction + S12 render together, S13 th
 
 ### Explicitly out of scope (still dropped, per ADR-011)
 - Byte-identical comparison against PC-BASIC / GW-BASIC RND parity. The golden transcript pins the engine's *own* faithful rendering, not a BASIC interpreter's output.
+
+---
+
+## Wave: SPIKE / [REF] Findings — MPL host-import contract (unblocks R5-S01)
+
+**Run 2026-06-10**, late (during the DELIVER tail) to retire the long-standing `blocked-on-MPL-spike` status on story **R5-S01** (goals-doc done-criterion #3 / KPI **K-4**; the cell-D host-import seam). Probe was throwaway (`/tmp/spike_wumpus/`, deleted after); no engine or repo code was changed during Phase 1.
+
+### Assumption tested
+
+That the engine exposes — or can via a **thin adapter that does not modify `wumpus/engine/*`** — a host-import-shaped **pure function** `f(snapshot_json, action) -> (snapshot_json', observation, events[])` that resurrects a `Game` from a *serialized* snapshot, applies one step, returns JSON-serializable outputs, holds no hidden state, and **progresses identically when a fresh OS process handles each turn** (the "MPL chart exits between turns" pattern).
+
+> **Scoping decision (recorded as a SPIKE finding).** MPLv2 is **not implemented in this repo** (only the design note `docs/mpl/mpl.md`), and the goals doc forbids the engine depending on MPL anyway (§5.3 "the engine is plain Python; harnesses live above it"). So the spike validates the **engine side** of the contract, standing in for the MPL leaf with a plain Python caller / fresh subprocess. The genuinely-external "bind to a real MPL runtime" step is *not* probe-able here and remains the only residual of done-criterion #3.
+
+### Verdict: **WORKS**
+
+The pure surface is satisfiable by a **~25-line adapter over existing public exports** (`Game.from_snapshot`, `snapshot_from_json`, `snapshot_to_json`, `event_to_dict`, plus the public `subscribe()`/`Sink` port for event capture) with **zero `engine/*` edits**. R5-S01 is confirmed a *thin-adapter* slice, not a DESIGN-level problem — its AC ("< 100 lines, no engine modification") is achievable.
+
+- **Cross-process equivalence: exact, byte-for-byte.** A fresh `subprocess.run([sys.executable, ...])` per turn (snap(i)→snap(i+1) across distinct processes) matched a single-process baseline on a composite `sha256(canonical snap_json | internal_state_hash)` for all 5 turns — including the RNG-consuming **bat teleport** on turn 2. The base64-pickled RNG cursor (ADR-011) round-trips through JSON and preserves the random stream across the process boundary. This is the K-4 / done-#3 mechanism, demonstrated.
+- **Cold-start: ~157 ms/turn** (mean; import + load + step + serialize in a fresh process), dominated by interpreter startup + `import wumpus`, not engine work.
+
+### Pinned host-import signature (the spike's primary deliverable)
+
+```python
+# wumpus/host_import.py  (R5-S01 target — candidate seam)
+def step_from_snapshot(snap_json: str, action: str) -> tuple[str, dict, list[dict]]:
+    """(serialized_snapshot, action_string) -> (serialized_snapshot', obs_dict, event_dicts).
+    Pure: no module-level state. Resurrects a fresh Game from the JSON string,
+    applies one step, returns JSON-serializable values."""
+```
+
+- **Snapshot crosses the boundary as a `str`**, not a `Snapshot` object — the MPL boundary is string-shaped (the chart holds the world as opaque chart data). `snapshot_to_json`/`from_json` already emit canonical `sort_keys=True` JSON, so equal states are byte-identical text (ideal for the chart to store/diff).
+- **Action is a plain `str`** — `Game.step(action: str)` takes the `"move <N>"` programmatic alias plus `"N"/"Y"/"S"`/integer prompt answers. The interactive two-step `M`→`<n>` protocol (R1-S11) is *not* needed on the host-import path.
+- **Events as `list[dict]`** via `event_to_dict`; capture only *this turn's* events by attaching a `Sink` through the public `subscribe()` port **after** resurrection (NOT the `_debug_events` backdoor) — `from_snapshot` re-emits a `GameStarted` preamble that must not leak as a turn event.
+- Production adapter should return a typed `@dataclass`, not a bare tuple.
+
+### Edge cases / friction (carry into R5-S01 implementation)
+
+- **`Game.from_snapshot(Snapshot)` is clean and public** — restores World + RNG verbatim; no constructor gymnastics, no serialization gaps.
+- **Pre-game instructions prompt** — a Yob game's first action must answer `INSTRUCTIONS (Y-N)?` (`step("N")`) before any move resolves. The host/chart must handle this, or the adapter should offer a "new game already past instructions" snapshot factory.
+- **Off-graph moves silently no-op** (state unchanged, turn not consumed) — the caller must read `adjacencies` from the observation to choose a legal move; an illegal move returns an unchanged snapshot, not an error. (This was a false-confidence trap in the probe — a frozen state can look like a passing round-trip.)
+- **Non-Yob surfaces do not round-trip the live surface object** — `from_snapshot` always rebuilds with `YobSurface` (only `surface_id` is stored). Internal trajectory is surface-independent (SC9) so determinism/K-4 holds, but a resurrected `MysterySurface` game would render Yob strings. If the host-import path ever needs faithful non-Yob *rendering*, the adapter must re-inject the surface. Out of scope for K-4; flagged for R5.
+
+### Design implications
+
+- **R5-S01 is unblocked on the engine side.** DoR items that were ✗ (D4 AC, D6 estimate, D7 external dep, D8 fixtures) are now resolvable: the AC can be written against the pinned signature, the estimate is "<100-line thin adapter + Sink-based event capture," and the fixtures are a captured snapshot + action list with state-hash assertions. The *only* remaining external is binding to an actual MPL runtime, which does not exist in this repo — so done-criterion #3 splits into **#3a (engine-side host-import surface — buildable + testable now)** and **#3b (real MPL binding — deferred until an MPL runtime exists)**.
+- **Process-per-turn is correct but not free (~150 ms/turn startup).** Recommend R5-S01's AC offer a **persistent-worker** option (one resurrected process loops over `step_from_snapshot`) for runs where per-turn cold-start matters — DESIGN QA already flagged startup cost for the MPL path (`[REF] Quality Attributes` §5).
+
+## Wave: SPIKE / [REF] Wave Decisions
+
+### Assumption tested
+- Can the engine expose a host-import-shaped pure function `f(snap_json, action) -> (snap_json', obs, events[])` via a thin adapter (no `engine/*` edits) that round-trips one turn from a serialized snapshot and stays correct when a fresh process handles each turn?
+
+### Probe verdict
+- **WORKS.** Thin adapter over existing public exports; byte-identical cross-process round-trip including an RNG-consuming bat teleport; signature pinned. See `[REF] Findings` above.
+
+### Promotion decision
+- **PROMOTE** (user-approved 2026-06-10). The probe was promoted into a committed walking skeleton that **is** the engine-side of story R5-S01 — converting the feature's last `blocked-on-MPL-spike` story into shipped, tested code. Rationale: the contract is fully pinned, the adapter is trivially thin (<100 lines, zero engine edits), and the round-trip AC is testable now with a fresh-process stand-in host; nothing is gained by deferring it to a later DELIVER slice.
+
+### Walking skeleton (R5-S01 engine-side)
+- **Driving adapter / entry point:** `wumpus.host_import.step_from_snapshot(snap_json: str, action: str) -> StepResult` (+ optional `iter_steps` persistent-worker convenience). Production module `python/packages/wumpus/src/wumpus/host_import.py` (94 lines; built on `Game.from_snapshot`, `snapshot_from_json/to_json`, `event_to_dict`, and the public `subscribe()`/`InMemorySink` port; **zero `engine/*` edits**).
+- **Acceptance test (`@walking_skeleton @driving_port`, persona `mpl-cell-consumer`, job `drive-engine-from-host-import`):** `tests/acceptance/features/R5_host_import.feature` + `tests/acceptance/step_definitions/test_R5_host_import.py`. Two scenarios — (1) host-import round-trip progresses one turn; (2) **process can exit between turns** without affecting the next call (each turn run in a fresh `subprocess.run([sys.executable, ...])`, asserted equal to an in-process baseline on `(player_room, state_hash)` for the seed=4 path `5 → 1 → 2`). **GREEN** (2 passed; full suite 372 passed; ruff + mypy clean).
+- **Commit:** `DELIVER R5-S01: host-import adapter (wumpus.host_import) — MPL-spike walking skeleton`.
+- **Demo:** from `python/packages/wumpus/` — `uv run python -c "from wumpus import Game, snapshot_to_json; from wumpus.host_import import step_from_snapshot as s; snap=snapshot_to_json(Game(seed=4).snapshot()); r1=s(snap,'N'); r2=s(r1.snapshot_json,'move 1'); r3=s(r2.snapshot_json,'move 2'); print(r1.observation['player_room'],'->',r2.observation['player_room'],'->',r3.observation['player_room'])"` → prints `5 -> 1 -> 2`.
+
+### Design implications / remaining work
+- **Done-criterion #3 splits.** **#3a (engine-side host-import surface)** is now **DELIVERED** (this skeleton). **#3b (bind to a real MPL runtime)** stays deferred — *MPLv2 is not implemented in this repo*, and the goals doc forbids the engine depending on it, so #3b belongs to a future MPL feature, not the wumpus engine. KPI K-4's *engine-side* claim is met; the end-to-end-through-actual-MPL claim is not (and cannot be here).
+- **No SPIKE → DESIGN back-propagation needed.** The probe confirmed the existing DESIGN (snapshot/restore seam, injected-RNG determinism, no module state) already supports the contract; no `upstream-issues` were found.
+- R5-S01 follow-ups for a future MPL-binding slice: faithful non-Yob surface rendering through the seam (resurrection currently rebuilds `YobSurface`; determinism unaffected, rendering would need surface re-injection), and the persistent-worker vs process-per-turn cost trade (~150 ms/turn cold-start).
+
