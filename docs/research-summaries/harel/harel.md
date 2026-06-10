@@ -132,4 +132,4 @@ Harel claimed that depth, orthogonality, and broadcast were enough to keep state
 
 ---
 
-**Source.** Harel, D., "Statecharts: A Visual Formalism for Complex Systems," *Science of Computer Programming* 8 (1987), pp. 231–274. Communicated by A. Pnueli; received December 1984; revised July 1986. Department of Applied Mathematics, The Weizmann Institute of Science.
+**Source.** Harel, D., "Statecharts: A Visual Formalism for Complex Systems," *Science of Computer Programming* 8 (1987), pp. 231–274 (<https://doi.org/10.1016/0167-6423(87)90035-9>; [raw PDF in this folder](state-charts-harel.pdf)). Communicated by A. Pnueli; received December 1984; revised July 1986. Department of Applied Mathematics, The Weizmann Institute of Science.
