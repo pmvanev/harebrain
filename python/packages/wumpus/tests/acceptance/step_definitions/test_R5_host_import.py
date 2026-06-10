@@ -36,7 +36,7 @@ from pytest_bdd import given, scenarios, then, when
 
 from wumpus import Game, snapshot_from_json, snapshot_to_json
 from wumpus.engine.hash import internal_state_hash
-from wumpus.host_import import step_from_snapshot
+from wumpus.host_import import iter_steps, step_from_snapshot
 
 # Bind the .feature file. Path is relative to this step-defs file's parent.
 scenarios("../features/R5_host_import.feature")
@@ -225,4 +225,64 @@ def _r5s02_equals_baseline(
     rooms = [room for room, _ in baseline]
     assert rooms == [1, 2], (
         f"Player did not progress through the expected legal path; rooms={rooms}."
+    )
+
+
+# ---------------------------------------------------------------------------
+# Scenario 3 — iter_steps threads each turn's snapshot into the next
+# ---------------------------------------------------------------------------
+#
+# The R5-S01 seam exposes a SECOND driving-port function, `iter_steps`, the
+# persistent-worker convenience: it drives a sequence of actions in ONE process,
+# threading each turn's snapshot_json into the next step_from_snapshot call.
+# Scenarios 1-2 only exercise step_from_snapshot, leaving iter_steps' loop body
+# uncovered (a ZeroIterationForLoop mutant — `for action in []:` — survived).
+# This scenario asserts the observable contract: N actions in -> N StepResults
+# out, with the room sequence progressing and the threaded result identical to
+# manually chaining step_from_snapshot. A no-op loop yields zero results and
+# fails both assertions, killing the mutant.
+
+
+@when(
+    'iter_steps drives the legal adjacent moves ["move 1", "move 2"] in one process',
+    target_fixture="r5s03_results",
+)
+def _r5s03_run_iter_steps(r5s02_initial_snap: str) -> list[Any]:
+    return list(iter_steps(r5s02_initial_snap, _ACTIONS))
+
+
+@then("it yields one StepResult per action with rooms progressing 5 -> 1 -> 2")
+def _r5s03_one_per_action(r5s03_results: list[Any]) -> None:
+    assert len(r5s03_results) == len(_ACTIONS), (
+        f"iter_steps yielded {len(r5s03_results)} StepResults for "
+        f"{len(_ACTIONS)} actions — the loop did not drive every action."
+    )
+    rooms = [result.observation["player_room"] for result in r5s03_results]
+    assert rooms == [1, 2], (
+        f"iter_steps did not thread snapshots forward through the legal path; "
+        f"rooms={rooms} (expected 5 -> 1 -> 2 i.e. yielded rooms [1, 2])."
+    )
+
+
+@then("the threaded sequence equals manually chaining step_from_snapshot")
+def _r5s03_equals_manual_chain(
+    r5s02_initial_snap: str, r5s03_results: list[Any]
+) -> None:
+    # Manual chaining oracle: thread snap(i) -> snap(i+1) by hand, exactly what
+    # iter_steps must do internally. The snapshot string is the entire carry-over.
+    manual: list[tuple[int, str]] = []
+    snap_json = r5s02_initial_snap
+    for action in _ACTIONS:
+        result = step_from_snapshot(snap_json, action)
+        snap_json = result.snapshot_json
+        manual.append((result.observation["player_room"], result.snapshot_json))
+
+    threaded = [
+        (result.observation["player_room"], result.snapshot_json)
+        for result in r5s03_results
+    ]
+    assert threaded == manual, (
+        "iter_steps did not reproduce manual step_from_snapshot chaining.\n"
+        f"  iter_steps: {[(r, s[:24]) for r, s in threaded]}\n"
+        f"  manual:     {[(r, s[:24]) for r, s in manual]}"
     )

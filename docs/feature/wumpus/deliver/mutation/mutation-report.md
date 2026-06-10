@@ -81,3 +81,68 @@ uv tool run --from cosmic-ray cosmic-ray dump "$SESS"              # raw results
 ```
 
 Source files are not modified in place — cosmic-ray applies + reverts each mutation around its test run, so an interrupted run leaves the working tree clean. (Verified post-run: `git status` was clean.)
+
+---
+
+# R5-S01 host_import.py (2026-06-10)
+
+Feature-scoped mutation run on the just-shipped **R5-S01 host-import seam**
+(`src/wumpus/host_import.py`, 94 lines — `step_from_snapshot`, `StepResult`,
+`iter_steps`). This is the local QUALITY_GATE for the slice; no production logic
+was changed (the gate either adds a killing test or documents an equivalent-mutant
+exemption).
+
+## Run
+
+- **Tool:** cosmic-ray 8.4.6 (Windows-native).
+- **Scope:** `src/wumpus/host_import.py` only.
+- **Config / session:** `cosmic-ray-host-import.toml` + `session-host-import.sqlite` (gitignored), siblings of this report.
+- **Test command (scoped):** `uv run pytest tests/acceptance/step_definitions/test_R5_host_import.py -x -q --ignore=tests/subprocess` — the R5-S01 acceptance scenarios are the only tests that exercise this file; `--ignore=tests/subprocess` avoids the wexpect hang (CLAUDE.md session gotcha).
+- **Baseline:** green before mutating (`cosmic-ray baseline` clean; scoped pytest = 3 passed in ~0.5s after the new scenario was added).
+
+### Windows decode gotcha (tooling, not a finding)
+
+cosmic-ray 8.4.6 on Windows mislabels a **caught** mutant as `INCOMPETENT` when the
+failing pytest output contains a non-UTF-8 byte: `cosmic_ray/testing.py:51` does
+`err.output.decode("utf-8")` on cp1252-captured output (byte `0x97`, the `—` em-dash
+in assertion messages) and crashes before recording `KILLED`. **Fix:** run
+init+exec with `PYTHONUTF8=1 PYTHONIOENCODING=utf-8` in the environment so the test
+subprocess emits UTF-8. After that, all caught mutants report cleanly as `KILLED`.
+
+## Results
+
+| | count |
+|---|---:|
+| Total mutants | 3 |
+| Killed | 2 |
+| **Survived** | **1** |
+| Equivalent / exempted (excluded from denominator) | 1 |
+| **Final kill rate** (`killed / (total − exempted)` = 2 / (3 − 1)) | **100 %** |
+
+**Gate verdict: PASS** (≥ 80 %).
+
+`host_import.py` is almost pure dataflow (resurrect → subscribe → step → serialize),
+so cosmic-ray's default operator set finds only 3 mutable points — hence the small
+mutant population.
+
+## Per-survivor / per-mutant disposition
+
+| Location | Operator | Outcome | Disposition |
+|----------|----------|---------|-------------|
+| `host_import.py:32` (`@dataclass`) | `core/RemoveDecorator` | **KILLED** | Removing `@dataclass` breaks `StepResult` construction; existing scenarios 1-2 fail. (Reported KILLED only after the UTF-8 env fix above.) |
+| `host_import.py:91` (`iter_steps` loop) | `core/ZeroIterationForLoop` (`for action in []:`) | **KILLED by new test** | **Real gap** — scenarios 1-2 never called `iter_steps`. Added acceptance **Scenario 3** (`iter_steps drives a sequence of turns threading each snapshot forward`) in `R5_host_import.feature` + step defs `_r5s03_run_iter_steps` / `_r5s03_one_per_action` / `_r5s03_equals_manual_chain`. Asserts N actions → N `StepResult`s, room sequence 5→1→2, and threaded output == manual `step_from_snapshot` chaining. A no-op loop yields zero results → both assertions fail → mutant dies. |
+| `host_import.py:32` (`frozen=True`) | `core/ReplaceTrueWithFalse` (`frozen=False`) | **SURVIVED → exempted** | **Equivalent mutant.** `frozen=` only governs post-construction attribute reassignment; `StepResult` is constructed once and never mutated, so the flag has no observable effect at the port boundary. Killing it would assert a Python dataclass language guarantee (`FrozenInstanceError`), a banned anti-pattern (`nw-test-optimization` §1.2 / §2.3). Documented in `python/packages/wumpus/MUTATION_EXEMPTIONS.md`; excluded from the denominator. |
+
+## Reproduce
+
+From `python/packages/wumpus/`:
+
+```bash
+CONF=../../../docs/feature/wumpus/deliver/mutation/cosmic-ray-host-import.toml
+SESS=../../../docs/feature/wumpus/deliver/mutation/session-host-import.sqlite
+rm -f "$SESS"
+PYTHONUTF8=1 PYTHONIOENCODING=utf-8 uv tool run --from cosmic-ray cosmic-ray init "$CONF" "$SESS"
+uv tool run --from cosmic-ray cosmic-ray baseline "$CONF"
+PYTHONUTF8=1 PYTHONIOENCODING=utf-8 uv tool run --from cosmic-ray cosmic-ray exec "$CONF" "$SESS"
+uv tool run --from cosmic-ray cr-report "$SESS"
+```

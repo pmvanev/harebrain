@@ -1,0 +1,29 @@
+# cosmic-ray — mutation config scoped to the R5-S01 host-import adapter.
+#
+# Invoked from python/packages/wumpus/:
+#   cd python/packages/wumpus
+#   cosmic-ray init     ../../../docs/feature/wumpus/deliver/mutation/cosmic-ray-host-import.toml  session-host-import.sqlite
+#   cosmic-ray baseline ../../../docs/feature/wumpus/deliver/mutation/cosmic-ray-host-import.toml  session-host-import.sqlite
+#   cosmic-ray exec     ../../../docs/feature/wumpus/deliver/mutation/cosmic-ray-host-import.toml  session-host-import.sqlite
+#   cosmic-ray dump     session-host-import.sqlite  >  dump-host-import.json
+#
+# Tool choice and Windows rationale: see CLAUDE.md § Mutation Testing Strategy.
+
+[cosmic-ray]
+module-path = "src/wumpus/host_import.py"
+
+# Per-mutation timeout. The scoped R5 acceptance test (2 scenarios, incl. one
+# fresh-subprocess-per-turn) finishes in <1s green; 60s absorbs headroom on
+# slower mutations (e.g. an infinite-loop mutant in iter_steps).
+timeout = 60.0
+
+excluded-modules = []
+
+# Scoped to the ONLY tests that exercise host_import.py — the R5-S01 acceptance
+# scenarios (round-trip + process-exit-between-turns). This is the meaningful
+# kill signal for this slice and keeps the run fast. --ignore=tests/subprocess
+# avoids the wexpect hang (CLAUDE.md session gotcha).
+test-command = "uv run pytest tests/acceptance/step_definitions/test_R5_host_import.py -x -q --ignore=tests/subprocess"
+
+[cosmic-ray.distributor]
+name = "local"

@@ -40,3 +40,13 @@ Feature: R5 host-import — drive the engine from a serialized snapshot
     Given an initial snapshot from Game(seed=4) with the instructions prompt answered
     When each of the legal adjacent moves ["move 1", "move 2"] is applied in a FRESH subprocess feeding snap(i) to snap(i+1)
     Then the resulting state-hash sequence equals a single-in-process baseline of the same actions
+
+  # ---------------------------------------------------------------------------
+  # Scenario 3 — iter_steps threads each turn's snapshot into the next
+  # ---------------------------------------------------------------------------
+
+  Scenario: iter_steps drives a sequence of turns threading each snapshot forward
+    Given an initial snapshot from Game(seed=4) with the instructions prompt answered
+    When iter_steps drives the legal adjacent moves ["move 1", "move 2"] in one process
+    Then it yields one StepResult per action with rooms progressing 5 -> 1 -> 2
+    And the threaded sequence equals manually chaining step_from_snapshot
