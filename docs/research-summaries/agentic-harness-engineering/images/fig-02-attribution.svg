@@ -1,0 +1,90 @@
+<svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two panels contrasting the evolve agent's self-prediction accuracy across nine evaluation rounds. Left, fix targeting: fix-precision 33.7 percent and fix-recall 51.4 percent, each roughly five times its random-prediction baseline of 6.5 and 10.6 percent. Right, regression foresight: regression-precision 11.8 percent and regression-recall 11.1 percent, only about twice their random baselines of 5.6 and 5.4 percent. The editor lands on the tasks it intends to fix but is near-blind to the tasks it is about to break.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .sage-tint      { color: rgba(79, 107, 63, 0.20); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.18); }
+    .muted-tint     { color: rgba(93, 85, 63, 0.18); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .sage-tint      { color: rgba(177, 201, 140, 0.22); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.22); }
+      .muted-tint     { color: rgba(168, 156, 125, 0.20); }
+    }
+  </style>
+
+  <!-- title -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="320" y="24" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle">the evolve agent's self-prediction, round N&#8722;1 vs round N ground truth (mean over 9 rounds)</text>
+  </g>
+
+  <!-- baseline grid: bars rise from y=300; scale 0..60% over 240px => 4px per % -->
+  <!-- ===== LEFT PANEL: FIX TARGETING (sage = evidence-driven) ===== -->
+  <g class="sage" stroke="none" fill="currentColor">
+    <text x="160" y="52" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle">fix targeting &#183; evidence-driven</text>
+  </g>
+  <!-- axis -->
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="58" y1="300" x2="300" y2="300" stroke-width="1"/></g>
+
+  <!-- fix-precision: model 33.7 (135px) vs random 6.5 (26px) -->
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="78" y="274" width="34" height="26" rx="2"/></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="95" y="270" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">6.5</text></g>
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="116" y="165" width="34" height="135" rx="2"/></g>
+  <g class="sage" stroke="currentColor" fill="none"><rect x="116" y="165" width="34" height="135" rx="2" stroke-width="1.3"/></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="133" y="159" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">33.7</text></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="114" y="316" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">precision</text></g>
+
+  <!-- fix-recall: model 51.4 (206px) vs random 10.6 (42px) -->
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="208" y="258" width="34" height="42" rx="2"/></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="225" y="254" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">10.6</text></g>
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="246" y="94" width="34" height="206" rx="2"/></g>
+  <g class="sage" stroke="currentColor" fill="none"><rect x="246" y="94" width="34" height="206" rx="2" stroke-width="1.3"/></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="263" y="88" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">51.4</text></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="244" y="316" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">recall</text></g>
+
+  <g class="sage" stroke="none" fill="currentColor"><text x="180" y="334" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">&#8776; 5&#215; random &#183; lands on real targets</text></g>
+
+  <!-- divider -->
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="330" y1="56" x2="330" y2="320" stroke-width="1"/></g>
+
+  <!-- ===== RIGHT PANEL: REGRESSION FORESIGHT (oxblood = blind) ===== -->
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="480" y="52" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle">regression foresight &#183; near-blind</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="378" y1="300" x2="620" y2="300" stroke-width="1"/></g>
+
+  <!-- regr-precision: model 11.8 (47px) vs random 5.6 (22px) -->
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="398" y="278" width="34" height="22" rx="2"/></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="415" y="274" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">5.6</text></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="436" y="253" width="34" height="47" rx="2"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="436" y="253" width="34" height="47" rx="2" stroke-width="1.3"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="453" y="247" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">11.8</text></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="434" y="316" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">precision</text></g>
+
+  <!-- regr-recall: model 11.1 (44px) vs random 5.4 (22px) -->
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="528" y="278" width="34" height="22" rx="2"/></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="545" y="274" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">5.4</text></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="566" y="256" width="34" height="44" rx="2"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="566" y="256" width="34" height="44" rx="2" stroke-width="1.3"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="583" y="250" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">11.1</text></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="564" y="316" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">recall</text></g>
+
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="500" y="334" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">&#8776; 2&#215; random &#183; most breakage unforeseen</text></g>
+
+  <!-- legend -->
+  <g class="muted" stroke="none" fill="currentColor"><rect x="58" y="68" width="10" height="10" rx="1"/></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="72" y="77" font-family="JetBrains Mono, monospace" font-size="7">random-prediction baseline</text></g>
+
+  <!-- footer -->
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="40" y1="346" x2="600" y2="346" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="320" y="358" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">the editor can justify why an edit should help &#183; it cannot reliably name what the same edit is about to break</text></g>
+</svg>
