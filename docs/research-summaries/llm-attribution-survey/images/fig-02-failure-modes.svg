@@ -1,0 +1,140 @@
+<svg viewBox="0 0 640 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The survey's attribution pathologies arranged as a claim-to-source pipeline with six failure points: granularity error, mistaken synthesis, hallucinated generation, ambiguous knowledge reservoir, over-attribution, and source bias.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.07); }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+    }
+  </style>
+
+  <!-- title -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="20" y="24" font-family="Fraunces, serif" font-size="13" font-style="italic">Where attribution breaks</text>
+  </g>
+
+  <!-- pipeline spine: claim -> citation -> source -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="40" y="48" width="120" height="34" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="40" y="48" width="120" height="34" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="100" y="69" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">claim s&#x1d62;</text>
+  </g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="260" y="48" width="120" height="34" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="260" y="48" width="120" height="34" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="320" y="69" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">citation C&#x1d62;</text>
+  </g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="480" y="48" width="120" height="34" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="480" y="48" width="120" height="34" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="540" y="69" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">source D</text>
+  </g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="160" y1="65" x2="256" y2="65" stroke-width="1.2"/>
+    <polygon points="259,65 253,62 253,68" stroke="none"/>
+    <line x1="380" y1="65" x2="476" y2="65" stroke-width="1.2"/>
+    <polygon points="479,65 473,62 473,68" stroke="none"/>
+  </g>
+
+  <!-- §7.1 errors header -->
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="20" y="118" font-family="JetBrains Mono, monospace" font-size="9" letter-spacing="0.08em">&#xa7;7.1 &#8212; ATTRIBUTION ERRORS</text>
+  </g>
+
+  <!-- three error cards -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="128" width="195" height="64" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="20" y="128" width="195" height="64" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="32" y="146" font-family="Fraunces, serif" font-size="10.5" font-style="italic" stroke="none">Granularity error</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="32" y="162" font-family="JetBrains Mono, monospace" font-size="7">answer is complex + hybrid;</text>
+    <text x="32" y="173" font-family="JetBrains Mono, monospace" font-size="7">one citation can't cover it</text>
+    <text x="32" y="184" font-family="JetBrains Mono, monospace" font-size="7">&#8594; insufficient citation</text>
+  </g>
+
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="223" y="128" width="195" height="64" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="223" y="128" width="195" height="64" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="235" y="146" font-family="Fraunces, serif" font-size="10.5" font-style="italic" stroke="none">Mistaken synthesis</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="235" y="162" font-family="JetBrains Mono, monospace" font-size="7">entities / events mixed up</text>
+    <text x="235" y="173" font-family="JetBrains Mono, monospace" font-size="7">across many documents;</text>
+    <text x="235" y="184" font-family="JetBrains Mono, monospace" font-size="7">&#8594; cite is unfaithful to text</text>
+  </g>
+
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="426" y="128" width="195" height="64" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="426" y="128" width="195" height="64" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="438" y="146" font-family="Fraunces, serif" font-size="10.5" font-style="italic" stroke="none">Hallucinated generation</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="438" y="162" font-family="JetBrains Mono, monospace" font-size="7">reference irrelevant, or</text>
+    <text x="438" y="173" font-family="JetBrains Mono, monospace" font-size="7">parametric&#8211;external clash;</text>
+    <text x="438" y="184" font-family="JetBrains Mono, monospace" font-size="7">&#8594; answer + cite both wrong</text>
+  </g>
+
+  <!-- §7.2 / 7.3 limitations header -->
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="20" y="234" font-family="JetBrains Mono, monospace" font-size="9" letter-spacing="0.08em">&#xa7;7.2&#8211;7.3 &#8212; LIMITATIONS &amp; CHALLENGES</text>
+  </g>
+
+  <!-- three limitation cards -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="244" width="195" height="74" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="20" y="244" width="195" height="74" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="32" y="262" font-family="Fraunces, serif" font-size="10.5" font-style="italic" stroke="none">Ambiguous reservoir</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="32" y="278" font-family="JetBrains Mono, monospace" font-size="7">when to attribute at all?</text>
+    <text x="32" y="289" font-family="JetBrains Mono, monospace" font-size="7">general vs specialized is a</text>
+    <text x="32" y="300" font-family="JetBrains Mono, monospace" font-size="7">gray area; model can't name</text>
+    <text x="32" y="311" font-family="JetBrains Mono, monospace" font-size="7">its own parametric source</text>
+  </g>
+
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="223" y="244" width="195" height="74" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="223" y="244" width="195" height="74" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="235" y="262" font-family="Fraunces, serif" font-size="10.5" font-style="italic" stroke="none">Over-attribution</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="235" y="278" font-family="JetBrains Mono, monospace" font-size="7">cites too much &#8594; overwhelm;</text>
+    <text x="235" y="289" font-family="JetBrains Mono, monospace" font-size="7">misattribution links claim to</text>
+    <text x="235" y="300" font-family="JetBrains Mono, monospace" font-size="7">a source that doesn't back it;</text>
+    <text x="235" y="311" font-family="JetBrains Mono, monospace" font-size="7">+ privacy leakage risk</text>
+  </g>
+
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="426" y="244" width="195" height="74" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="426" y="244" width="195" height="74" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="438" y="262" font-family="Fraunces, serif" font-size="10.5" font-style="italic" stroke="none">Source bias &amp; decay</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="438" y="278" font-family="JetBrains Mono, monospace" font-size="7">leans toward some sources,</text>
+    <text x="438" y="289" font-family="JetBrains Mono, monospace" font-size="7">ignores others (bias); and</text>
+    <text x="438" y="300" font-family="JetBrains Mono, monospace" font-size="7">knowledge fluidity &#8594; cites</text>
+    <text x="438" y="311" font-family="JetBrains Mono, monospace" font-size="7">go stale / outdated over time</text>
+  </g>
+
+  <!-- footer rule + caption -->
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="20" y1="350" x2="620" y2="350" stroke-width="1"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="20" y="372" font-family="JetBrains Mono, monospace" font-size="8">Every box is a verdict a sound critic on the seam must be able to return.</text>
+    <text x="20" y="388" font-family="JetBrains Mono, monospace" font-size="8">The survey catalogs the failures; harebrain needs the guard that catches each one.</text>
+  </g>
+</svg>

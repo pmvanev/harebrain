@@ -1,0 +1,77 @@
+<svg viewBox="0 0 640 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The five error-mechanism categories with their Qwen and Mistral annotation counts as horizontal bars: Fabrication Heuristic dominates at 5295 and 3009, then Entity Mismatch, Overgeneralization, Reasoning Failure, and Context Leakage in the long tail.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .oxblood-fill   { color: rgba(139, 31, 44, 0.55); }
+    .blueprint-fill { color: rgba(31, 79, 122, 0.45); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .oxblood-fill   { color: rgba(224, 144, 152, 0.50); }
+      .blueprint-fill { color: rgba(136, 192, 232, 0.45); }
+    }
+  </style>
+
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="20" y="26" font-family="Fraunces, serif" font-size="13" font-style="italic">Five error mechanisms &#183; annotation counts</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="20" y="42" font-family="JetBrains Mono, monospace" font-size="8">|y&#2091;| = 5 &#183; the typed taxonomy a guard verdict should carry</text>
+  </g>
+
+  <!-- legend -->
+  <g class="oxblood-fill" stroke="none" fill="currentColor"><rect x="430" y="16" width="12" height="9"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="446" y="24" font-family="JetBrains Mono, monospace" font-size="8">Mistral</text></g>
+  <g class="blueprint-fill" stroke="none" fill="currentColor"><rect x="520" y="16" width="12" height="9"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="536" y="24" font-family="JetBrains Mono, monospace" font-size="8">Qwen</text></g>
+
+  <!-- bar scale: max 5295 -> 380px at x=220 ; 1px = 13.93 counts -->
+  <!-- Row 1: Fabrication Heuristic  M=3009 (216px) Q=5295 (380px) -->
+  <g class="ink" stroke="none" fill="currentColor"><text x="20" y="66" font-family="Fraunces, serif" font-size="10" font-style="italic">Fabrication Heuristic</text></g>
+  <g class="oxblood-fill" stroke="none" fill="currentColor"><rect x="220" y="58" width="216" height="9"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="440" y="66" font-family="JetBrains Mono, monospace" font-size="7.5">3009</text></g>
+  <g class="blueprint-fill" stroke="none" fill="currentColor"><rect x="220" y="69" width="380" height="9"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="604" y="77" font-family="JetBrains Mono, monospace" font-size="7.5">5295</text></g>
+
+  <!-- Row 2: Entity Mismatch  M=388 (28px) Q=789 (57px) -->
+  <g class="ink" stroke="none" fill="currentColor"><text x="20" y="118" font-family="Fraunces, serif" font-size="10" font-style="italic">Entity Mismatch</text></g>
+  <g class="oxblood-fill" stroke="none" fill="currentColor"><rect x="220" y="110" width="28" height="9"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="252" y="118" font-family="JetBrains Mono, monospace" font-size="7.5">388</text></g>
+  <g class="blueprint-fill" stroke="none" fill="currentColor"><rect x="220" y="121" width="57" height="9"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="281" y="129" font-family="JetBrains Mono, monospace" font-size="7.5">789</text></g>
+
+  <!-- Row 3: Overgeneralization M=87 (6px) Q=167 (12px) -->
+  <g class="ink" stroke="none" fill="currentColor"><text x="20" y="170" font-family="Fraunces, serif" font-size="10" font-style="italic">Overgeneralization</text></g>
+  <g class="oxblood-fill" stroke="none" fill="currentColor"><rect x="220" y="162" width="6" height="9"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="230" y="170" font-family="JetBrains Mono, monospace" font-size="7.5">87</text></g>
+  <g class="blueprint-fill" stroke="none" fill="currentColor"><rect x="220" y="173" width="12" height="9"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="236" y="181" font-family="JetBrains Mono, monospace" font-size="7.5">167</text></g>
+
+  <!-- Row 4: Reasoning Failure M=60 (4px) Q=110 (8px) -->
+  <g class="ink" stroke="none" fill="currentColor"><text x="20" y="222" font-family="Fraunces, serif" font-size="10" font-style="italic">Reasoning Failure</text></g>
+  <g class="oxblood-fill" stroke="none" fill="currentColor"><rect x="220" y="214" width="4" height="9"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="228" y="222" font-family="JetBrains Mono, monospace" font-size="7.5">60</text></g>
+  <g class="blueprint-fill" stroke="none" fill="currentColor"><rect x="220" y="225" width="8" height="9"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="232" y="233" font-family="JetBrains Mono, monospace" font-size="7.5">110</text></g>
+
+  <!-- Row 5: Context Leakage M=27 (2px) Q=35 (3px) -->
+  <g class="ink" stroke="none" fill="currentColor"><text x="20" y="274" font-family="Fraunces, serif" font-size="10" font-style="italic">Context Leakage</text></g>
+  <g class="oxblood-fill" stroke="none" fill="currentColor"><rect x="220" y="266" width="2" height="9"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="226" y="274" font-family="JetBrains Mono, monospace" font-size="7.5">27</text></g>
+  <g class="blueprint-fill" stroke="none" fill="currentColor"><rect x="220" y="277" width="3" height="9"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="227" y="285" font-family="JetBrains Mono, monospace" font-size="7.5">35</text></g>
+
+  <!-- baseline -->
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="220" y1="296" x2="610" y2="296" stroke-width="1"/></g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="220" y="312" font-family="JetBrains Mono, monospace" font-size="8">a long-tailed distribution: fabrication swamps the four mechanisms a critic most wants to reason about</text>
+  </g>
+</svg>

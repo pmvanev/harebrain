@@ -1,0 +1,48 @@
+<svg width="190" height="58" viewBox="0 0 190 58" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="HART glyph: a hallucinated span underlined in oxblood, a dashed trace arrow to a stacked verdict tuple in blueprint labelled type, mechanism, evidence">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.08); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+    }
+  </style>
+  <!-- hallucinated span (left) -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor">
+    <rect x="6" y="18" width="50" height="22" rx="3"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <text x="31" y="31" font-family="ui-monospace, monospace" font-size="8" text-anchor="middle" stroke="none">span</text>
+    <line x1="12" y1="36" x2="50" y2="36" stroke-width="1.6"/>
+    <text x="31" y="52" font-family="ui-monospace, monospace" font-size="6" text-anchor="middle" letter-spacing="0.1em" stroke="none">b&#x2026;e</text>
+  </g>
+  <!-- trace arrow (dashed, sage) -->
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <line x1="58" y1="29" x2="118" y2="29" stroke-width="1.2" stroke-dasharray="3 3"/>
+    <polygon points="121,29 115,26 115,32" stroke="none"/>
+    <text x="70" y="24" font-family="ui-monospace, monospace" font-size="7" letter-spacing="0.3" stroke="none">trace</text>
+  </g>
+  <!-- verdict tuple (right) -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor">
+    <rect x="124" y="8" width="60" height="42" rx="4"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="124" y="8" width="60" height="42" rx="4" stroke-width="1.4" fill="none"/>
+    <text x="130" y="20" font-family="ui-monospace, monospace" font-size="7" stroke="none">type</text>
+    <text x="130" y="32" font-family="ui-monospace, monospace" font-size="7" stroke="none">mech</text>
+    <text x="130" y="44" font-family="ui-monospace, monospace" font-size="7" stroke="none">evid</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="154" y="5" font-family="ui-monospace, monospace" font-size="6" letter-spacing="0.1em">VERDICT</text>
+  </g>
+</svg>

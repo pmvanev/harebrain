@@ -1,0 +1,148 @@
+<svg viewBox="0 0 640 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The survey's four-module attribution pipeline redrawn as a closed loop: a query enters T1 pre-retrieval query refining, feeds the retriever and an external store, then T2 post-retrieval reference identification selects R_final, T3 pre-generation prompt engineering builds the prompt, the LLM generates, and T4 post-generation response correction checks the answer against references and either emits an attributed response or loops back. The transformations q-prime equals T of q, R_final equals V of R-prime, P equals S of q-prime and R_final, A_corrected equals C of q-prime A_gen R_final are annotated.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.07); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+    }
+  </style>
+
+  <!-- title -->
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="320" y="22" font-family="Fraunces, serif" font-size="14" font-style="italic" text-anchor="middle">The unified attribution pipeline, as a loop</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="320" y="38" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">four modules; the last one is the critic that closes it</text>
+  </g>
+
+  <!-- query in -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="22" y="92" font-family="JetBrains Mono, monospace" font-size="9" stroke="none">query q</text>
+  </g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="22" y1="100" x2="48" y2="100" stroke-width="1.2"/>
+    <polygon points="51,100 45,97 45,103" stroke="none"/>
+  </g>
+
+  <!-- T1: pre-retrieval query refining -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="54" y="78" width="120" height="46" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="54" y="78" width="120" height="46" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="62" y="95" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">T1 &#183; query refine</text>
+    <text x="62" y="114" font-family="JetBrains Mono, monospace" font-size="8" font-style="italic" stroke="none">q&#8242; = T(q)</text>
+  </g>
+
+  <!-- retriever + store -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="174" y1="101" x2="200" y2="101" stroke-width="1.2"/>
+    <polygon points="203,101 197,98 197,104" stroke="none"/>
+  </g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="206" y="78" width="120" height="46" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="206" y="78" width="120" height="46" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="214" y="95" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">retriever</text>
+    <text x="214" y="114" font-family="JetBrains Mono, monospace" font-size="8" font-style="italic" stroke="none">R&#8242; from store</text>
+  </g>
+  <!-- store glyph -->
+  <g class="oxblood" stroke="currentColor" fill="none">
+    <rect x="296" y="84" width="22" height="20" rx="2" stroke-width="1"/>
+    <line x1="296" y1="91" x2="318" y2="91" stroke-width="0.8"/>
+    <line x1="296" y1="98" x2="318" y2="98" stroke-width="0.8"/>
+  </g>
+
+  <!-- T2: post-retrieval reference identification -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="326" y1="101" x2="352" y2="101" stroke-width="1.2"/>
+    <polygon points="355,101 349,98 349,104" stroke="none"/>
+  </g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="358" y="78" width="130" height="46" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="358" y="78" width="130" height="46" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="366" y="95" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">T2 &#183; reference ID</text>
+    <text x="366" y="114" font-family="JetBrains Mono, monospace" font-size="8" font-style="italic" stroke="none">R_final = V(R&#8242;)</text>
+  </g>
+
+  <!-- down to T3 -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="423" y1="124" x2="423" y2="152" stroke-width="1.2"/>
+    <polygon points="423,155 420,149 426,149" stroke="none"/>
+  </g>
+
+  <!-- T3: pre-generation prompt engineering -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="358" y="158" width="130" height="46" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="358" y="158" width="130" height="46" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="366" y="175" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">T3 &#183; prompt eng</text>
+    <text x="366" y="194" font-family="JetBrains Mono, monospace" font-size="8" font-style="italic" stroke="none">P = S(q&#8242;, R_final)</text>
+  </g>
+
+  <!-- LLM leaf -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="358" y1="181" x2="332" y2="181" stroke-width="1.2"/>
+    <polygon points="329,181 335,178 335,184" stroke="none"/>
+  </g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><ellipse cx="280" cy="181" rx="44" ry="22"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <ellipse cx="280" cy="181" rx="44" ry="22" stroke-width="1.4" fill="none"/>
+    <text x="280" y="178" font-family="ui-monospace, monospace" font-size="11" text-anchor="middle" letter-spacing="0.08em" stroke="none">LLM</text>
+    <text x="280" y="192" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">A_gen</text>
+  </g>
+
+  <!-- LLM down to T4 -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="280" y1="203" x2="280" y2="244" stroke-width="1.2"/>
+    <polygon points="280,247 277,241 283,241" stroke="none"/>
+  </g>
+
+  <!-- T4: post-generation response correction (the critic) -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="180" y="250" width="200" height="50" rx="6"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="180" y="250" width="200" height="50" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="192" y="269" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">T4 &#183; response correction  [the critic]</text>
+    <text x="192" y="289" font-family="JetBrains Mono, monospace" font-size="8" font-style="italic" stroke="none">A_corrected = C(q&#8242;, A_gen, R_final)</text>
+  </g>
+
+  <!-- pass: emit attributed response -->
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <line x1="380" y1="275" x2="470" y2="275" stroke-width="1.3"/>
+    <polygon points="473,275 467,272 467,278" stroke="none"/>
+    <text x="384" y="269" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">supported</text>
+  </g>
+  <g class="ink" stroke="currentColor" fill="none">
+    <rect x="476" y="262" width="50" height="26" rx="3" stroke-width="1.2"/>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="501" y="278" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">attributed</text>
+    <text x="501" y="287" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">response</text>
+  </g>
+
+  <!-- fail: loop back (backprompt) -->
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <path d="M180 290 C 90 300, 70 240, 100 210 L 230 165" stroke-width="1.2" stroke-dasharray="4 3" fill="none"/>
+    <polygon points="230,165 222,166 226,171" stroke="none"/>
+    <text x="84" y="262" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">unsupported &#8594; regenerate</text>
+  </g>
+
+  <!-- footer -->
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="40" y1="332" x2="600" y2="332" stroke-width="1"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="320" y="352" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">T1&#8211;T3 set up a grounded leaf call; T4 is Generate-Test-Critique with retrieved evidence as the test oracle</text>
+  </g>
+</svg>

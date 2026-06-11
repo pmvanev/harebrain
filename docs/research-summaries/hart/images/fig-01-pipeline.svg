@@ -1,0 +1,107 @@
+<svg viewBox="0 0 640 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="HART four-stage pipeline: a model-generated paragraph feeds span identification, then mechanism attribution into two label spaces, then evidence retrieval through a Sentence-BERT plus FAISS plus Cross-Encoder stack, then causal tracing emitting a trace quadruple of span, type, mechanism, and evidence.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.12); }
+    }
+  </style>
+
+  <!-- source paragraph -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="14" y="84" width="86" height="66" rx="5"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="14" y="84" width="86" height="66" rx="5" stroke-width="1.3" fill="none"/>
+    <text x="57" y="104" font-family="Fraunces, serif" font-size="9" font-style="italic" text-anchor="middle" stroke="none">LLM output</text>
+    <line x1="24" y1="116" x2="90" y2="116" stroke-width="0.8"/>
+    <line x1="24" y1="124" x2="90" y2="124" stroke-width="0.8"/>
+    <line x1="24" y1="132" x2="74" y2="132" stroke-width="1.8"/>
+    <text x="57" y="146" font-family="JetBrains Mono, monospace" font-size="6.5" text-anchor="middle" stroke="none">"...is Sydney."</text>
+  </g>
+
+  <!-- arrow 1 -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="102" y1="117" x2="124" y2="117" stroke-width="1"/><polygon points="127,117 121,114 121,120" stroke="none"/>
+  </g>
+
+  <!-- Stage 1: span identification -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="128" y="84" width="92" height="66" rx="5"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="128" y="84" width="92" height="66" rx="5" stroke-width="1.3" fill="none"/>
+    <text x="174" y="78" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">stage 1</text>
+    <text x="174" y="106" font-family="Fraunces, serif" font-size="10" font-style="italic" text-anchor="middle" stroke="none">span</text>
+    <text x="174" y="120" font-family="Fraunces, serif" font-size="10" font-style="italic" text-anchor="middle" stroke="none">identification</text>
+    <text x="174" y="140" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">s = (b, e, h)</text>
+  </g>
+
+  <!-- arrow 2 -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="222" y1="117" x2="244" y2="117" stroke-width="1"/><polygon points="247,117 241,114 241,120" stroke="none"/>
+  </g>
+
+  <!-- Stage 2: mechanism attribution (two classifiers) -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="248" y="84" width="100" height="66" rx="5"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="248" y="84" width="100" height="66" rx="5" stroke-width="1.3" fill="none"/>
+    <text x="298" y="78" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">stage 2</text>
+    <text x="298" y="102" font-family="Fraunces, serif" font-size="10" font-style="italic" text-anchor="middle" stroke="none">mechanism</text>
+    <text x="298" y="115" font-family="Fraunces, serif" font-size="10" font-style="italic" text-anchor="middle" stroke="none">attribution</text>
+    <text x="298" y="132" font-family="JetBrains Mono, monospace" font-size="6.5" text-anchor="middle" stroke="none">f_h: |y_h|=4</text>
+    <text x="298" y="143" font-family="JetBrains Mono, monospace" font-size="6.5" text-anchor="middle" stroke="none">f_e: |y_e|=5</text>
+  </g>
+
+  <!-- arrow 3 -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="350" y1="117" x2="372" y2="117" stroke-width="1"/><polygon points="375,117 369,114 369,120" stroke="none"/>
+  </g>
+
+  <!-- Stage 3: evidence retrieval -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="376" y="84" width="116" height="66" rx="5"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="376" y="84" width="116" height="66" rx="5" stroke-width="1.3" fill="none"/>
+    <text x="434" y="78" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">stage 3</text>
+    <text x="434" y="103" font-family="Fraunces, serif" font-size="10" font-style="italic" text-anchor="middle" stroke="none">evidence retrieval</text>
+    <text x="434" y="121" font-family="JetBrains Mono, monospace" font-size="6.5" text-anchor="middle" stroke="none">S-BERT &#8594; FAISS</text>
+    <text x="434" y="133" font-family="JetBrains Mono, monospace" font-size="6.5" text-anchor="middle" stroke="none">&#8594; Cross-Encoder</text>
+    <text x="434" y="145" font-family="JetBrains Mono, monospace" font-size="6" text-anchor="middle" stroke="none">34,943-doc corpus</text>
+  </g>
+
+  <!-- arrow 4 -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="494" y1="117" x2="516" y2="117" stroke-width="1"/><polygon points="519,117 513,114 513,120" stroke="none"/>
+  </g>
+
+  <!-- Stage 4: causal tracing -> trace quadruple -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="520" y="70" width="108" height="94" rx="5"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="520" y="70" width="108" height="94" rx="5" stroke-width="1.4" fill="none"/>
+    <text x="574" y="64" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">stage 4 &#183; causal tracing</text>
+    <text x="574" y="86" font-family="Fraunces, serif" font-size="10" font-style="italic" text-anchor="middle" stroke="none">trace quadruple</text>
+    <line x1="530" y1="92" x2="618" y2="92" stroke-width="0.7"/>
+    <text x="530" y="106" font-family="JetBrains Mono, monospace" font-size="7" stroke="none">s&#x1d62;  span</text>
+    <text x="530" y="120" font-family="JetBrains Mono, monospace" font-size="7" stroke="none">&#375;&#x2095;  type</text>
+    <text x="530" y="134" font-family="JetBrains Mono, monospace" font-size="7" stroke="none">&#375;&#2091;  mechanism</text>
+    <text x="530" y="148" font-family="JetBrains Mono, monospace" font-size="7" stroke="none">&#x2130;&#x1d62;  evidence</text>
+    <text x="574" y="160" font-family="JetBrains Mono, monospace" font-size="6.5" text-anchor="middle" stroke="none">T&#x1d62; = (s, &#375;&#x2095;, &#375;&#2091;, &#x2130;)</text>
+  </g>
+
+  <!-- footer -->
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="14" y1="190" x2="628" y2="190" stroke-width="1"/></g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="321" y="208" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">post-hoc, span-level: localize &#183; name the mechanism &#183; retrieve contradicting evidence &#183; emit a structured verdict</text>
+  </g>
+</svg>
