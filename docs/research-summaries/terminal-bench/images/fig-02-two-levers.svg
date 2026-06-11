@@ -1,0 +1,99 @@
+<svg viewBox="0 0 620 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two levers on Terminal-Bench 2.0. Swapping the model under a fixed Codex CLI scaffold, from GPT-5-Nano to GPT-5.2, moves resolution rate by 52 points. Swapping the scaffold under a fixed Gemini 2.5 Pro model, from OpenHands to Terminus 2, moves it by 17 points. Across the full capability range the model is the bigger lever; at the frontier, where the top thirteen slots are all proprietary models, the harness reorders the leaderboard.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.16); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.16); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.10); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.22); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.20); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.12); }
+    }
+  </style>
+
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="20" y="26" font-family="Fraunces, serif" font-size="15" font-style="italic">Two swaps, two levers</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="20" y="44" font-family="JetBrains Mono, monospace" font-size="9">change in resolution rate, in percentage points</text>
+  </g>
+
+  <!-- axis -->
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="200" y1="60" x2="200" y2="156" stroke-width="1"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="200" y="172" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">0</text>
+    <text x="390" y="172" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">+30</text>
+    <text x="580" y="172" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">+60 pts</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none" stroke-dasharray="2 4">
+    <line x1="390" y1="60" x2="390" y2="156" stroke-width="0.8"/>
+    <line x1="580" y1="60" x2="580" y2="156" stroke-width="0.8"/>
+  </g>
+
+  <!-- Lever A: swap the model (52 pts) -->
+  <g class="blueprint" stroke="none" fill="currentColor">
+    <text x="20" y="84" font-family="Fraunces, serif" font-size="12" font-style="italic">swap the model</text>
+    <text x="20" y="99" font-family="JetBrains Mono, monospace" font-size="8" class="muted">fixed Codex CLI</text>
+  </g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="200" y="72" width="329" height="26" rx="3"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="200" y="72" width="329" height="26" rx="3" stroke-width="1.2" fill="none"/>
+    <text x="539" y="89" font-family="JetBrains Mono, monospace" font-size="11" stroke="none">+52</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="208" y="89" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">GPT-5-Nano &#8594; GPT-5.2</text>
+  </g>
+
+  <!-- Lever B: swap the scaffold (17 pts) -->
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="20" y="130" font-family="Fraunces, serif" font-size="12" font-style="italic">swap the scaffold</text>
+    <text x="20" y="145" font-family="JetBrains Mono, monospace" font-size="8" class="muted">fixed Gemini 2.5 Pro</text>
+  </g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="200" y="118" width="108" height="26" rx="3"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="200" y="118" width="108" height="26" rx="3" stroke-width="1.2" fill="none"/>
+    <text x="316" y="135" font-family="JetBrains Mono, monospace" font-size="11" stroke="none">+17</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="208" y="135" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">OpenHands &#8594; Terminus 2</text>
+  </g>
+
+  <!-- leaderboard strip -->
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="20" y1="200" x2="600" y2="200" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="20" y="224" font-family="Fraunces, serif" font-size="12" font-style="italic">the top of the board (32,155 trials &#183; 6 agents &#215; 16 models)</text>
+  </g>
+
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="20" y="236" width="580" height="78" rx="6"/></g>
+  <g font-family="JetBrains Mono, monospace" font-size="9" stroke="none">
+    <g class="ink"   fill="currentColor"><text x="34" y="256">1.  Codex CLI &#215; GPT-5.2</text></g>
+    <g class="ink"   fill="currentColor"><text x="34" y="274">2.  Terminus 2 &#215; Claude Opus 4.5</text></g>
+    <g class="ink"   fill="currentColor"><text x="34" y="292">3.  Terminus 2 &#215; Gemini 3 Pro</text></g>
+    <g class="muted" fill="currentColor"><text x="34" y="306" font-size="8">&#8230; top 13 slots all proprietary &#183; best open-weight: Terminus 2 &#215; Kimi K2 Thinking</text></g>
+  </g>
+  <g font-family="JetBrains Mono, monospace" font-size="12" stroke="none" text-anchor="end">
+    <g class="blueprint" fill="currentColor"><text x="586" y="256">63%</text></g>
+    <g class="blueprint" fill="currentColor"><text x="586" y="274">58%</text></g>
+    <g class="blueprint" fill="currentColor"><text x="586" y="292">57%</text></g>
+    <g class="muted" fill="currentColor"><text x="586" y="306" font-size="9">36%</text></g>
+  </g>
+
+  <!-- verdict -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="20" y="338" font-family="JetBrains Mono, monospace" font-size="8.5">Across the full range, the model is the bigger lever. Hold it at the frontier &#8212; where the top cluster is tightly packed &#8212;</text>
+    <text x="20" y="352" font-family="JetBrains Mono, monospace" font-size="8.5">and the harness reorders the board. That second regime is where the &#8220;6&#215;&#8221; and the Top&#8201;30&#8201;&#8594;&#8201;Top&#8201;5 claims live.</text>
+  </g>
+</svg>

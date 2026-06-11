@@ -1,0 +1,10 @@
+# Cloned task datasets (large; re-clone via the commands in README.md)
+_datasets/
+
+# Per-run outputs (trajectories, results.json, recordings)
+runs/
+
+# Local agent scratch venvs / caches
+.venv/
+__pycache__/
+*.pyc
