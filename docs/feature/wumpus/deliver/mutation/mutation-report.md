@@ -146,3 +146,98 @@ uv tool run --from cosmic-ray cosmic-ray baseline "$CONF"
 PYTHONUTF8=1 PYTHONIOENCODING=utf-8 uv tool run --from cosmic-ray cosmic-ray exec "$CONF" "$SESS"
 uv tool run --from cosmic-ray cr-report "$SESS"
 ```
+
+---
+
+# Core engine — partial spot-check (2026-06-10), campaign DEFERRED
+
+Broadening the mutation posture from the per-file pilots to the **core engine
+package** (`src/wumpus/engine/`). The full campaign was **deliberately stopped
+after a 75-mutant sample** (user decision, 2026-06-10) rather than run to
+completion — this section documents the indicative result and the reason, and
+hands the full run off as a follow-up.
+
+## Run
+
+- **Tool:** cosmic-ray 8.4.6, `PYTHONUTF8=1` (the Windows decode fix above).
+- **Scope (intended):** `src/wumpus/engine/` — **1,117 mutants** across all engine modules (`__init__` excluded). Config: `cosmic-ray-engine.toml` (sibling of this report).
+- **Test command:** `uv run pytest tests -x --ignore=tests/subprocess -q` (full local kill signal; ~12 s green).
+- **Completed:** **75 / 1,117 jobs (6.7 %)** before the run stopped — see "Why it stopped".
+
+## Why it stopped (infrastructure finding)
+
+Background commands in this environment are terminated at **~16 min wall-clock**, which is **~75 mutants** at ~12 s/mutant serial (cosmic-ray's `local` distributor is single-process). The `exec` was cut mid-job with a clean log (no error/traceback); cosmic-ray sessions are **resumable** (re-running `exec` on `session-engine.sqlite` continues the pending jobs), so no work is lost. A full serial run is ~3.7 h ≈ ~14 of these cycles. Given that cost, the campaign was stopped at the sample by decision.
+
+## Result on the 75-mutant sample
+
+| | count |
+|---|---:|
+| Completed (of 1,117) | 75 |
+| Killed | 60 |
+| **Survived** | **15** |
+| **Kill rate on the sample** (`killed / completed`) | **80.0 %** |
+
+The sampled mutants skew toward the modules cosmic-ray enumerated first (`game.py` 42, `hash.py` 10, `arrow_walk.py` 8, plus a few in `startle`/`sense`/`transitions`/`hazard_resolve`/`_r0_toy_cave`), so this is **indicative, not a per-module verdict.** 80 % on a partial, untriaged sample is encouraging but not a gate result.
+
+## The 15 survivors (untriaged — candidates for the full run)
+
+| Module | Operator | Occ. |
+|---|---|---:|
+| `game.py` | `ReplaceBinaryOperator_Mul_Div` | 4 |
+| `game.py` | `ReplaceBinaryOperator_BitOr_Mul` | 7 |
+| `game.py` | `ReplaceBinaryOperator_BitOr_FloorDiv` | 0 |
+| `game.py` | `ReplaceBinaryOperator_BitOr_Pow` | 0, 2 |
+| `game.py` | `ReplaceBinaryOperator_BitOr_BitAnd` | 5 |
+| `game.py` | `ReplaceBinaryOperator_BitOr_BitXor` | 0, 9 |
+| `game.py` | `ReplaceComparisonOperator_NotEq_Lt` | 2 |
+| `game.py` | `AddNot` | 23 |
+| `game.py` | `ReplaceAndWithOr` | 0 |
+| `hash.py` | `ReplaceBinaryOperator_BitOr_Mul` | 0 |
+| `hash.py` | `ReplaceBinaryOperator_BitOr_FloorDiv` | 1 |
+| `sense.py` | `ReplaceComparisonOperator_Eq_Is` | 0 |
+| `hazard_resolve.py` | `ReplaceBreakWithContinue` | 2 |
+
+Cautious read (NOT verified — triage is part of the deferred run):
+
+- The cluster of **`BitOr_*` replacements** echoes the mystery.py pilot, where every `BitOr_*` survivor was an **equivalent mutant on an `int | None` type annotation** (no runtime effect). Several of these engine instances are likely the same annotation quirk; `hash.py`'s, however, *may* be genuine bit-mixing in the hashing path — these need individual triage (annotation ⇒ exempt; real bitwise/set op ⇒ likely a real gap).
+- The **boolean/branch mutants** (`AddNot`, `ReplaceAndWithOr`, `ReplaceComparisonOperator_*`, `ReplaceBreakWithContinue`) are the higher-value candidates for genuine test gaps and should be triaged first when the full run lands.
+
+## ⚠ Latent engine bug surfaced by the campaign (snapshot loses VariantConfig on restart)
+
+Running the suite ~75× under mutation made Hypothesis explore a degenerate-variant
+example the prior green runs never hit, and it **saved the counterexample** to its
+(gitignored) `.hypothesis/` DB. It **reproduces on clean `HEAD`** —
+`tests/property/test_variant_sweep.py::test_variant_snapshot_round_trip_holds`
+now fails for `VariantConfig(room_count=20, pit_count=0, bat_count=0,
+arrow_count=1, arrow_max_range=1, wumpus_move_prob=0.0)`, `seed=0`,
+`actions=('Y','S','1','1','Y')`, `k=0`.
+
+**Root cause (pinpointed).** The two event sequences match in *structure* (16 events,
+identical types); the first *field* divergence is at the `GameStarted` emitted by the
+`Y` / `SAME SET-UP` **restart**. Its `variant_config` is the custom variant in the
+single-process baseline but reverts to **Yob defaults** (`pit_count=2, bat_count=2,
+arrow_count=5`) in the snapshot-restored game. So **`Game.from_snapshot` does not
+preserve the `VariantConfig` used to regenerate the cave on a SAME-SETUP restart** —
+a restored non-Yob game silently reverts to Yob defaults when restarted.
+
+**Impact: real, not a test-strictness artifact.** The cell-D host-import path (R5-S01)
+drives the engine *via snapshots*; a snapshot-restored Mystery/variant game that hits
+a restart would silently switch to Yob defaults, corrupting an obfuscation-gap (J2)
+run. This is exactly the latent defect property + mutation testing exist to find.
+
+**Disposition.** Out of scope for this "document the sample" pass; recommended path is
+a dedicated bug-fix (RCA → regression test → fix via TDD; `/nw-bugfix`). The failing
+Hypothesis example is **retained** in `.hypothesis/` (NOT cleared) because it marks a
+real defect — clearing it would hide the bug. The mutation report and this finding are
+independent of the eventual fix.
+
+## Deferred-campaign handoff
+
+To complete the engine campaign later (own slice or a maintenance pass):
+
+1. **Reorder the suite fast-tests-first** in `cosmic-ray-engine.toml`'s `test-command` — e.g. `uv run pytest tests/acceptance tests/regression tests/property -x --ignore=tests/subprocess -q`. With `-x`, the ~80 % of mutants that die do so against the fast acceptance tests in ~3 s; only survivors pay the full property-sweep cost. Same kill signal, ~2-3× fewer cycles (~6 instead of ~14).
+2. **Or run per-module** (`module-path` per file) so each module fits inside one ~16-min background cycle and yields its own kill-rate row.
+3. **Or run on a host without the ~16-min background cap** (a longer-lived shell / CI runner), where the full serial run completes in one pass.
+4. Then **triage survivors** (annotation-equivalents → `MUTATION_EXEMPTIONS.md`; real gaps → killing tests), and tune the cosmic-ray operator set to drop annotation-targeting `BitOr_*` mutations (recommended in the 2026-05-28 report, still open).
+
+`cosmic-ray-engine.toml` and the partial `session-engine.sqlite` (gitignored) are retained as siblings of this report so the run can be resumed rather than restarted.

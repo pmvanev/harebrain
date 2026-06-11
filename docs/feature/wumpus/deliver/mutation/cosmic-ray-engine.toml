@@ -1,0 +1,34 @@
+# cosmic-ray — mutation config scoped to the CORE ENGINE package.
+#
+# Broadens the mutation posture beyond the per-file pilots (mystery.py 2026-05-28,
+# host_import.py 2026-06-10) to the engine itself — the heart of the feature.
+#
+# Invoked from python/packages/wumpus/:
+#   cd python/packages/wumpus
+#   cosmic-ray init     ../../../docs/feature/wumpus/deliver/mutation/cosmic-ray-engine.toml  session-engine.sqlite
+#   cosmic-ray baseline ../../../docs/feature/wumpus/deliver/mutation/cosmic-ray-engine.toml  session-engine.sqlite
+#   cosmic-ray exec     ../../../docs/feature/wumpus/deliver/mutation/cosmic-ray-engine.toml  session-engine.sqlite
+#   cr-report           session-engine.sqlite
+#
+# Tool choice and Windows rationale: see CLAUDE.md § Mutation Testing Strategy.
+# NOTE: cosmic-ray 8.4.6 on Windows can mislabel killed mutants as INCOMPETENT
+# when assertion text contains non-cp1252 chars — run exec with
+# PYTHONUTF8=1 PYTHONIOENCODING=utf-8 (see MUTATION_EXEMPTIONS.md).
+
+[cosmic-ray]
+module-path = "src/wumpus/engine"
+
+# Full local suite per mutant (~12s green). 90s timeout absorbs slow mutations
+# (Hypothesis property sweeps) and infinite-loop mutants.
+timeout = 90.0
+
+# __init__.py is pure re-exports (no logic to mutate meaningfully).
+excluded-modules = ["wumpus.engine"]
+
+# The full local kill signal: acceptance + property + unit, minus the wexpect
+# subprocess smoke (hangs on Windows — CLAUDE.md). -x stops at first failing
+# test so killed mutants exit fast; survivors pay the full suite.
+test-command = "uv run pytest tests -x --ignore=tests/subprocess -q"
+
+[cosmic-ray.distributor]
+name = "local"
