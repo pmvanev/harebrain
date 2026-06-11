@@ -369,6 +369,22 @@ class Snapshot:
     # R3-S01: cave topology selector. Defaults to "yob" (the Yob-default
     # cave from R1-S01); explicit "toy" is required for toy-cave snapshots.
     cave: str = "yob"
+    # Bugfix 2026-06-11: the game's VariantConfig round-trips as its serialized
+    # dict (the same shape `VariantConfig.as_dict()` produces). Without this a
+    # resurrected non-Yob game lost its variant — behavioral params with no
+    # World footprint (`arrow_max_range`, `wumpus_move_prob`) and zero-collapsed
+    # counts (`pit_count=0`, `bat_count=0`) reverted to Yob defaults, and a
+    # SAME SET-UP=Y restart re-emitted Yob defaults in its GameStarted header.
+    # ADDITIVE + defaulted to None for back-compat with pre-fix snapshots:
+    # `from_snapshot` falls back to `VariantConfig()` when absent (the historical
+    # behavior). This is a one-time additive Snapshot extension — exactly like
+    # R3-S01's `initial_layout`/`cave` — NOT a per-variant schema change (the
+    # field set is identical across all VariantConfig values, so the scenario-4
+    # no-schema-change canary stays green). The `escalation_rules` rule OBJECTS
+    # are not serializable; their NAMES already travel via
+    # `active_escalation_rules`, so the round-trip rebuilds the config with
+    # `escalation_rules=()` (see `_variant_from_dict` in engine.game).
+    variant_config: dict[str, object] | None = None
 
 
 # ---------------------------------------------------------------------------

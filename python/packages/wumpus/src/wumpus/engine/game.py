@@ -623,6 +623,7 @@ class Game:
             active_escalation_rules=self._active_escalation_rules,
             initial_layout=self._initial_layout,
             cave=self._cave,
+            variant_config=self._variant.as_dict(),
         )
 
     def world_state(self) -> World:
@@ -1387,13 +1388,22 @@ class Game:
         game = cls.__new__(cls)
         game._seed = snapshot.seed
         game._random = _decode_rng_cursor(snapshot.rng_cursor)
-        # R4-S01: the Snapshot does NOT carry a variant_config field (adding
-        # one would change the Snapshot field set — scenario 4's no-schema-
-        # change canary forbids that). A resurrected Game uses the default
-        # VariantConfig() for its header; the World it restores already
-        # carries whatever tuple shapes the variant produced (the variant
-        # never adds fields, so the restored World is complete on its own).
-        game._variant = VariantConfig()
+        # Bugfix 2026-06-11: the Snapshot now carries the serialized
+        # `variant_config` (an ADDITIVE, defaulted field — NOT a per-variant
+        # schema change; the scenario-4 no-schema-change canary compares the
+        # field SET across variants and stays green). Restore the variant from
+        # it so behavioral params with no World footprint (`arrow_max_range`,
+        # `wumpus_move_prob`) and zero-collapsed counts (`pit_count=0`,
+        # `bat_count=0`) survive the round-trip — directly fixing the SAME
+        # SET-UP=Y restart on a restored non-Yob game (which re-reads
+        # `self._variant.as_dict()` for its GameStarted header). Pre-fix
+        # snapshots (and any constructed without the field) carry None; fall
+        # back to the Yob-default VariantConfig() — the historical behavior.
+        game._variant = (
+            _variant_from_dict(snapshot.variant_config)
+            if snapshot.variant_config is not None
+            else VariantConfig()
+        )
         # R4-S02: the rule OBJECTS cannot be reconstructed from a snapshot
         # (they are arbitrary callables), but the engine preserves their
         # ordered NAMES so the consultation-order contract survives the
@@ -1503,6 +1513,32 @@ def _parse_int_or_none(action: str) -> int | None:
         return int(action)
     except ValueError:
         return None
+
+
+def _variant_from_dict(serialized: dict[str, object]) -> VariantConfig:
+    """Rebuild a `VariantConfig` from its serialized dict (the shape
+    `VariantConfig.as_dict()` produces) for the snapshot round-trip
+    (bugfix 2026-06-11).
+
+    Only the round-trippable scalar/count fields are restored. The
+    `escalation_rules` OBJECTS are arbitrary callables that cannot be
+    reconstructed from a snapshot — but their NAMES already travel via
+    `Snapshot.active_escalation_rules` (R4-S02), so the rebuilt config uses
+    `escalation_rules=()`. The resurrected Game reports the same active rule
+    NAMES in its header; re-attaching live rule objects is a downstream
+    concern (mirrors the pre-existing `from_snapshot` rule-name handling).
+    """
+    return VariantConfig(
+        room_count=serialized["room_count"],  # type: ignore[arg-type]
+        topology=serialized["topology"],  # type: ignore[arg-type]
+        wumpus_count=serialized["wumpus_count"],  # type: ignore[arg-type]
+        pit_count=serialized["pit_count"],  # type: ignore[arg-type]
+        bat_count=serialized["bat_count"],  # type: ignore[arg-type]
+        arrow_count=serialized["arrow_count"],  # type: ignore[arg-type]
+        arrow_max_range=serialized["arrow_max_range"],  # type: ignore[arg-type]
+        wumpus_move_prob=serialized["wumpus_move_prob"],  # type: ignore[arg-type]
+        escalation_rules=(),
+    )
 
 
 def _decode_rng_cursor(rng_cursor: str) -> random.Random:

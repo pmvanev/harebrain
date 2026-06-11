@@ -5283,3 +5283,23 @@ def step_from_snapshot(snap_json: str, action: str) -> tuple[str, dict, list[dic
 - **No SPIKE → DESIGN back-propagation needed.** The probe confirmed the existing DESIGN (snapshot/restore seam, injected-RNG determinism, no module state) already supports the contract; no `upstream-issues` were found.
 - R5-S01 follow-ups for a future MPL-binding slice: faithful non-Yob surface rendering through the seam (resurrection currently rebuilds `YobSurface`; determinism unaffected, rendering would need surface re-injection), and the persistent-worker vs process-per-turn cost trade (~150 ms/turn cold-start).
 
+## Wave: DELIVER / [REF] Bugfix — Snapshot VariantConfig persistence (2026-06-11)
+
+### Root cause (RCA-confirmed)
+`Snapshot` did not persist the game's `VariantConfig`, so `Game.from_snapshot` hardcoded `game._variant = VariantConfig()` (Yob defaults) — evidence: `src/wumpus/engine/game.py:1396` (pre-fix) + the absent field on the `Snapshot` dataclass (`src/wumpus/types.py`). Every restored game's `self._variant` was wrong: behavioral params with no World footprint (`arrow_max_range`, `wumpus_move_prob`) and zero-collapsed counts (`pit_count=0`, `bat_count=0`) reverted to Yob defaults across a snapshot hop. The headline observable break: a SAME SET-UP (`'Y'`) restart re-reads `self._variant.as_dict()` (`game.py:927`) and emitted Yob defaults on a restored non-Yob game — directly corrupting the cell-D host-import path (R5-S01), which drives variant games turn-by-turn via snapshots.
+
+### Fix (minimal, additive, determinism-safe)
+1. `src/wumpus/types.py` — ADDITIVE, defaulted `Snapshot.variant_config: dict[str, object] | None = None` (after `cave`). Defaulted to `None` for back-compat with pre-fix snapshots.
+2. `src/wumpus/engine/game.py` `snapshot()` — populates `variant_config=self._variant.as_dict()`.
+3. `src/wumpus/engine/game.py` `from_snapshot()` — restores from `snapshot.variant_config` via the new module-level `_variant_from_dict(d) -> VariantConfig` helper (rebuilds the round-trippable scalar/count fields with `escalation_rules=()`); falls back to `VariantConfig()` when the field is absent (`None`). Rule OBJECTS are not serializable; their NAMES already travel via `Snapshot.active_escalation_rules`, so no rule reconstruction is attempted.
+4. `src/wumpus/serialization.py` — NO change required. The dict passes through `_dataclass_to_dict` / `_dict_to_dataclass_kwargs` unchanged; `wumpus_move_prob` round-trips as `float`, counts as `int` (verified), and `variant_config` is correctly NOT in `_TUPLE_FIELDS_BY_CLASS[Snapshot]`.
+
+### Regression test
+`python/packages/wumpus/tests/regression/test_snapshot_variant_restart.py` — two explicit, deterministic examples (no reliance on the gitignored `.hypothesis/` DB) for the RCA's minimal non-Yob variant (`room_count=20, wumpus_count=1, pit_count=0, bat_count=0, arrow_count=1, arrow_max_range=1, wumpus_move_prob=0.0`, seed=0): (a) the restored game's `snapshot().variant_config` equals the original / the custom variant; (b) a SAME SET-UP `'Y'` restart on the restored game emits a `GameStarted` whose `variant_config` matches the custom variant, not Yob defaults. Confirmed RED on pre-fix code (restored game emitted `pit_count=2, bat_count=2, arrow_count=5, arrow_max_range=5, wumpus_move_prob=0.75`), GREEN after the fix.
+
+### No-schema-change canary reconciliation
+The scenario-4 canary `tests/acceptance/step_definitions/test_R4_variant_surface.py::_r4s01_field_set_identical` compares the `dataclasses.fields(Snapshot)` SET of a `wumpus_count=2` game against a `wumpus_count=1` game. Adding `variant_config` adds the field to BOTH, so the field sets stay identical — the canary forbids per-VARIANT schema divergence, not a one-time additive `Snapshot` field. This mirrors how R3-S01 added `initial_layout`/`cave`. Canary remains GREEN with no edit (verified: `test_R4_variant_surface.py` 7 passed).
+
+### Verification
+`test_variant_snapshot_round_trip_holds` (the property failure surfaced by the 2026-06-10 mutation campaign) now passes; full variant sweep 4 passed; determinism golden-master + `test_determinism.py` unchanged (12 passed); unit suite 202 passed; full suite **375 passed** (`uv run pytest --ignore=tests/subprocess`). This closes the property-test failure left open after the 2026-06-10 mutation campaign.
+
