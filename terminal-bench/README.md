@@ -166,7 +166,8 @@ in a Linux terminal, so `PYTHONUTF8` is unnecessary in WSL (on Windows you'd set
 | `oracle` resolves `hello-world` — **WSL2 Ubuntu** | ✓ **100% accuracy** (2026-06-11) |
 | `oracle` resolves `hello-world` — native Windows | ✗ — `\tmp` copy bug (POSIX assumption) |
 | Real built-in agent run | ✓ `terminus-2` × `gemini/gemini-2.5-flash` resolved `hello-world` (2026-06-11), 1831 in / 362 out tokens |
-| Custom Python / MPL agent run | ⏳ next — harness + model plumbing both proven; follow `custom-agents.md` |
+| Custom **Python** agent (`command-loop`, `agents/command_loop.py`) | ✓ resolved `hello-world` via `--agent-import-path` + `PYTHONPATH` (2026-06-11), Gemini Flash, 88 / 27 tokens |
+| Custom **MPL** agent | ⏳ blocked on the MPL runtime host-import API (wumpus spike); adapter sketched in `custom-agents.md` |
 
 ## Cost note
 
@@ -178,6 +179,9 @@ cheap model before any full-set sweep.
 
 - `README.md` — this file.
 - `custom-agents.md` — running Terminal-Bench against a custom Python agent and a custom MPL agent.
+- `agents/command_loop.py` — the worked custom-agent example from `custom-agents.md`; verified
+  resolving `hello-world`. Run with `PYTHONPATH=…/terminal-bench/agents tb run
+  --agent-import-path command_loop:CommandLoopAgent …`.
 - `_probe_registry.py` — tiny helper that prints a dataset's clone URL/branch/path from the `tb`
   registry (how the Windows local-clone workaround was derived). Run with the tool venv's Python.
 - `_datasets/`, `runs/` — gitignored (cloned tasks, run outputs).
