@@ -363,6 +363,12 @@ PYTHONPATH=/abs/.../terminal-bench/agents \
     -m gemini/gemini-2.5-flash -t hello-world -d terminal-bench-core==0.1.1 --output-path ~/tb-runs
 ```
 
+> **Never shell out to the `mpl` CLI in a non-interactive context.** Its console entry point is
+> `mpl.cli.repl:main`, which **ignores its arguments** (no `--help`/`--version`) and drops straight
+> into an interactive REPL that reads stdin. With no stdin/EOF it blocks forever — `mpl --help` will
+> hang the shell. Embed MPL via the **Python library** (`mpl.load` / `mpl.Simulation` /
+> `mpl.HostModule`), as `mpl_agent.py` does; the CLI is for humans at a terminal only.
+
 ### Why this is the demonstration worth running
 
 This is the harebrain hypothesis as a measurable experiment, on the ruler the whole
