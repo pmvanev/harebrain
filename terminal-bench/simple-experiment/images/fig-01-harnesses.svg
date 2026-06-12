@@ -163,6 +163,6 @@
   <g class="sage" stroke="currentColor" fill="currentColor">
     <rect x="198" y="334" width="264" height="30" rx="15" stroke-width="1.4" fill="none"/>
     <text x="330" y="349" font-family="Fraunces, serif" font-size="9.5" font-style="italic" text-anchor="middle" stroke="none">one fixed brain</text>
-    <text x="330" y="360" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">-m gemini/gemini-2.5-flash (via litellm)</text>
+    <text x="330" y="360" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">-m {gemini-2.5-flash | gpt-5.2} (via litellm)</text>
   </g>
 </svg>

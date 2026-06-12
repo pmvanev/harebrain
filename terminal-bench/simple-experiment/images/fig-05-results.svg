@@ -1,0 +1,141 @@
+<svg viewBox="0 0 680 384" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The harness lever measured at a fixed brain (gpt-5.2) over four Terminal-Bench tasks. Resolve-rate bars: terminus-2 the built-in baseline 100% (4 of 4), mpl-terminal the harebrain cage 75% (3 of 4), command-loop the thin custom loop 50% (2 of 4). A per-task grid shows each pass or fail: terminus-2 passed all four (its csv-to-parquet pass came via an agent timeout with the work already done); mpl-terminal passed extract-safely, fix-permissions and csv-to-parquet but FAILED the trivial hello-world; command-loop passed hello-world and fix-permissions but failed extract-safely and csv-to-parquet. Same model, same tasks — resolve rate spans 50 to 100 percent from the harness alone.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .muted-tint     { color: rgba(93, 85, 63, 0.10); }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.10); }
+    .blueprint-tint2{ color: rgba(31, 79, 122, 0.18); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .muted-tint     { color: rgba(168, 156, 125, 0.12); }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.12); }
+      .blueprint-tint2{ color: rgba(136, 192, 232, 0.22); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+    }
+  </style>
+
+  <!-- title -->
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="330" y="28" font-family="Fraunces, serif" font-size="16" font-style="italic" text-anchor="middle">the lever, measured</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="330" y="44" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">fixed brain gpt-5.2 &#183; 4 terminal-bench-core tasks &#183; resolve rate</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="24" y1="54" x2="656" y2="54" stroke-width="1"/></g>
+
+  <!-- ===== resolve-rate bars (track x=212..612 = 0..100%) ===== -->
+  <!-- gridlines at 50% (x=412) and 100% (x=612) -->
+  <g class="rule-soft" stroke="currentColor" fill="none" stroke-dasharray="2 4">
+    <line x1="412" y1="72" x2="412" y2="172" stroke-width="0.8"/>
+    <line x1="612" y1="72" x2="612" y2="172" stroke-width="0.8"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="412" y="186" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">50%</text>
+    <text x="612" y="186" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">100%</text>
+    <text x="212" y="186" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">0</text>
+  </g>
+
+  <!-- terminus-2: 100% (muted, built-in baseline) -->
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="20" y="86" font-family="Fraunces, serif" font-size="11" font-style="italic">terminus-2</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="20" y="98" font-family="JetBrains Mono, monospace" font-size="7">built-in baseline</text>
+  </g>
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="212" y="78" width="400" height="22" rx="3"/></g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <rect x="212" y="78" width="400" height="22" rx="3" stroke-width="1.3" fill="none"/>
+    <text x="624" y="93" font-family="JetBrains Mono, monospace" font-size="11" stroke="none">100%</text>
+    <text x="220" y="93" font-family="JetBrains Mono, monospace" font-size="9" stroke="none">4 / 4</text>
+  </g>
+
+  <!-- mpl-terminal: 75% (blueprint emphasized, the cage) -->
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="20" y="126" font-family="Fraunces, serif" font-size="11" font-style="italic">mpl-terminal</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="20" y="138" font-family="JetBrains Mono, monospace" font-size="7">the harebrain cage</text>
+  </g>
+  <g class="blueprint-tint2" stroke="none" fill="currentColor"><rect x="212" y="118" width="300" height="22" rx="3"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="212" y="118" width="300" height="22" rx="3" stroke-width="1.4" fill="none"/>
+    <text x="524" y="133" font-family="JetBrains Mono, monospace" font-size="11" stroke="none">75%</text>
+    <text x="220" y="133" font-family="JetBrains Mono, monospace" font-size="9" stroke="none">3 / 4</text>
+  </g>
+
+  <!-- command-loop: 50% (blueprint, thin loop) -->
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="20" y="166" font-family="Fraunces, serif" font-size="11" font-style="italic">command-loop</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="20" y="178" font-family="JetBrains Mono, monospace" font-size="7">thin custom loop</text>
+  </g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="212" y="158" width="200" height="22" rx="3"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="212" y="158" width="200" height="22" rx="3" stroke-width="1.3" fill="none"/>
+    <text x="424" y="173" font-family="JetBrains Mono, monospace" font-size="11" stroke="none">50%</text>
+    <text x="220" y="173" font-family="JetBrains Mono, monospace" font-size="9" stroke="none">2 / 4</text>
+  </g>
+
+  <!-- ===== per-task grid ===== -->
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="24" y1="210" x2="656" y2="210" stroke-width="1"/></g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="24" y="230" font-family="JetBrains Mono, monospace" font-size="8" letter-spacing="0.08em">PER-TASK</text>
+  </g>
+
+  <!-- column headers (tasks) -->
+  <g class="ink" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">
+    <text x="300" y="252">hello-world</text>
+    <text x="396" y="252">extract-safely</text>
+    <text x="492" y="252">fix-permissions</text>
+    <text x="588" y="252">csv-to-parquet</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="6.5" text-anchor="middle">
+    <text x="300" y="262">control</text>
+    <text x="396" y="262">security</text>
+    <text x="492" y="262">sysadmin</text>
+    <text x="588" y="262">data-science</text>
+  </g>
+
+  <!-- row 1: terminus-2 (hw v, extract v, fix v, csv v*) -->
+  <g class="ink" stroke="none" fill="currentColor"><text x="24" y="290" font-family="JetBrains Mono, monospace" font-size="9">terminus-2</text></g>
+  <g class="sage" stroke="none" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">
+    <text x="300" y="293">&#x2713;</text><text x="396" y="293">&#x2713;</text><text x="492" y="293">&#x2713;</text><text x="588" y="293">&#x2713;</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="600" y="289" font-family="JetBrains Mono, monospace" font-size="9">*</text></g>
+
+  <!-- row 2: mpl-terminal (hw X, extract v, fix v, csv v) -->
+  <g class="ink" stroke="none" fill="currentColor"><text x="24" y="314" font-family="JetBrains Mono, monospace" font-size="9">mpl-terminal</text></g>
+  <g stroke="none" font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">
+    <g class="oxblood" fill="currentColor"><text x="300" y="317">&#x2717;</text></g>
+    <g class="sage" fill="currentColor"><text x="396" y="317">&#x2713;</text><text x="492" y="317">&#x2713;</text><text x="588" y="317">&#x2713;</text></g>
+  </g>
+
+  <!-- row 3: command-loop (hw v, extract X, fix v, csv X) -->
+  <g class="ink" stroke="none" fill="currentColor"><text x="24" y="338" font-family="JetBrains Mono, monospace" font-size="9">command-loop</text></g>
+  <g stroke="none" font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">
+    <g class="sage" fill="currentColor"><text x="300" y="341">&#x2713;</text><text x="492" y="341">&#x2713;</text></g>
+    <g class="oxblood" fill="currentColor"><text x="396" y="341">&#x2717;</text><text x="588" y="341">&#x2717;</text></g>
+  </g>
+
+  <!-- footer caveats -->
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="24" y1="352" x2="656" y2="352" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="24" y="368" font-family="Fraunces, serif" font-size="9.5" font-style="italic">Same model, same tasks &#8212; resolve rate spans 50&#8211;100% from the harness alone.</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="24" y="379" font-family="JetBrains Mono, monospace" font-size="7">* terminus-2 csv: resolved via agent_timeout (work done first) &#183; mpl-terminal missed the trivial hello-world (a done-detection bug) while solving the 3 harder tasks</text>
+  </g>
+</svg>

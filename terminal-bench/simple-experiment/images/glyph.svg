@@ -24,7 +24,7 @@
   <g class="sage" stroke="currentColor" fill="currentColor">
     <ellipse cx="29" cy="32" rx="26" ry="15" stroke-width="1.4" fill="none"/>
     <text x="29" y="29" font-family="Fraunces, serif" font-size="8" font-style="italic" text-anchor="middle" stroke="none">brain</text>
-    <text x="29" y="40" font-family="JetBrains Mono, monospace" font-size="6" text-anchor="middle" stroke="none">2.5-flash</text>
+    <text x="29" y="40" font-family="JetBrains Mono, monospace" font-size="6" text-anchor="middle" stroke="none">fixed</text>
   </g>
   <!-- fan-out arrow: one brain, three cages -->
   <g class="muted" stroke="currentColor" fill="currentColor">

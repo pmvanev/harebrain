@@ -1,4 +1,4 @@
-<svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A model card for the fixed brain: a sage brain disc labelled gemini-2.5-flash, called through litellm with the provider prefix gemini-slash which reads GEMINI_API_KEY. Spec rows note that the role is the constant held across all three harnesses, so any resolve-rate delta is attributable to the cage, not the brain. A separate oxblood reality callout records that free-tier rate and quota limits (HTTP 429) dominated the run and the daily quota was exhausted.">
+<svg viewBox="0 0 600 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A model card for the fixed brain, run twice. A sage brain disc labelled 'held fixed' is reached through litellm, whose provider prefix selects the key (gemini-slash reads GEMINI_API_KEY, openai-slash reads OPENAI_API_KEY). The brain is held constant so any resolve-rate delta is attributable to the cage, not the brain. Run 1, gemini-2.5-flash on the free tier (oxblood): rate and quota limited with HTTP 429, daily quota exhausted, so the lever was unmeasurable. Run 2, gpt-5.2 on a paid tier and the Terminal-Bench number-one model (sage): a clean run with resolve rate spanning 50 to 100 percent across the three cages — the lever, measured.">
   <style>
     .ink            { color: #1a1810; }
     .muted          { color: #5d553f; }
@@ -7,6 +7,7 @@
     .blueprint      { color: #1f4f7a; }
     .sage           { color: #4f6b3f; }
     .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    .sage-tint2     { color: rgba(79, 107, 63, 0.13); }
     .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
     .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
     @media (prefers-color-scheme: dark) {
@@ -17,6 +18,7 @@
       .blueprint      { color: #88c0e8; }
       .sage           { color: #b1c98c; }
       .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+      .sage-tint2     { color: rgba(177, 201, 140, 0.17); }
       .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
       .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
     }
@@ -27,55 +29,57 @@
     <text x="30" y="30" font-family="JetBrains Mono, monospace" font-size="9" letter-spacing="0.12em">THE FIXED BRAIN</text>
   </g>
   <g class="ink" stroke="none" fill="currentColor">
-    <text x="30" y="48" font-family="Fraunces, serif" font-size="16" font-style="italic">one model, held constant</text>
+    <text x="30" y="48" font-family="Fraunces, serif" font-size="16" font-style="italic">held constant &#8212; run twice</text>
   </g>
   <g class="rule-soft" stroke="currentColor" fill="none"><line x1="30" y1="60" x2="570" y2="60" stroke-width="1"/></g>
 
   <!-- brain disc (sage) -->
-  <g class="sage-tint" stroke="none" fill="currentColor"><ellipse cx="118" cy="140" rx="84" ry="50"/></g>
+  <g class="sage-tint" stroke="none" fill="currentColor"><ellipse cx="112" cy="130" rx="80" ry="46"/></g>
   <g class="sage" stroke="currentColor" fill="currentColor">
-    <ellipse cx="118" cy="140" rx="84" ry="50" stroke-width="1.5" fill="none"/>
-    <!-- two gyri sketched as arcs -->
-    <path d="M 70 124 q 24 -16 48 0 q 24 16 48 0" stroke-width="1.1" fill="none"/>
-    <path d="M 70 152 q 24 -16 48 0 q 24 16 48 0" stroke-width="1.1" fill="none"/>
-    <text x="118" y="106" font-family="JetBrains Mono, monospace" font-size="8" letter-spacing="0.1em" text-anchor="middle" stroke="none">BRAIN</text>
-    <text x="118" y="178" font-family="JetBrains Mono, monospace" font-size="11" text-anchor="middle" stroke="none">gemini-2.5-flash</text>
+    <ellipse cx="112" cy="130" rx="80" ry="46" stroke-width="1.5" fill="none"/>
+    <path d="M 68 116 q 22 -15 44 0 q 22 15 44 0" stroke-width="1.1" fill="none"/>
+    <path d="M 68 142 q 22 -15 44 0 q 22 15 44 0" stroke-width="1.1" fill="none"/>
+    <text x="112" y="100" font-family="JetBrains Mono, monospace" font-size="8" letter-spacing="0.1em" text-anchor="middle" stroke="none">BRAIN</text>
+    <text x="112" y="166" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">held fixed</text>
   </g>
 
   <!-- spec rows (right of disc) -->
   <g class="muted" stroke="none" fill="currentColor">
-    <text x="226" y="92" font-family="JetBrains Mono, monospace" font-size="8" letter-spacing="0.06em">provider</text>
+    <text x="216" y="92" font-family="JetBrains Mono, monospace" font-size="8" letter-spacing="0.06em">reached through</text>
   </g>
   <g class="ink" stroke="none" fill="currentColor">
-    <text x="226" y="106" font-family="JetBrains Mono, monospace" font-size="10">litellm &#183; prefix gemini/ reads GEMINI_API_KEY</text>
+    <text x="216" y="106" font-family="JetBrains Mono, monospace" font-size="10">litellm &#183; the provider prefix picks the key</text>
+    <text x="216" y="120" font-family="JetBrains Mono, monospace" font-size="9">gemini/ &#8594; GEMINI_API_KEY &#183; openai/ &#8594; OPENAI_API_KEY</text>
   </g>
 
   <g class="muted" stroke="none" fill="currentColor">
-    <text x="226" y="130" font-family="JetBrains Mono, monospace" font-size="8" letter-spacing="0.06em">role</text>
-  </g>
-  <g class="ink" stroke="none" fill="currentColor">
-    <text x="226" y="144" font-family="JetBrains Mono, monospace" font-size="10">the constant held across all three harnesses</text>
-  </g>
-
-  <g class="muted" stroke="none" fill="currentColor">
-    <text x="226" y="168" font-family="JetBrains Mono, monospace" font-size="8" letter-spacing="0.06em">so</text>
+    <text x="216" y="146" font-family="JetBrains Mono, monospace" font-size="8" letter-spacing="0.06em">why hold it</text>
   </g>
   <g class="blueprint" stroke="none" fill="currentColor">
-    <text x="226" y="182" font-family="JetBrains Mono, monospace" font-size="10">any resolve-rate &#916; is the cage, not the brain</text>
+    <text x="216" y="160" font-family="JetBrains Mono, monospace" font-size="10">any resolve-rate &#916; is the cage, not the brain</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="216" y="174" font-family="JetBrains Mono, monospace" font-size="9">across terminus-2 &#183; command-loop &#183; mpl-terminal</text>
   </g>
 
-  <!-- harness-lever footnote tying disc to the three cages -->
-  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="226" y1="196" x2="570" y2="196" stroke-width="0.8"/></g>
-  <g class="blueprint" stroke="currentColor" fill="currentColor">
-    <text x="226" y="213" font-family="Fraunces, serif" font-size="9.5" font-style="italic" stroke="none">the harness lever, pulled at a fixed brain:</text>
-    <text x="226" y="227" font-family="JetBrains Mono, monospace" font-size="8.5" stroke="none">terminus-2 &#183; command-loop &#183; mpl-terminal</text>
+  <!-- two-run block -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="30" y="206" font-family="JetBrains Mono, monospace" font-size="8" letter-spacing="0.1em">TWO RUNS</text>
   </g>
 
-  <!-- REALITY callout (oxblood) -->
-  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="30" y="244" width="540" height="42" rx="6"/></g>
+  <!-- Run 1: gemini (oxblood — blocked) -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="30" y="216" width="540" height="44" rx="6"/></g>
   <g class="oxblood" stroke="currentColor" fill="currentColor">
-    <rect x="30" y="244" width="540" height="42" rx="6" stroke-width="1.3" fill="none"/>
-    <text x="44" y="262" font-family="Fraunces, serif" font-size="10.5" font-style="italic" stroke="none">REALITY</text>
-    <text x="44" y="278" font-family="JetBrains Mono, monospace" font-size="8.5" stroke="none">free-tier rate/quota limits (HTTP 429) dominated the run &#183; daily quota exhausted &#183; the lever is unmeasurable here</text>
+    <rect x="30" y="216" width="540" height="44" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="44" y="234" font-family="Fraunces, serif" font-size="11" font-style="italic" stroke="none">Run 1 &#183; gemini-2.5-flash (free tier)</text>
+    <text x="44" y="251" font-family="JetBrains Mono, monospace" font-size="8.5" stroke="none">HTTP 429 rate/quota limits dominated &#183; daily quota exhausted &#183; the lever was UNMEASURABLE</text>
+  </g>
+
+  <!-- Run 2: gpt-5.2 (sage — measured) -->
+  <g class="sage-tint2" stroke="none" fill="currentColor"><rect x="30" y="268" width="540" height="44" rx="6"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="30" y="268" width="540" height="44" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="44" y="286" font-family="Fraunces, serif" font-size="11" font-style="italic" stroke="none">Run 2 &#183; gpt-5.2 (paid &#183; Terminal-Bench #1 model)</text>
+    <text x="44" y="303" font-family="JetBrains Mono, monospace" font-size="8.5" stroke="none">clean &#183; resolve rate 50&#8211;100% across the three cages &#183; the lever, MEASURED</text>
   </g>
 </svg>

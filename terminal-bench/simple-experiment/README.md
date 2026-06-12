@@ -2,15 +2,15 @@
 
 # Swap the cage, fix the brain, *staged*
 
-*A harness comparison on Terminal-Bench: hold the model fixed at `gemini/gemini-2.5-flash` and swap the harness across three agents, reading resolve rate on a task slice. This is the "harness lever at a fixed brain" — the same lever [Meta-Harness](../../docs/research-summaries/meta-harness/meta-harness.md) quantified at 6× and [agent-harness-anatomy](../../docs/research-summaries/agent-harness-anatomy/agent-harness-anatomy.md) showed as Top 30 → Top 5, both on this ruler. The [Terminal-Bench summary](../../docs/research-summaries/terminal-bench/terminal-bench.md) located that lever in its regime: capability sets the ceiling, the harness decides reach. Here we try to enter that regime locally — and find the gate is API capacity, not the right model.*
+*A harness comparison on Terminal-Bench: hold the model fixed and swap the harness across three agents, reading resolve rate (and tokens, and time) on a task slice. This is the "harness lever at a fixed brain" — the same lever [Meta-Harness](../../docs/research-summaries/meta-harness/meta-harness.md) quantified at 6× and [agent-harness-anatomy](../../docs/research-summaries/agent-harness-anatomy/agent-harness-anatomy.md) showed as Top 30 → Top 5, both on this ruler. We ran it **twice**: first on free-tier `gemini-2.5-flash` (rate-limited into noise — the reproduction-cost lesson), then on **`gpt-5.2`** (the paper's #1 model, clean). On gpt-5.2 the lever is real: **resolve rate swings 50% → 100% from the harness alone.*
 
 ---
 
 ## The three harnesses
 
-The experiment is a controlled swap. One brain, three cages, one ruler. Each cage is driven by the same `-m gemini/gemini-2.5-flash`; the only thing that changes is who owns control flow.
+The experiment is a controlled swap. One brain, three cages, one ruler. Each cage is driven by the same `-m` model; the only thing that changes is who owns control flow.
 
-![Three harnesses driven by one fixed Gemini Flash brain: terminus-2 the engineered baseline loop, command-loop the minimal while-loop, and mpl-terminal the MPL state chart — each wraps the same model and is graded on the same task slice](images/fig-01-harnesses.svg)
+![Three harnesses driven by one fixed brain: terminus-2 the engineered baseline loop, command-loop the minimal while-loop, and mpl-terminal the MPL state chart — each wraps the same model and is graded on the same task slice](images/fig-01-harnesses.svg)
 *The same model at the leaf; three different geometries around it. terminus-2 is Terminal-Bench's neutral baseline, command-loop is the minimal worked example, mpl-terminal is the harebrain cage.*
 
 | | **terminus-2** | **command-loop** | **mpl-terminal** |
@@ -21,20 +21,16 @@ The experiment is a controlled swap. One brain, three cages, one ruler. Each cag
 | **Where the LLM is consulted** | inside the loop, per turn | once per step (returns a command list) | **only at the `decide` leaf** — `observe`/`act` are pure host calls |
 | **Step budget** | episode budget | `max_steps` default 15 (we ran 20) | chart var `max_steps := 12` |
 | **Retry / fault tolerance** | **tenacity RETRIES** on provider/LLM errors | catches only JSON-parse errors; a provider error **crashes it** (no retry) | a host-import exception is logged per-rule and the sim **keeps ticking** — but needs a stop-on-repeated-failure guard |
-| **hello-world tokens** | 1831 in / 362 out | 88 in / 27 out | 263 in / 43 out |
-
-> **The one axis that survived.** Retry behavior is itself harness work. terminus-2 wraps its LLM calls in tenacity and retries on provider errors; our two minimal agents do not. The MPL cage is structurally fault-tolerant — a host error is caught per-rule and the chart ticks on — but that property is double-edged without a guard that halts on repeated failure. "Handle provider errors" is a harness feature, not a model feature.
 
 ## The fixed brain
 
-The model is held constant so any resolve-rate delta is attributable to the cage, not the brain.
+The model is held constant so any resolve-rate delta is attributable to the cage, not the brain. We held it twice.
 
-![The fixed brain: gemini/gemini-2.5-flash reached through litellm, the gemini/ provider prefix reading GEMINI_API_KEY, held identical across all three harnesses so the harness is the only variable](images/fig-02-model.svg)
-*One brain, called through litellm. The `gemini/` provider prefix reads `GEMINI_API_KEY`. Holding it identical across all three cages is what isolates the harness lever.*
+![The fixed brain, run twice: reached through litellm (the provider prefix picks the key); Run 1 gemini-2.5-flash on the free tier was rate-limited into noise; Run 2 gpt-5.2 on a paid tier gave a clean run with resolve rate 50–100% across the three cages](images/fig-02-model.svg)
+*One brain, called through litellm — the provider prefix selects the key (`gemini/` → `GEMINI_API_KEY`, `openai/` → `OPENAI_API_KEY`). Holding it identical across all three cages is what isolates the harness lever.*
 
-The brain is `gemini/gemini-2.5-flash`, called through **litellm** — the `gemini/` provider prefix reads `GEMINI_API_KEY` from the environment. By pinning the model, the experiment turns the harness into the only independent variable: if one cage resolves a task another cannot, the difference is the geometry, not the intelligence.
-
-> **Reality check.** On the **free Gemini tier** this key hit rate and quota limits — HTTP 429 `RateLimitError`, then eventually daily-quota exhaustion. That, not the cage design, became the dominant obstacle to a clean local run. More below.
+- **Run 1 — `gemini/gemini-2.5-flash` (free tier).** Hit HTTP 429 rate/quota limits, then daily-quota exhaustion. The lever was **unmeasurable** — see [§ Results](#results).
+- **Run 2 — `openai/gpt-5.2` (paid).** The Terminal-Bench leaderboard #1 model (Codex CLI × GPT-5.2 at 63%). Clean: this is the run the headline numbers come from.
 
 ## The task slice
 
@@ -46,8 +42,8 @@ The slice is drawn from `terminal-bench-core==0.1.1`, all **easy** difficulty, a
 | Task | Category | What it asks |
 |---|---|---|
 | **hello-world** | control | create `hello.txt` containing `Hello, world!` + newline (~1 step). Expected: all harnesses pass. |
-| **extract-safely** | security | extract `archive.tar` to `/app/solution.txt`; multi-step. Earlier **both** terminus-2 and command-loop failed its `test_solution_found`. |
-| **fix-permissions** | sysadmin | a `process_data.sh` won't run — diagnose and fix it (perceive → diagnose → act). The one task that resolved in the rate-limited sweep. |
+| **extract-safely** | security | extract `archive.tar` to `/app/solution.txt`; multi-step. |
+| **fix-permissions** | sysadmin | a `process_data.sh` won't run — diagnose and fix it (perceive → diagnose → act). |
 | **csv-to-parquet** | data-science | convert `/app/data.csv` → `/app/data.parquet` (needs pandas / pyarrow). |
 | ~~grid-pattern-transform~~ | *dropped* | reasoning-hard for Flash, most LLM calls of any task, **timed out at 600s** — excluded from the slice. |
 
@@ -55,7 +51,7 @@ The slice is drawn from `terminal-bench-core==0.1.1`, all **easy** difficulty, a
 
 Terminal-Bench's orchestrator cannot run natively on Windows — it assumes a POSIX host (it builds container paths with backslashes, so files land in `\tmp` not `/tmp`, and it shells out to `rm`). So it runs as a **Linux process inside WSL2 Ubuntu**, talking to a WSL2-backed Docker Desktop.
 
-![How we run it: a Windows 11 host forwards GEMINI_API_KEY via WSLENV into WSL2 Ubuntu, where the tb orchestrator (a uv tool pinned to Python 3.13) talks to a WSL2-backed Docker Desktop and spins up one Linux container per task trial, grading on final container state](images/fig-04-wsl-architecture.svg)
+![How we run it: a Windows 11 host forwards the API key via WSLENV into WSL2 Ubuntu, where the tb orchestrator (a uv tool pinned to Python 3.13) talks to a WSL2-backed Docker Desktop and spins up one Linux container per task trial, grading on final container state](images/fig-04-wsl-architecture.svg)
 *The tb orchestrator runs as a Linux process in WSL2 because it assumes a POSIX host. Docker Desktop is WSL2-backed with Ubuntu integration; tb spins up one container per task trial via docker-compose and grades on the final container state.*
 
 The stack, concretely:
@@ -64,56 +60,83 @@ The stack, concretely:
 - **Docker Desktop**, WSL2-backed with integration enabled for Ubuntu. tb talks to the Docker daemon and spins up **one Linux container per task trial** via docker-compose. Each container gets the instruction + Dockerfile; the tests and human oracle are hidden; grading reads the **final container state**.
 - **tb is a uv tool pinned to Python 3.13** (3.14 crashes its typer CLI). For the MPL agent, `mpl` is installed into the tb venv (`uv tool install --with <mplv2 path>`).
 - The repo is reachable from WSL at `/mnt/c/Users/PhilVanEvery/Git/github/pmvanev/harebrain`. Run outputs go to the WSL ext4 fs (`~/tb-runs`), **not** `/mnt/c` — Docker IO over `/mnt/c` is slow.
-- `GEMINI_API_KEY` is forwarded from the Windows process env into WSL via **WSLENV** at run time (never printed). Custom agents load with `PYTHONPATH=.../terminal-bench/agents` + `--agent-import-path module:Class`.
+- The API key is forwarded from the Windows process env into WSL via **WSLENV** at run time (never printed). Custom agents load with `PYTHONPATH=.../terminal-bench/agents` + `--agent-import-path module:Class`.
 
-The exact commands, driven from a Windows PowerShell prompt. WSL commands are double-quoted with absolute paths because single-quoted `$`-vars and pipes get mangled in the PS → WSL handoff:
+The exact commands, driven from a Windows PowerShell prompt. WSL commands are double-quoted with absolute paths because single-quoted `$`-vars and pipes get mangled in the PS → WSL handoff. Swap `-m gemini/gemini-2.5-flash` for `-m openai/gpt-5.2` (and the key var) to switch brains:
 
 ```powershell
-# Forward the key into WSL (never printed)
+# Forward the key into WSL (never printed). Gemini run:
 PS> $env:WSLENV="GEMINI_API_KEY"
+# gpt-5.2 run: hydrate the user-scope key into the process env first, then forward it
+PS> $env:OPENAI_API_KEY = [Environment]::GetEnvironmentVariable('OPENAI_API_KEY','User'); $env:WSLENV="OPENAI_API_KEY"
 
 # 1. terminus-2 — the built-in neutral baseline
-PS> wsl -d Ubuntu -u root -e bash -lc "export PATH=$HOME/.local/bin:$PATH; tb run -d terminal-bench-core==0.1.1 -t hello-world -t extract-safely -t fix-permissions -t csv-to-parquet -a terminus-2 -m gemini/gemini-2.5-flash --n-concurrent 1 --output-path ~/tb-runs/exp1/terminus2"
+PS> wsl -d Ubuntu -u root -e bash -lc "export PATH=$HOME/.local/bin:$PATH; tb run -d terminal-bench-core==0.1.1 -t hello-world -t extract-safely -t fix-permissions -t csv-to-parquet -a terminus-2 -m openai/gpt-5.2 --n-concurrent 1 --output-path ~/tb-runs/gpt52/terminus2"
 
 # 2. command-loop — minimal custom agent (add PYTHONPATH; swap -a for --agent-import-path + -k)
-PS> wsl -d Ubuntu -u root -e bash -lc "export PATH=$HOME/.local/bin:$PATH; export PYTHONPATH=/mnt/c/Users/PhilVanEvery/Git/github/pmvanev/harebrain/terminal-bench/agents; tb run -d terminal-bench-core==0.1.1 -t hello-world -t extract-safely -t fix-permissions -t csv-to-parquet --agent-import-path command_loop:CommandLoopAgent -k max_steps=20 -m gemini/gemini-2.5-flash --n-concurrent 1 --output-path ~/tb-runs/exp1/commandloop"
+PS> wsl -d Ubuntu -u root -e bash -lc "export PATH=$HOME/.local/bin:$PATH; export PYTHONPATH=/mnt/c/Users/PhilVanEvery/Git/github/pmvanev/harebrain/terminal-bench/agents; tb run -d terminal-bench-core==0.1.1 -t hello-world -t extract-safely -t fix-permissions -t csv-to-parquet --agent-import-path command_loop:CommandLoopAgent -k max_steps=20 -m openai/gpt-5.2 --n-concurrent 1 --output-path ~/tb-runs/gpt52/commandloop"
 
 # 3. mpl-terminal — the harebrain MPL cage (same PYTHONPATH; different import path)
-PS> wsl -d Ubuntu -u root -e bash -lc "export PATH=$HOME/.local/bin:$PATH; export PYTHONPATH=/mnt/c/Users/PhilVanEvery/Git/github/pmvanev/harebrain/terminal-bench/agents; tb run -d terminal-bench-core==0.1.1 -t hello-world -t extract-safely -t fix-permissions -t csv-to-parquet --agent-import-path mpl_agent:MplAgent -m gemini/gemini-2.5-flash --n-concurrent 1 --output-path ~/tb-runs/exp1/mpl"
+PS> wsl -d Ubuntu -u root -e bash -lc "export PATH=$HOME/.local/bin:$PATH; export PYTHONPATH=/mnt/c/Users/PhilVanEvery/Git/github/pmvanev/harebrain/terminal-bench/agents; tb run -d terminal-bench-core==0.1.1 -t hello-world -t extract-safely -t fix-permissions -t csv-to-parquet --agent-import-path mpl_agent:MplAgent -m openai/gpt-5.2 --n-concurrent 1 --output-path ~/tb-runs/gpt52/mpl"
 ```
 
 > **Free zero-cost checks.** `-a oracle` runs the reference solution (should resolve); `-a nop` does nothing (should fail). Both are quota-free smoke tests of the harness plumbing before you spend a single LLM token.
 
-## Results (honest)
+## Results
 
-Do not read this table as a measurement of the harness lever. It is mostly a measurement of the free Gemini tier's rate limiter.
+### Run 2 — gpt-5.2 (the clean measurement)
 
-| Run | Concurrency | Result | What actually happened |
+Same model, same four tasks. The harness is the only variable, and it moves the number.
+
+![The harness lever measured at fixed gpt-5.2: resolve-rate bars (terminus-2 100%, mpl-terminal 75%, command-loop 50%) and a per-task pass/fail grid](images/fig-05-results.svg)
+*Resolve rate spans 50–100% from the harness alone. terminus-2 csv passed via an agent_timeout (work done first); mpl-terminal missed the trivial hello-world while solving the three harder tasks.*
+
+| Cage | Resolve | Input tok | Output tok | Agent time (Σ over 4 tasks) |
+|---|---|---|---|---|
+| **terminus-2** (built-in baseline) | **100%** (4/4) | 7,893\* | 1,537\* | ~500 s |
+| **mpl-terminal** (the cage) | **75%** (3/4) | 8,788 | 648 | **~89 s** |
+| **command-loop** (thin loop) | **50%** (2/4) | 567\* | 319\* | ~195 s |
+
+\* Timed-out trials record **0 tokens** (the count only returns when the agent finishes cleanly), so terminus-2's and command-loop's token totals undercount their csv-to-parquet work.
+
+Per-task pass/fail (✓ resolved · ✗ failed):
+
+| Task | terminus-2 | command-loop | mpl-terminal |
+|---|:--:|:--:|:--:|
+| hello-world | ✓ (7 s · 1744/284) | ✓ (2 s · 89/28) | **✗** (2 s · 115/28) |
+| extract-safely | ✓ (13 s · 2382/566) | **✗** (5 s · 81/208) | ✓ (4 s · 299/84) |
+| fix-permissions | ✓ (17 s · 3767/687) | ✓ (5 s · 397/83) | ✓ (10 s · 1304/131) |
+| csv-to-parquet | ✓\* (**463 s** · timeout) | **✗** (**182 s** · timeout) | ✓ (73 s · 7070/405) |
+
+Read it straight:
+
+- **The lever is real here.** At one fixed brain, resolve rate runs **50% (command-loop) → 75% (mpl-terminal) → 100% (terminus-2)**. The engineered baseline tops out; the cage beats the thin loop; the thin loop trails. Geometry around the model, not the model, decides.
+- **The csv-to-parquet divergence is the sharpest signal.** The MPL cage solved it in **73 s / 7,070 input tokens**, while terminus-2 spun ~**7.7 min** (squeaking a pass on final-state after a timeout) and command-loop spun ~**3 min** and failed. The cage's structured loop converged where the others thrashed.
+- **The cage's own bug:** `mpl-terminal` **failed the trivial `hello-world`** while solving the three harder tasks — an inverted-difficulty quirk pointing at its done-detection / command-formatting at the `decide` leaf (the chart likely latched `__DONE__` before the exact bytes/newline were written). The cage is legible enough that the fix is a local one.
+- **Cost vs. reach:** command-loop is cheapest (567 in / 319 out) and weakest; the cage spends the most input tokens (8,788, mostly on the csv solve) but finishes fastest in wall-clock (~89 s) because it doesn't burn minutes timing out. Tokens, time, and resolve are three different axes and the harness moves all three.
+
+### Run 1 — gemini-2.5-flash (the capacity lesson)
+
+The first attempt, on the free Gemini tier, never got to measure the lever:
+
+| Run | Concurrency | Result | What happened |
 |---|---|---|---|
-| **Clean control** (each harness, individually, earlier) | 1 | hello-world **RESOLVED by all three** | terminus-2 1831/362 tok · command-loop 88/27 · mpl-terminal 263/43. At a fixed Flash brain, all three cages solve the trivial task. |
-| **4-task sweep** | 2 | terminus-2 **25%** (1/4) · command-loop **25%** (1/4) | both resolved **only** fix-permissions. **Heavily contaminated**: most trials failed with `RateLimitError`, agents crashed mid-task (`unknown_agent_error` / `agent_timeout`). The mpl run **wedged** on rate-limit retries against a torn-down container and was **killed**. |
-| **Retry** | 1 | **0/4** | by then the Gemini free-tier **daily quota was exhausted** — a single direct API call returned 429. |
+| Clean control (each harness, individually) | 1 | hello-world **resolved by all three** | terminus-2 1831/362 · command-loop 88/27 · mpl-terminal 263/43 |
+| 4-task sweep | 2 | terminus-2 25% · command-loop 25% | both only fix-permissions; **rate-limit-dominated** — most trials crashed on `RateLimitError`; mpl wedged and was killed |
+| Retry | 1 | **0/4** | Gemini free-tier **daily quota exhausted** — a single direct call returned 429 |
 
-Stated plainly:
-
-- The **hello-world control passed for all three harnesses** when run individually, before quota exhaustion. That is the only clean signal in the table.
-- The multi-task sweep was **rate-limit-dominated**. The 25% figures are an artifact of which trials happened to get a token through before the limiter tripped, not of cage quality. mpl wedged and was killed.
-- The `--n-concurrent 1` retry hit **0/4** on an exhausted daily quota.
-- **This does not measure the harness lever cleanly.** It cannot. The brain ran out of capacity before the cages could be compared.
+The free tier's rate limiter, not cage quality, decided every multi-task run. That is itself the finding: **entering the harness-lever regime is gated on API *capacity*, not just on picking the right model.**
 
 ## What we learned
 
-The headline is a reproduction lesson, not a resolve-rate one: **entering the harness-lever regime is gated on API capacity, not just on picking the right model.**
+- **The harness lever reproduces locally — given capacity.** On gpt-5.2 it's a clean 2× swing (50% → 100%) across three cages at a fixed brain. On free-tier Gemini it was unmeasurable noise. The [Terminal-Bench summary](../../docs/research-summaries/terminal-bench/terminal-bench.md)'s regime boundary holds — *capability sets the ceiling, the harness decides reach* — and its **$1–100/run** cost note is the price of admission we couldn't pay for free.
+- **The cage earns its keep on the hard task, not the easy one.** mpl-terminal's win was csv-to-parquet (structured convergence where two other harnesses timed out); its loss was hello-world (a done-detection bug). A cage is worth most exactly where an unstructured loop thrashes — and its failures are localizable because the control flow is explicit.
+- **Resolve rate alone is the wrong scoreboard.** The token and time columns tell a different story than the ✓/✗ grid: terminus-2's 100% cost ~500 s of wall-clock (a 7.7-min timeout it survived), and the cage's 75% came in at ~89 s. A harness comparison needs all three axes.
+- **"Handle provider errors" is harness work.** terminus-2 retries on provider errors (tenacity); our two minimal agents crash; the MPL cage keeps ticking past host errors but needs a stop-on-repeated-failure guard. This axis decided the *Gemini* run entirely.
 
-- The [Terminal-Bench summary](../../docs/research-summaries/terminal-bench/terminal-bench.md)'s regime boundary holds — *capability sets the ceiling, the harness decides reach*. But the 6× regime (frontier model × hard tasks × many calls) costs **real quota to enter**, and the summary's **$1–100/run** cost note is exactly the bill we couldn't pay on a free tier. The cost of entry is itself part of the answer to "can I reproduce it locally?" — and the answer is *not on free Gemini*.
-- The one real signal that survived the noise is a **harness-quality axis**, not a resolve-rate one: terminus-2 retries on provider errors (tenacity) while our two minimal agents crash; the MPL cage is fault-tolerant — it keeps ticking past host errors — but it needs a **stop-on-repeated-failure guard** to convert that resilience into useful behavior rather than spinning against a dead container. Handling provider errors is harness work, and it is the first thing the cage earns its keep on.
-- Token and turn counts still don't tell the story the summary said they wouldn't: command-loop resolved hello-world at 88/27 tokens, terminus-2 at 1831/362. Twenty times the tokens, same control outcome. Structure over volume, as advertised.
+## Next steps
 
-## Paper-faithful next step
-
-The experiment is ready to re-run faithfully the moment funded capacity is available. Same commands, same slice — only the `-m` flag changes:
-
-- `-m openai/gpt-5.2` — the Terminal-Bench leaderboard **#1 model** (Codex CLI × GPT-5.2 at 63%). Key is set, **awaiting billing credit**.
-- `-m anthropic/claude-opus-4-8` — the **Meta-Harness Opus family**, the brain behind the 6× harness gap.
-
-Results will be slotted into the table above once a non-rate-limited brain is available. Until then, the honest finding stands: on the free Gemini tier the harness-lever comparison is **unmeasurable** — the limiter, not the cage, decides the run.
+- ✅ **`-m openai/gpt-5.2`** — done (above), the Terminal-Bench #1 model.
+- ⏳ **`-m anthropic/claude-opus-4-8`** — the Meta-Harness Opus family, the brain behind the 6× harness gap. Same commands, swap the `-m` and forward `ANTHROPIC_API_KEY`.
+- 🔧 **Fix the cage's `hello-world` bug** — tighten the `decide`-leaf done-detection / command formatting in `terminal.mpl` so it doesn't latch `__DONE__` before the exact bytes land, then re-run.
+- 📈 **Widen the slice** — more tasks and a harder tier would turn the 2× swing into a sharper estimate of the lever at this brain.
