@@ -136,6 +136,6 @@
     <text x="24" y="368" font-family="Fraunces, serif" font-size="9.5" font-style="italic">Same model, same tasks &#8212; resolve rate spans 50&#8211;100% from the harness alone.</text>
   </g>
   <g class="muted" stroke="none" fill="currentColor">
-    <text x="24" y="379" font-family="JetBrains Mono, monospace" font-size="7">* terminus-2 csv: resolved via agent_timeout (work done first) &#183; mpl-terminal missed the trivial hello-world (a done-detection bug) while solving the 3 harder tasks</text>
+    <text x="24" y="379" font-family="JetBrains Mono, monospace" font-size="7">* one draw, N=4 is noisy (a post-fix mpl rerun flipped extract-safely &amp; csv) &#183; terminus-2 csv via agent_timeout &#183; mpl hello-world miss was a done-detection bug, now FIXED</text>
   </g>
 </svg>

@@ -74,8 +74,11 @@ class MplAgent(BaseAgent):
                 "shell command at a time.\n\n"
                 f"TASK:\n{instruction}\n\n"
                 f"CURRENT SCREEN:\n{obs}\n\n"
-                'Reply as JSON: {"command": "<the single next shell command, or empty '
-                'if nothing left to do>", "done": <true if the task is fully complete>}.'
+                'Reply as JSON: {"command": "<the single next shell command to run '
+                'now>", "done": <true once the task is complete>}. Always include the '
+                "command if any work remains — even if it is the last step. Leave "
+                '"command" as an empty string ONLY when the task is already fully '
+                "complete and nothing remains to run."
             )
             raw = self._llm.call(prompt, response_format=Decision)
             counters["in"] += self._llm.count_tokens(
@@ -89,7 +92,12 @@ class MplAgent(BaseAgent):
             except Exception:
                 counters["parse_failed"] = True
                 return DONE_SENTINEL
-            return DONE_SENTINEL if d.done else d.command
+            # Run any pending command even if the model also flagged done=true:
+            # one-shot tasks return command + done together, and discarding the
+            # command (returning the sentinel on done) would finish without ever
+            # acting. Finish only when no command remains.
+            cmd = (d.command or "").strip()
+            return cmd if cmd else DONE_SENTINEL
 
         @agent_mod.export
         def act(command: str) -> str:

@@ -89,7 +89,7 @@ PS> wsl -d Ubuntu -u root -e bash -lc "export PATH=$HOME/.local/bin:$PATH; expor
 Same model, same four tasks. The harness is the only variable, and it moves the number.
 
 ![The harness lever measured at fixed gpt-5.2: resolve-rate bars (terminus-2 100%, mpl-terminal 75%, command-loop 50%) and a per-task pass/fail grid](images/fig-05-results.svg)
-*Resolve rate spans 50–100% from the harness alone. terminus-2 csv passed via an agent_timeout (work done first); mpl-terminal missed the trivial hello-world while solving the three harder tasks.*
+*One draw: resolve rate spans 50–100% from the harness alone (N=4 is noisy — see the variance note below). terminus-2's csv passed via an agent_timeout; mpl-terminal's hello-world miss was a done-detection bug, since fixed.*
 
 | Cage | Resolve | Input tok | Output tok | Agent time (Σ over 4 tasks) |
 |---|---|---|---|---|
@@ -110,10 +110,12 @@ Per-task pass/fail (✓ resolved · ✗ failed):
 
 Read it straight:
 
-- **The lever is real here.** At one fixed brain, resolve rate runs **50% (command-loop) → 75% (mpl-terminal) → 100% (terminus-2)**. The engineered baseline tops out; the cage beats the thin loop; the thin loop trails. Geometry around the model, not the model, decides.
-- **The csv-to-parquet divergence is the sharpest signal.** The MPL cage solved it in **73 s / 7,070 input tokens**, while terminus-2 spun ~**7.7 min** (squeaking a pass on final-state after a timeout) and command-loop spun ~**3 min** and failed. The cage's structured loop converged where the others thrashed.
-- **The cage's own bug:** `mpl-terminal` **failed the trivial `hello-world`** while solving the three harder tasks — an inverted-difficulty quirk pointing at its done-detection / command-formatting at the `decide` leaf (the chart likely latched `__DONE__` before the exact bytes/newline were written). The cage is legible enough that the fix is a local one.
-- **Cost vs. reach:** command-loop is cheapest (567 in / 319 out) and weakest; the cage spends the most input tokens (8,788, mostly on the csv solve) but finishes fastest in wall-clock (~89 s) because it doesn't burn minutes timing out. Tokens, time, and resolve are three different axes and the harness moves all three.
+- **A lever is visible** (this draw). At one fixed brain, resolve rate runs **50% (command-loop) → 75% (mpl-terminal) → 100% (terminus-2)**. The engineered baseline tops out; the thin loop trails. But see the variance caveat below — N=4 is one noisy sample, not an estimate.
+- **The csv-to-parquet divergence (first draw) is the sharpest signal.** The MPL cage solved it in **73 s / 7,070 input tokens**, while terminus-2 spun ~**7.7 min** (squeaking a pass on final-state after a timeout) and command-loop spun ~**3 min** and failed. *Caveat: on the post-fix rerun the cage also timed out on csv — it's a high-variance task for all three, not a reliable cage win.*
+- **The cage had a real bug — found and fixed.** `mpl-terminal` failed the trivial `hello-world` while solving harder tasks. Root cause: the `decide` leaf returned the `__DONE__` sentinel whenever the model set `done=true`, **discarding the command** — so a one-shot answer (`{command, done:true}` together) finished having sent nothing (`commands.txt` confirmed zero agent commands). Fixed to always run a pending command and finish only when none remains; `hello-world` now passes (verified 2/2). The cage's legibility is exactly what made this a one-line locate-and-fix.
+- **Cost vs. reach:** command-loop is cheapest (567 in / 319 out) and weakest; the cage spends the most input tokens but, when it converges, finishes fast in wall-clock because it doesn't burn minutes timing out. Tokens, time, and resolve are three different axes and the harness moves all three.
+
+> **Small-N variance — read this before the numbers.** These are **single draws** on a 4-task slice with a stochastic frontier model. After the `hello-world` fix, a full-slice mpl rerun drew **2/4** — `extract-safely` and `csv-to-parquet` flipped to failures (csv timed out ~10 min) even though both passed in the first draw; only `fix-permissions` passed in *both* mpl runs. terminus-2 and command-loop were each run only once, so their rows are equally single samples. Treat the per-task ✓/✗ and the exact percentages as noisy points; the **spread** and the **qualitative findings** (the retry axis, the now-fixed bug, the cost/latency split) are the durable signal. A real estimate needs `--n-attempts` (pass@k) over a wider slice.
 
 ### Run 1 — gemini-2.5-flash (the capacity lesson)
 
@@ -130,7 +132,7 @@ The free tier's rate limiter, not cage quality, decided every multi-task run. Th
 ## What we learned
 
 - **The harness lever reproduces locally — given capacity.** On gpt-5.2 it's a clean 2× swing (50% → 100%) across three cages at a fixed brain. On free-tier Gemini it was unmeasurable noise. The [Terminal-Bench summary](../../docs/research-summaries/terminal-bench/terminal-bench.md)'s regime boundary holds — *capability sets the ceiling, the harness decides reach* — and its **$1–100/run** cost note is the price of admission we couldn't pay for free.
-- **The cage earns its keep on the hard task, not the easy one.** mpl-terminal's win was csv-to-parquet (structured convergence where two other harnesses timed out); its loss was hello-world (a done-detection bug). A cage is worth most exactly where an unstructured loop thrashes — and its failures are localizable because the control flow is explicit.
+- **A cage's failures are localizable — that's the real payoff.** mpl-terminal's `hello-world` loss traced to a single `decide`-leaf line (it discarded the command on `done=true`); the explicit control flow turned a mystery failure into a one-line fix, verified by rerun. That legibility — not a headline resolve rate — is what the cage buys. (Its csv-to-parquet win was one draw; a rerun timed out, so don't over-read it.)
 - **Resolve rate alone is the wrong scoreboard.** The token and time columns tell a different story than the ✓/✗ grid: terminus-2's 100% cost ~500 s of wall-clock (a 7.7-min timeout it survived), and the cage's 75% came in at ~89 s. A harness comparison needs all three axes.
 - **"Handle provider errors" is harness work.** terminus-2 retries on provider errors (tenacity); our two minimal agents crash; the MPL cage keeps ticking past host errors but needs a stop-on-repeated-failure guard. This axis decided the *Gemini* run entirely.
 
@@ -138,5 +140,5 @@ The free tier's rate limiter, not cage quality, decided every multi-task run. Th
 
 - ✅ **`-m openai/gpt-5.2`** — done (above), the Terminal-Bench #1 model.
 - ⏳ **`-m anthropic/claude-opus-4-8`** — the Meta-Harness Opus family, the brain behind the 6× harness gap. Same commands, swap the `-m` and forward `ANTHROPIC_API_KEY`.
-- 🔧 **Fix the cage's `hello-world` bug** — tighten the `decide`-leaf done-detection / command formatting in `terminal.mpl` so it doesn't latch `__DONE__` before the exact bytes land, then re-run.
-- 📈 **Widen the slice** — more tasks and a harder tier would turn the 2× swing into a sharper estimate of the lever at this brain.
+- ✅ **Cage `hello-world` bug — found & fixed.** The `decide` leaf no longer discards a command on `done=true`; `hello-world` now passes (verified 2/2).
+- 📈 **Pin the rates** — N=4 single draws are noisy (the post-fix mpl rerun swung 75% → 50% on task flips). Use `--n-attempts` (pass@k) over a wider slice, plus a harder tier (TB-2 via Harbor), to turn the spread into a real estimate.
