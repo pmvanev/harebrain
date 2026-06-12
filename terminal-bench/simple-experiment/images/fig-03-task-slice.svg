@@ -1,0 +1,114 @@
+<svg viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The task slice: four easy, self-contained tasks from terminal-bench-core 0.1.1. hello-world (control) creates hello.txt and all three harnesses pass it. extract-safely (security) extracts archive.tar to solution.txt over multiple steps and both terminus-2 and command-loop failed its test. fix-permissions (sysadmin) diagnoses why a script will not run and fixes it; it is the one task that resolved in the rate-limited sweep. csv-to-parquet (data-science) converts data.csv to data.parquet and needs pandas and pyarrow. A fifth task, grid-pattern-transform, was dropped because it is reasoning-hard for Flash, burned the most LLM calls, and timed out at 600 seconds.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .muted-tint     { color: rgba(93, 85, 63, 0.07); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .muted-tint     { color: rgba(168, 156, 125, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+    }
+  </style>
+
+  <!-- title + dataset line -->
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="24" y="28" font-family="Fraunces, serif" font-size="15" font-style="italic">The task slice</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="656" y="28" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="end">terminal-bench-core==0.1.1 &#183; all easy &#183; self-contained, no network</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="24" y1="40" x2="656" y2="40" stroke-width="1"/></g>
+
+  <!-- Card 1: hello-world (control) -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="24" y="56" width="150" height="150" rx="7"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="24" y="56" width="150" height="150" rx="7" stroke-width="1.4" fill="none"/>
+    <text x="38" y="78" font-family="Fraunces, serif" font-size="12.5" font-style="italic" stroke="none">hello-world</text>
+    <text x="38" y="95" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">control &#183; ~1 step</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="38" y="124" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">create hello.txt holding</text>
+    <text x="38" y="137" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">"Hello, world!" + newline</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="38" y1="152" x2="160" y2="152" stroke-width="0.8"/></g>
+  <g class="sage" stroke="none" fill="currentColor">
+    <text x="38" y="172" font-family="JetBrains Mono, monospace" font-size="8.5" stroke="none">&#x2713; all three pass</text>
+    <text x="38" y="191" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">trivial at a fixed brain</text>
+  </g>
+
+  <!-- Card 2: extract-safely (security) -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="186" y="56" width="150" height="150" rx="7"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="186" y="56" width="150" height="150" rx="7" stroke-width="1.4" fill="none"/>
+    <text x="200" y="78" font-family="Fraunces, serif" font-size="12.5" font-style="italic" stroke="none">extract-safely</text>
+    <text x="200" y="95" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">security &#183; multi-step</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="200" y="124" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">extract archive.tar to</text>
+    <text x="200" y="137" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">/app/solution.txt</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="200" y1="152" x2="322" y2="152" stroke-width="0.8"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="200" y="172" font-family="JetBrains Mono, monospace" font-size="8.5" stroke="none">&#x2717; terminus-2 &amp; command-</text>
+    <text x="200" y="184" font-family="JetBrains Mono, monospace" font-size="8.5" stroke="none">&#160;&#160;loop both failed</text>
+    <text x="200" y="197" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">test_solution_found</text>
+  </g>
+
+  <!-- Card 3: fix-permissions (sysadmin) -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="348" y="56" width="150" height="150" rx="7"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="348" y="56" width="150" height="150" rx="7" stroke-width="1.6" fill="none"/>
+    <text x="362" y="78" font-family="Fraunces, serif" font-size="12.5" font-style="italic" stroke="none">fix-permissions</text>
+    <text x="362" y="95" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">sysadmin &#183; perceive/diagnose/act</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="362" y="124" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">process_data.sh will</text>
+    <text x="362" y="137" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">not run &#8212; diagnose &amp; fix</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="362" y1="152" x2="484" y2="152" stroke-width="0.8"/></g>
+  <g class="sage" stroke="none" fill="currentColor">
+    <text x="362" y="172" font-family="JetBrains Mono, monospace" font-size="8.5" stroke="none">&#x2713; the one that resolved</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="362" y="191" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">in the rate-limited sweep</text>
+  </g>
+
+  <!-- Card 4: csv-to-parquet (data-science) -->
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="510" y="56" width="146" height="150" rx="7"/></g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <rect x="510" y="56" width="146" height="150" rx="7" stroke-width="1.4" fill="none"/>
+    <text x="524" y="78" font-family="Fraunces, serif" font-size="12.5" font-style="italic" stroke="none">csv-to-parquet</text>
+    <text x="524" y="95" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">data-science</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="524" y="124" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">convert /app/data.csv</text>
+    <text x="524" y="137" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">to /app/data.parquet</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="524" y1="152" x2="642" y2="152" stroke-width="0.8"/></g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="524" y="172" font-family="JetBrains Mono, monospace" font-size="8.5" stroke="none">needs pandas / pyarrow</text>
+    <text x="524" y="191" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">a real dependency hop</text>
+  </g>
+
+  <!-- dropped task footnote -->
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="24" y1="232" x2="656" y2="232" stroke-width="1"/></g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="24" y="256" font-family="JetBrains Mono, monospace" font-size="8.5" stroke="none">DROPPED &#160;</text>
+    <text x="86" y="256" font-family="JetBrains Mono, monospace" font-size="8.5" text-decoration="line-through" stroke="none">grid-pattern-transform</text>
+    <text x="24" y="272" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">reasoning-hard for Flash &#183; burned the most LLM calls &#183; timed out at 600s</text>
+  </g>
+</svg>

@@ -1,0 +1,156 @@
+<svg viewBox="0 0 680 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The layered stack we run Terminal-Bench on: a Windows 11 host (native tb run fails with a POSIX-host bug that writes backslash-tmp), inside it WSL2 Ubuntu runs the tb orchestrator as a Linux process, which talks to the WSL2-backed Docker Desktop daemon, which spins up one Linux container per task trial via docker-compose. Each container receives the instruction plus Dockerfile, hides the tests and oracle, and is graded on its final state. Side annotations: GEMINI_API_KEY forwarded via WSLENV, repo mounted at slash-mnt-c, run outputs to ext4 tilde-tb-runs, tb is a uv tool pinned to Python 3.13 with mpl installed into its venv, and custom agents are loaded via PYTHONPATH plus agent-import-path.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.07); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .muted-tint     { color: rgba(93, 85, 63, 0.05); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .muted-tint     { color: rgba(168, 156, 125, 0.08); }
+    }
+  </style>
+
+  <!-- title -->
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="28" y="26" font-family="Fraunces, serif" font-size="15" font-style="italic">How we run Terminal-Bench</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="652" y="26" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="end">one Linux container per task trial</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="28" y1="36" x2="652" y2="36" stroke-width="1"/></g>
+
+  <!-- ===== Layer 1: Windows 11 host (muted, neutral) ===== -->
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="28" y="48" width="624" height="354" rx="8"/></g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <rect x="28" y="48" width="624" height="354" rx="8" stroke-width="1.4" fill="none"/>
+    <text x="40" y="66" font-family="JetBrains Mono, monospace" font-size="9" letter-spacing="0.08em" stroke="none">WINDOWS 11 HOST &#183; PowerShell</text>
+  </g>
+  <!-- native-tb-run X annotation (oxblood obstacle) -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="396" y="54" width="248" height="26" rx="5"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="396" y="54" width="248" height="26" rx="5" stroke-width="1.1" fill="none"/>
+    <text x="408" y="65" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">&#x2717; native `tb run` &#8212; POSIX-host bug:</text>
+    <text x="408" y="75" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">  builds \tmp not /tmp &#183; shells out to rm</text>
+  </g>
+
+  <!-- ===== Layer 2: WSL2 Ubuntu (the orchestrator runs here) ===== -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="44" y="88" width="424" height="298" rx="7"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="44" y="88" width="424" height="298" rx="7" stroke-width="1.4" fill="none"/>
+    <text x="56" y="106" font-family="JetBrains Mono, monospace" font-size="9" letter-spacing="0.06em" stroke="none">WSL2 UBUNTU &#183; Linux process</text>
+  </g>
+
+  <!-- tb orchestrator box (our harness side, blueprint solid) -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="60" y="120" width="392" height="120" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="60" y="120" width="392" height="120" rx="6" stroke-width="1.6" fill="none"/>
+    <text x="72" y="138" font-family="Fraunces, serif" font-size="12" font-style="italic" stroke="none">tb orchestrator</text>
+    <text x="72" y="156" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">uv tool &#183; Python 3.13 (3.14 crashes typer)</text>
+    <text x="72" y="168" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">mpl installed into the tb venv</text>
+    <text x="72" y="186" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">-d terminal-bench-core==0.1.1</text>
+    <text x="72" y="198" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">-m gemini/gemini-2.5-flash  (litellm)</text>
+  </g>
+  <!-- harness chooser chips inside orchestrator -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <rect x="72" y="210" width="118" height="20" rx="4" stroke-width="1" fill="none"/>
+    <text x="80" y="223" font-family="JetBrains Mono, monospace" font-size="7" stroke="none">-a terminus-2</text>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="196" y="210" width="120" height="20" rx="4" stroke-width="1" fill="none"/>
+    <text x="204" y="223" font-family="JetBrains Mono, monospace" font-size="7" stroke="none">command-loop</text>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <rect x="322" y="210" width="120" height="20" rx="4" stroke-width="1" fill="none"/>
+    <text x="330" y="223" font-family="JetBrains Mono, monospace" font-size="7" stroke="none">mpl-terminal</text>
+  </g>
+
+  <!-- side annotations stacked under the orchestrator -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="72" y="262" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">GEMINI_API_KEY &#8594; WSLENV (forwarded, never printed)</text>
+    <text x="72" y="277" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">repo mounted at /mnt/c/.../harebrain</text>
+    <text x="72" y="292" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">outputs &#8594; ext4 ~/tb-runs (not /mnt/c &#183; slow IO)</text>
+    <text x="72" y="307" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">custom agents: PYTHONPATH + --agent-import-path mod:Class</text>
+  </g>
+
+  <!-- request-path arrow: tb orchestrator -> docker daemon -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="452" y1="180" x2="490" y2="180" stroke-width="1.4"/>
+    <polygon points="494,180 487,176.5 487,183.5" stroke="none"/>
+    <text x="453" y="173" font-family="JetBrains Mono, monospace" font-size="6.5" stroke="none">docker API</text>
+  </g>
+
+  <!-- ===== Layer 3: Docker Desktop daemon (sage, WSL2-backed) ===== -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="496" y="120" width="140" height="120" rx="6"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="496" y="120" width="140" height="120" rx="6" stroke-width="1.6" fill="none"/>
+    <text x="508" y="138" font-family="Fraunces, serif" font-size="11" font-style="italic" stroke="none">Docker Desktop</text>
+    <text x="508" y="153" font-family="JetBrains Mono, monospace" font-size="7" stroke="none">daemon &#183; WSL2-backed</text>
+    <text x="508" y="165" font-family="JetBrains Mono, monospace" font-size="7" stroke="none">Ubuntu integration on</text>
+    <text x="508" y="183" font-family="JetBrains Mono, monospace" font-size="7" stroke="none">docker-compose:</text>
+    <text x="508" y="195" font-family="JetBrains Mono, monospace" font-size="7" stroke="none">one container</text>
+    <text x="508" y="207" font-family="JetBrains Mono, monospace" font-size="7" stroke="none">per task trial</text>
+  </g>
+
+  <!-- request-path arrow: daemon -> sibling containers (downward) -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="566" y1="240" x2="566" y2="266" stroke-width="1.4"/>
+    <polygon points="566,270 562.5,263 569.5,263" stroke="none"/>
+    <text x="574" y="258" font-family="JetBrains Mono, monospace" font-size="6.5" stroke="none">spins up</text>
+  </g>
+
+  <!-- ===== Layer 4: per-task Linux containers (sage tiles) ===== -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="496" y="288" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">Linux containers (one per trial):</text>
+  </g>
+  <!-- container tile: a small factory for the four-task slice -->
+  <!-- tile 1: hello-world (control) -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="496" y="296" width="140" height="22" rx="4"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="496" y="296" width="140" height="22" rx="4" stroke-width="1.1" fill="none"/>
+    <text x="504" y="310" font-family="JetBrains Mono, monospace" font-size="7" stroke="none">hello-world  (control)</text>
+  </g>
+  <!-- tile 2: extract-safely -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="496" y="320" width="140" height="22" rx="4"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="496" y="320" width="140" height="22" rx="4" stroke-width="1.1" fill="none"/>
+    <text x="504" y="334" font-family="JetBrains Mono, monospace" font-size="7" stroke="none">extract-safely</text>
+  </g>
+  <!-- tile 3: fix-permissions -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="496" y="344" width="140" height="22" rx="4"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="496" y="344" width="140" height="22" rx="4" stroke-width="1.1" fill="none"/>
+    <text x="504" y="358" font-family="JetBrains Mono, monospace" font-size="7" stroke="none">fix-permissions</text>
+  </g>
+  <!-- tile 4: csv-to-parquet -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="496" y="368" width="140" height="22" rx="4"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="496" y="368" width="140" height="22" rx="4" stroke-width="1.1" fill="none"/>
+    <text x="504" y="382" font-family="JetBrains Mono, monospace" font-size="7" stroke="none">csv-to-parquet</text>
+  </g>
+
+  <!-- per-container contract note, sitting in the WSL band beneath the orchestrator -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="60" y="320" width="392" height="56" rx="6"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="60" y="320" width="392" height="56" rx="6" stroke-width="1.3" fill="none"/>
+    <text x="72" y="338" font-family="Fraunces, serif" font-size="10.5" font-style="italic" stroke="none">each container's contract</text>
+    <text x="72" y="353" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">gets: instruction + Dockerfile  &#183;  hides: tests + oracle</text>
+    <text x="72" y="367" font-family="JetBrains Mono, monospace" font-size="7.5" stroke="none">graded on FINAL container state  (grid-pattern-transform dropped)</text>
+  </g>
+
+  <!-- footer caption -->
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="28" y1="402" x2="652" y2="402" stroke-width="0" /></g>
+</svg>
