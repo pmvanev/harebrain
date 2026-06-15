@@ -155,6 +155,8 @@ Honest framing — the [notes](README.md) earn it:
 
 ## 8. Validation plan (eval-driven — notes §4)
 
+> ✅ **Smoke test passed (2026-06-15).** `mpl_agent_v2.py` + `terminal_v2.mpl` resolved `hello-world` **1/1 (100%)** on `gemini/gemini-2.5-flash` (`terminal-bench-core==0.1.1`). The verify gate **fired** (`checks=3`); the separate verifier authored a textbook-sound predicate — `test -f hello.txt && printf "Hello, world!\n" | diff -q hello.txt - && test "$(find . -maxdepth 1 -mindepth 1 ! -name hello.txt | wc -l)" -eq 0` — re-deriving *all three* observable requirements (exists / exact content+newline / **no other files**) from the public instruction, no oracle touched. Cost: solver 332/43, verifier 243/64 tokens. The hidden `bash /tests/run-tests.sh` ran only *after* the session ended, confirming the soundness analysis live. *Finding:* Gemini's free tier threw transient `ServiceUnavailable`/`RateLimit` on some `Think`/`check` calls — the bounded-retry cage absorbed them and still resolved, but **the 89×5 sweep should use a paid/reliable endpoint** (OpenAI, or a higher Gemini tier) to avoid contaminating accuracy with infra flakiness (the same trap that bit the earlier multi-task sweep).
+
 1. **Baseline = terminus-2**, not our v1 demo. Measure where each region adds over a real harness.
 2. **Add one region at a time** (gate → grounding → plan → memory), `-k 5` on a **hard subset**, keep/cut by CI. (System-prompt-only *regressed* −2.3pp — single-change attribution is the only honest way.)
 3. **Report CIs, never a point estimate.**
@@ -169,4 +171,4 @@ Honest framing — the [notes](README.md) earn it:
 
 ## Next step
 
-Implement in **this folder** (`terminal-bench/mpl_harness/`): `terminal_v2.mpl` (this chart, syntax-validated) + `mpl_agent_v2.py` (the seven host-imports over the live session), then run the §8 validation loop. This file is the design; that is the build.
+✅ **Built + smoke-passed** (in this folder): `terminal_v2.mpl` (chart, dry-run-green via `_chart_dryrun_v2.py`) + `mpl_agent_v2.py` (four host-imports — `observe`/`decide`/`act`/`check` — over the live session, `check()` = the separate sound verifier). `hello-world` resolved 1/1 (§8). **Next:** run the §8 validation loop on a **hard subset** (`-k 5`, one region at a time, vs the terminus-2 baseline) on a reliable endpoint, then scale to 89×5.
