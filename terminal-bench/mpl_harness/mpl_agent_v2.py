@@ -57,6 +57,7 @@ class MplAgentV2(BaseAgent):
         chart: str | None = None,
         verifier_model_name: str | None = None,
         max_ticks: int = 200,
+        gate: bool = True,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -65,6 +66,10 @@ class MplAgentV2(BaseAgent):
         self._verifier = LiteLLM(model_name=verifier_model_name or model_name)
         self._chart = chart or str(Path(__file__).parent / "terminal_v2.mpl")
         self._max_ticks = int(max_ticks)
+        # gate=False is the ablation: the verify gate becomes a no-op (the done-claim
+        # is accepted immediately), isolating the gate's contribution vs the same
+        # cage/model/budget. See MplAgentV2NoGate.
+        self._gate = bool(gate)
 
     @staticmethod
     def name() -> str:
@@ -142,6 +147,8 @@ class MplAgentV2(BaseAgent):
         def check() -> bool:
             # SOUND verify gate: a separate verifier authors a deterministic predicate
             # from the PUBLIC instruction + observed state; we run it for its exit code.
+            if not self._gate:
+                return True  # ablation: gate off -> accept the done-claim immediately
             c["checks"] += 1
             screen = session.capture_pane()
             prompt = (
@@ -227,3 +234,18 @@ class MplAgentV2(BaseAgent):
                 else FailureMode.NONE
             ),
         )
+
+
+class MplAgentV2NoGate(MplAgentV2):
+    """Ablation of MplAgentV2: the verify gate is a no-op (the brain's done-claim is
+    accepted immediately, like v1). Same chart, model, and step budget — the ONLY
+    difference is whether check() actually verifies. Run this alongside MplAgentV2 on
+    the same tasks to attribute the sound gate's contribution to accuracy (design §8)."""
+
+    def __init__(self, *args, **kwargs):
+        kwargs["gate"] = False
+        super().__init__(*args, **kwargs)
+
+    @staticmethod
+    def name() -> str:
+        return "mpl-terminal-v2-nogate"
