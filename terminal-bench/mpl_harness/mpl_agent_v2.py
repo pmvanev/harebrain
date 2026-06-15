@@ -78,13 +78,30 @@ class MplAgentV2(BaseAgent):
     ) -> AgentResult:
         # Token accounting: solver and verifier tracked separately, summed for the
         # reported totals so the gate's cost shows up honestly (priority #2).
-        c = {"sin": 0, "sout": 0, "vin": 0, "vout": 0, "parse_failed": False, "checks": 0}
+        c = {
+            "sin": 0, "sout": 0, "vin": 0, "vout": 0,
+            "parse_failed": False, "checks": 0,
+            "consec_errs": 0, "host_dead": False,
+        }
+
+        def _note_err():
+            # Container death / repeated host-call failure -> stop ticking a dead
+            # session (the pilot showed ~120 wasted ticks flooding 404s otherwise).
+            c["consec_errs"] += 1
+            if c["consec_errs"] >= 3:
+                c["host_dead"] = True
 
         agent_mod = mpl.HostModule("agent")
 
         @agent_mod.export
         def observe() -> str:
-            return session.capture_pane()
+            try:
+                s = session.capture_pane()
+                c["consec_errs"] = 0
+                return s
+            except Exception:
+                _note_err()
+                return ""
 
         @agent_mod.export
         def decide(obs: str) -> str:
@@ -112,8 +129,14 @@ class MplAgentV2(BaseAgent):
 
         @agent_mod.export
         def act(command: str) -> str:
-            session.send_keys([command, "Enter"], block=True)
-            return session.capture_pane()
+            try:
+                session.send_keys([command, "Enter"], block=True)
+                s = session.capture_pane()
+                c["consec_errs"] = 0
+                return s
+            except Exception:
+                _note_err()
+                return ""
 
         @agent_mod.export
         def check() -> bool:
@@ -153,10 +176,15 @@ class MplAgentV2(BaseAgent):
             if not predicate:
                 return False
             # Run the predicate and read its exit code via a marker echo.
-            session.send_keys(
-                [f"{predicate}; echo {CHECK_MARKER}=$?", "Enter"], block=True
-            )
-            out = session.capture_pane()
+            try:
+                session.send_keys(
+                    [f"{predicate}; echo {CHECK_MARKER}=$?", "Enter"], block=True
+                )
+                out = session.capture_pane()
+                c["consec_errs"] = 0
+            except Exception:
+                _note_err()
+                return False
             hits = re.findall(rf"{CHECK_MARKER}=(\d+)", out)
             return bool(hits) and hits[-1] == "0"
 
@@ -166,11 +194,13 @@ class MplAgentV2(BaseAgent):
         sim.validate_hosts()
 
         for _ in range(self._max_ticks):
-            if not getattr(sim, "running", True):
+            if not getattr(sim, "running", True) or c["host_dead"]:
                 break
             try:
                 sim.tick(0.1)
             except mpl.SimulationStopped:
+                break
+            if c["host_dead"]:
                 break
             try:
                 if sim["Agent/finished"]:
