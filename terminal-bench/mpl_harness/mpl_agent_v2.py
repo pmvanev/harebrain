@@ -56,7 +56,7 @@ class MplAgentV2(BaseAgent):
         model_name: str,
         chart: str | None = None,
         verifier_model_name: str | None = None,
-        max_ticks: int = 120,
+        max_ticks: int = 200,
         **kwargs,
     ):
         super().__init__(**kwargs)

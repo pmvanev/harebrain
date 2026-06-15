@@ -44,7 +44,7 @@ default machine Agent {
         cmd:string := "";
         last_screen:string := "";
         steps:int := 0;
-        max_steps:int := 16;
+        max_steps:int := 30;
         verify_fails:int := 0;
         max_verify_fails:int := 2;
         verified:bool := false;

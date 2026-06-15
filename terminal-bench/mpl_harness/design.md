@@ -162,6 +162,8 @@ Honest framing — the [notes](README.md) earn it:
 > 2. **Container-death error flood — FIXED.** When commands hit the 180s tmux timeout and tb killed the container, the sim kept ticking ~120× against a dead container (~7 min wasted/​task, would explode at 89×5). `mpl_agent_v2.py` now stops after 3 consecutive failed host calls (`host_dead`).
 > 3. **180s per-command timeout** bit `csv-to-parquet` (heavy install/convert). Some tasks need a longer command timeout or a different task selection.
 
+> ✅ **Re-pilot (2026-06-15, `max_steps`=30 + the termination fix, same 3 tasks).** Both findings resolved: **3/3 resolved**, the gate **fires on every task** now (`checks` = 1 / 2 / 3), **zero dead-container errors**, ~11.5 min (was ~18). On the multi-step tasks the gate did real work — `openssl` `checks=2` and `csv-to-parquet` `checks=3` (which flipped ❌→✅) mean the verifier caught incomplete state and drove verify→retry cycles, not a rubber-stamp. Real per-task tokens *with the gate active* (total in / out): fix-permissions **1.7K / 178**, openssl **18.3K / 2.6K**, csv **18.9K / 1.3K** — higher than the gate-bypassed run because we're now paying for the verifier calls + extra solver steps (the accuracy mechanism). **Retightened cost: full 89×5 ≈ $15–30 on gpt-5.2** (central ~$19; the gate roughly doubles the gate-bypassed estimate); this 3-task re-pilot cost **~$0.13**.
+
 1. **Baseline = terminus-2**, not our v1 demo. Measure where each region adds over a real harness.
 2. **Add one region at a time** (gate → grounding → plan → memory), `-k 5` on a **hard subset**, keep/cut by CI. (System-prompt-only *regressed* −2.3pp — single-change attribution is the only honest way.)
 3. **Report CIs, never a point estimate.**
