@@ -89,6 +89,7 @@ Eval-driven iteration, RPP-style — the same discipline the literature insists 
 
 ## See also
 
+- [`design.md`](design.md) — **the harness design proposal** these notes feed into: the MPL cage, with a chart sketch and every choice ordered by accuracy → token use → time.
 - [`terminal-bench/benchmark/`](../terminal-bench/benchmark/README.md) — the operational charter that draws on these notes (the MPL-cage for TB-2).
 - [`terminal-bench/simple-experiment/`](../terminal-bench/simple-experiment/README.md) — the harness lever, measured (fix the brain, swap the cage).
 - The [Terminal-Bench](../docs/research-summaries/terminal-bench/terminal-bench.md), [Meta-Harness](../docs/research-summaries/meta-harness/meta-harness.md), and [agent-harness-anatomy](../docs/research-summaries/agent-harness-anatomy/agent-harness-anatomy.md) summaries (the ruler, the search, and the practitioner anatomy this synthesis leans on).
