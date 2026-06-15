@@ -1,10 +1,10 @@
 export const meta = {
   name: 'tb2-harness-verify',
-  description: 'Finish the interrupted verification: fetch + confirm the load-bearing citations in harness/README.md and review grounding / no-design',
+  description: 'Finish the interrupted verification: fetch + confirm the load-bearing citations in terminal-bench/mpl_harness/README.md and review grounding / no-design',
   phases: [{ title: 'Verify', detail: 'parallel: two citation-check agents + one internal review' }],
 }
 
-const DOC = 'C:/Users/PhilVanEvery/Git/github/pmvanev/harebrain/harness/README.md'
+const DOC = 'C:/Users/PhilVanEvery/Git/github/pmvanev/harebrain/terminal-bench/mpl_harness/README.md'
 
 const CITE_SCHEMA = {
   type: 'object', additionalProperties: false,

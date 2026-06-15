@@ -151,4 +151,4 @@ Honest framing — the [notes](README.md) earn it:
 
 ## Next step
 
-Implement in [`../terminal-bench/benchmark/`](../terminal-bench/benchmark/README.md): `terminal_v2.mpl` (this chart, syntax-validated) + `mpl_agent_v2.py` (the seven host-imports over the live session), then run the §7 validation loop. This file is the design; that is the build.
+Implement in **this folder** (`terminal-bench/mpl_harness/`): `terminal_v2.mpl` (this chart, syntax-validated) + `mpl_agent_v2.py` (the seven host-imports over the live session), then run the §7 validation loop. This file is the design; that is the build.

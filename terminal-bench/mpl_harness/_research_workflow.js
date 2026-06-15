@@ -1,9 +1,9 @@
 export const meta = {
   name: 'tb2-harness-research',
-  description: 'Gather repo research + deep web + the MPL repo, synthesize APPROACH notes for designing a TB-2 harness into benchmark/README.md (no harness design)',
+  description: 'Gather repo research + deep web + the MPL repo, synthesize APPROACH notes for designing a TB-2 harness into mpl_harness/README.md (no harness design)',
   phases: [
     { title: 'Gather', detail: 'parallel: repo research clusters + web research + MPL repo review' },
-    { title: 'Synthesize', detail: 'write the approach notes into benchmark/README.md' },
+    { title: 'Synthesize', detail: 'write the approach notes into mpl_harness/README.md' },
     { title: 'Review', detail: 'adversarially check grounding, honesty, and the no-design constraint' },
   ],
 }
@@ -11,7 +11,7 @@ export const meta = {
 const REPO = 'C:/Users/PhilVanEvery/Git/github/pmvanev/harebrain'
 const SUM = REPO + '/docs/research-summaries'
 const MPLV2 = 'C:/Users/PhilVanEvery/Git/github/lostinplace/mplv2'
-const README = REPO + '/terminal-bench/benchmark/README.md'
+const README = REPO + '/terminal-bench/mpl_harness/README.md'
 
 const HARNESS_SCHEMA = {
   type: 'object', additionalProperties: false,
