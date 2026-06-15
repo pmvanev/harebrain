@@ -46,6 +46,7 @@ default machine Agent {
         steps:int := 0;
         max_steps:int := 16;
         verify_fails:int := 0;
+        max_verify_fails:int := 2;
         verified:bool := false;
         finished:bool := false;
     }
@@ -75,10 +76,18 @@ default machine Agent {
     Act when cmd != "__DONE__" => Perceive then { last_screen := act(cmd); };
 
     // --- Sound verify gate (run check() once, then branch on the result) ---
+    // check() is a SOUND lower bound, not the hidden oracle (see check-soundness.md):
+    // a deterministic predicate over the real end-state, derived from the public
+    // instruction by a separate verifier pass. A FAIL is a real observable deficiency;
+    // a PASS is necessary-not-sufficient. The loop is BOUNDED and defers to the real
+    // grader on exhaustion -- a wrong/over-strict predicate must never trap an actually
+    // correct solution and burn the budget into a false Abort.
     Verify => Checked then { verified := check(); };
     Checked when verified => Done then { finished := true; };
-    // Gate failed: count it and keep working until it passes or the budget halts.
-    Checked when !verified => Perceive then { verify_fails += 1; };
+    // Failed but retries remain: count it and go back to work.
+    Checked when !verified && verify_fails < max_verify_fails => Perceive then { verify_fails += 1; };
+    // Retries exhausted: SUBMIT anyway and let the sound external grader adjudicate.
+    Checked when !verified && verify_fails >= max_verify_fails => Done then { finished := true; };
 
     // Done and Abort are terminal (no outgoing rules).
 }
