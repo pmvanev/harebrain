@@ -127,7 +127,23 @@ The through-line: **we spend** on verification, retry, planning, and grounding (
 - **Determinism.** `SIM/seed` pins MPL's tie-breaks and arbitration (notes §3 action-selection); the decide leaf pins temperature/seed where the provider allows. The residual nondeterminism is the model call itself — so the *cage* replays deterministically and we log the decide outputs to make a full trace replayable (notes §1 auditability; §3 gap-b: `TICK/seed` is not injected — confirm the replay guarantee before claiming it).
 - **Cost ceiling.** `max_steps` + a host-side token/$ budget both feed the `@priority(100)` Abort. Milestone-curated memory keeps each decide prompt small, which is the dominant token cost over a 40-step task.
 
-## 6. What it would actually take to beat the record
+## 6. Self-improvement — a seeded stochastic transition policy
+
+MPL's choice points (`choose(n) { @weight(wᵢ) => Tᵢ }`) are a **stochastic policy**: the transition probabilities are `P(Tᵢ) = wᵢ / Σw`, and the weights are *expressions over `vars`*, so the distribution can both be *sampled from* and *updated at runtime*. Two distinct uses fall out — and they sit very differently against our priorities and the determinism rule in §5.
+
+**(a) A *fixed* seeded stochastic policy — a near-term pass@k win, no learning.** TB-2 scores **≥5 trials per task** (pass@k). A deterministic argmax cage takes 5 near-identical shots at the same failure; a seeded stochastic policy (a fresh `SIM/seed` per trial) takes 5 that **explore different paths** — and diverse attempts beat identical ones at pass@k. Because each draw is **seeded**, every trial still replays exactly from its logged seed (§5). So making the *leaf* selection stochastic buys cell-level accuracy with **full reproducibility and zero online learning** — the cheapest accuracy lever the policy framing unlocks, and it belongs in the first build. *(Restraint, priority #2: keep exploration narrow — sampling a clearly-worse branch is a wasted, possibly task-failing action that costs tokens. Explore only among near-tied candidates — a `choose(1)` over a 2–3-way `@weight` set — not a flat distribution over everything.)*
+
+**(b) *Learning* the probabilities — a contextual bandit, and a slow-clock job.** Updating the distribution from outcomes (`P(branch) ↑` when it led to a passed `check()`) is the genuinely adaptive version, under three hard constraints:
+
+- **Sound signal only.** Update from `check()` / exit-code outcomes, *never* from the model's own judgment — intrinsic self-tuning erodes accuracy the same way intrinsic self-correction does (§1; notes §2).
+- **Sample + isolation reality.** One task (~tens of steps) has almost no signal, and each TB-2 trial is a *fresh container/process* — so a learned distribution must persist **host-side across trials**, making this a *cross-trial* contextual bandit (context = task features), not within-task learning.
+- **Determinism is the line.** Probabilities *drifting live, unlogged* break the cage's replay guarantee — the very thing the cage exists to provide (§5; the two-clock rule, notes §4). The optimizer trades determinism for a fraction of a point unless that's an explicit constraint (notes §4, meta-harness).
+
+> **The stance: structure deterministic, leaf stochastic, learning on the slow clock.** Keep the chart's *structure* (states, guards, the verify gate) fixed and legible. Let only the *leaf action-selection* be a seeded stochastic policy. **Learn its probabilities offline** — run the bandit over the dry-run trials (§8), freeze the tuned distribution, ship a deterministic-given-seed chart. Transition probabilities are the **narrowest, most auditable search space** there is (a handful of scalars, not a code rewrite), which makes them the ideal first step toward the Meta-Harness *search* horizon (notes §4, hand-author-now/search-later) — without collapsing the two clocks. Online learning is permissible *only* if the update is a deterministic function of logged sound outcomes + the seed, and the learned state is **reset/versioned per submission** so the run still replays.
+
+Net for priorities: seeded-stochastic selection (a) is accuracy-positive (pass@k) and replayable → **build it in**; probability *learning* (b) is a slow-clock optimization that must stay sound + logged → **defer, and never let it drift live in a scored run.**
+
+## 7. What it would actually take to beat the record
 
 Honest framing — the [notes](README.md) earn it:
 
@@ -135,7 +151,7 @@ Honest framing — the [notes](README.md) earn it:
 - **"Beat records" is an empirical claim, not a design claim.** This design targets exactly the failure classes the leaders engineer *plus* two structural guarantees they implement only as middleware (unreachable-premature-done, sound-only retry). That's a credible top-tier *candidate* — but whether it beats ~84–85% is answered only by the `-k 5` dry-run → full run, with CIs. We do **not** put a number on it before measuring.
 - **Token/time "records" aren't leaderboard-ranked** (the board ranks accuracy ± CI). They're our efficiency goals — and the simple-experiment already showed the cage can finish *fast* when it converges; the anti-spin budget is what protects that.
 
-## 7. Validation plan (eval-driven — notes §4)
+## 8. Validation plan (eval-driven — notes §4)
 
 1. **Baseline = terminus-2**, not our v1 demo. Measure where each region adds over a real harness.
 2. **Add one region at a time** (gate → grounding → plan → memory), `-k 5` on a **hard subset**, keep/cut by CI. (System-prompt-only *regressed* −2.3pp — single-change attribution is the only honest way.)
@@ -145,10 +161,10 @@ Honest framing — the [notes](README.md) earn it:
 
 ## Risks — what to validate first
 
-- **MPL syntax/feature gaps** (notes §3 gaps): the `S1|S2 when … =>` priority-Abort form, `@priority` actually winning the tick, scalar-only host types, and whether `check()`-once-then-branch behaves as written — **all must be confirmed against the live `mplv2` package** before this chart runs. The `§` pointers in the notes are approximate.
+- **MPL syntax/feature gaps** (notes §3 gaps): the `S1|S2 when … =>` priority-Abort form, `@priority` actually winning the tick, `choose(n)`/`@weight` weighted-stochastic selection (the §6 policy) and whether its draw is genuinely seeded, scalar-only host types, and whether `check()`-once-then-branch behaves as written — **all must be confirmed against the live `mplv2` package** before this chart runs. The `§` pointers in the notes are approximate.
 - **Can `check()` be sound without leaking the hidden oracle?** TB-2 hides the grader (integrity bar). `check()` may re-run the task's *visible* checks / assert observable end-state, but must not read the grader — too weak and the gate is theater; too strong and it leaks. This is the single most important open question to resolve before relying on the gate (notes §5).
 - **Replay guarantee** at the decide leaf (`TICK/seed` not injected) — pin what we can, log the rest, and state the honest claim.
 
 ## Next step
 
-Implement in **this folder** (`terminal-bench/mpl_harness/`): `terminal_v2.mpl` (this chart, syntax-validated) + `mpl_agent_v2.py` (the seven host-imports over the live session), then run the §7 validation loop. This file is the design; that is the build.
+Implement in **this folder** (`terminal-bench/mpl_harness/`): `terminal_v2.mpl` (this chart, syntax-validated) + `mpl_agent_v2.py` (the seven host-imports over the live session), then run the §8 validation loop. This file is the design; that is the build.
