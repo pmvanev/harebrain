@@ -1,0 +1,118 @@
+<svg viewBox="0 0 560 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Executed evidence versus generative evidence: executed evidence is a real run and counts as verification; generative evidence is a second assertion by the same author and does not. Beneath, a three-band spectrum of executability from directly executable to partially verifiable to not executable in the loop.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.08); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    .muted-tint     { color: rgba(93, 85, 63, 0.06); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+      .muted-tint     { color: rgba(168, 156, 125, 0.10); }
+    }
+  </style>
+
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="280" y="20" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" letter-spacing="0.12em">THE LOAD-BEARING DISTINCTION</text>
+  </g>
+
+  <!-- LEFT: executed (sound / sage) -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="20" y="38" width="250" height="96" rx="8"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="20" y="38" width="250" height="96" rx="8" stroke-width="2" fill="none"/>
+    <text x="145" y="60" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">executed evidence</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="145" y="83" font-family="Spectral, serif" font-size="10" text-anchor="middle">the agent actually ran the code &#8212;</text>
+    <text x="145" y="97" font-family="Spectral, serif" font-size="10" text-anchor="middle">real API call, real output, receipts</text>
+  </g>
+  <g class="sage" stroke="none" fill="currentColor">
+    <text x="145" y="122" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">= verification</text>
+  </g>
+
+  <!-- RIGHT: generative (unsound / oxblood) -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="290" y="38" width="250" height="96" rx="8"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="290" y="38" width="250" height="96" rx="8" stroke-width="1.4" fill="none"/>
+    <text x="415" y="60" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">generative evidence</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="415" y="83" font-family="Spectral, serif" font-size="10" text-anchor="middle">the agent described what it believes</text>
+    <text x="415" y="97" font-family="Spectral, serif" font-size="10" text-anchor="middle">would happen &#8212; it narrated a run</text>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="415" y="122" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">= a second assertion, same author</text>
+  </g>
+
+  <!-- divider caption -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="280" y="156" font-family="Spectral, serif" font-size="10" font-style="italic" text-anchor="middle">&#8220;I tested it, here are the results&#8221;  vs  &#8220;I&#8217;m pretty sure it works like this&#8221;</text>
+  </g>
+
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="40" y1="176" x2="520" y2="176" stroke-width="1"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="280" y="198" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" letter-spacing="0.12em">&#8230; BUT NOT ALL CODE IS EXECUTABLE IN THE LOOP</text>
+  </g>
+
+  <!-- three-band spectrum -->
+  <!-- band 1: directly executable -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="20" y="214" width="166" height="74" rx="6"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="20" y="214" width="166" height="74" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="103" y="234" font-family="Fraunces, serif" font-size="10.5" font-style="italic" text-anchor="middle" stroke="none">directly executable</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="103" y="254" font-family="Spectral, serif" font-size="9" text-anchor="middle">functions, APIs, scripts,</text>
+    <text x="103" y="267" font-family="Spectral, serif" font-size="9" text-anchor="middle">DB queries</text>
+  </g>
+  <g class="sage" stroke="none" fill="currentColor">
+    <text x="103" y="282" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">gold standard</text>
+  </g>
+
+  <!-- band 2: partially verifiable -->
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="197" y="214" width="166" height="74" rx="6"/></g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <rect x="197" y="214" width="166" height="74" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="280" y="234" font-family="Fraunces, serif" font-size="10.5" font-style="italic" text-anchor="middle" stroke="none">partially verifiable</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="280" y="254" font-family="Spectral, serif" font-size="9" text-anchor="middle">terraform plan, dry runs,</text>
+    <text x="280" y="267" font-family="Spectral, serif" font-size="9" text-anchor="middle">test-db migrations</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="280" y="282" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">weaker, still useful</text>
+  </g>
+
+  <!-- band 3: not executable -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="374" y="214" width="166" height="74" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="374" y="214" width="166" height="74" rx="6" stroke-width="1.4" fill="none"/>
+    <text x="457" y="234" font-family="Fraunces, serif" font-size="10.5" font-style="italic" text-anchor="middle" stroke="none">not executable</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="457" y="254" font-family="Spectral, serif" font-size="9" text-anchor="middle">UI render, prod-only,</text>
+    <text x="457" y="267" font-family="Spectral, serif" font-size="9" text-anchor="middle">manual interaction</text>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="457" y="282" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">back to narration</text>
+  </g>
+
+  <!-- gradient axis label -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="280" y="308" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">confidence falls left &#8594; right &#183; invest more in Stabilize as you move right</text>
+  </g>
+</svg>
