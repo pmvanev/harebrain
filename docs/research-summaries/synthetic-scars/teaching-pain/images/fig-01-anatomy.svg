@@ -1,0 +1,98 @@
+<svg viewBox="0 0 620 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The three-part synthetic scar: the wound (the real incident), the trap (the tempting textbook shortcut), and the permanent reflex (the non-negotiable invariant), each illustrated with the image-download crash example, linked left to right.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    .muted-tint     { color: rgba(93, 85, 63, 0.06); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+      .muted-tint     { color: rgba(168, 156, 125, 0.10); }
+    }
+  </style>
+
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="310" y="22" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" letter-spacing="0.12em">THE THREE-PART SYNTHETIC SCAR</text>
+  </g>
+
+  <!-- 1 · wound -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="40" width="180" height="214" rx="8"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="20" y="40" width="180" height="214" rx="8" stroke-width="1.4" fill="none"/>
+    <text x="32" y="64" font-family="Fraunces, serif" font-size="14" font-style="italic" stroke="none">1 · the wound</text>
+    <text x="32" y="82" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">the real disaster that burned us</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor"><line x1="32" y1="96" x2="188" y2="96" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="32" y="122" font-family="Spectral, serif" font-size="10">user navigated away</text>
+    <text x="32" y="137" font-family="Spectral, serif" font-size="10">mid-download; the callback</text>
+    <text x="32" y="152" font-family="Spectral, serif" font-size="10">updated a widget that was</text>
+    <text x="32" y="167" font-family="Spectral, serif" font-size="10">already disposed</text>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="32" y="234" font-family="JetBrains Mono, monospace" font-size="8">&#8594; fatal runtime exception</text>
+  </g>
+
+  <!-- 2 · trap -->
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="220" y="40" width="180" height="214" rx="8"/></g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <rect x="220" y="40" width="180" height="214" rx="8" stroke-width="1.4" fill="none" stroke-dasharray="4 3"/>
+    <text x="232" y="64" font-family="Fraunces, serif" font-size="14" font-style="italic" stroke="none">2 · the trap</text>
+    <text x="232" y="82" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">the textbook shortcut models love</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor"><line x1="232" y1="96" x2="388" y2="96" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="232" y="122" font-family="Spectral, serif" font-size="10">attach a callback straight</text>
+    <text x="232" y="137" font-family="Spectral, serif" font-size="10">to the background future;</text>
+    <text x="232" y="152" font-family="Spectral, serif" font-size="10">never ask whether the</text>
+    <text x="232" y="167" font-family="Spectral, serif" font-size="10">screen is still mounted</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="232" y="234" font-family="JetBrains Mono, monospace" font-size="8">&#8594; looks clean, ships sunny</text>
+  </g>
+
+  <!-- 3 · reflex -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="420" y="40" width="180" height="214" rx="8"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="420" y="40" width="180" height="214" rx="8" stroke-width="2" fill="none"/>
+    <text x="432" y="64" font-family="Fraunces, serif" font-size="14" font-style="italic" stroke="none">3 · the reflex</text>
+    <text x="432" y="82" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">invariant required before merge</text>
+  </g>
+  <g class="rule-soft" stroke="currentColor"><line x1="432" y1="96" x2="588" y2="96" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="432" y="122" font-family="Spectral, serif" font-size="10">before any async task</text>
+    <text x="432" y="137" font-family="Spectral, serif" font-size="10">dispatches a state update,</text>
+    <text x="432" y="152" font-family="Spectral, serif" font-size="10">guard the lifecycle; if the</text>
+    <text x="432" y="167" font-family="Spectral, serif" font-size="10">screen is dead, drop it</text>
+  </g>
+  <g class="sage" stroke="none" fill="currentColor">
+    <text x="432" y="234" font-family="JetBrains Mono, monospace" font-size="8">&#8594; phrased positively</text>
+  </g>
+
+  <!-- arrows -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="201" y1="147" x2="214" y2="147" stroke-width="1.3"/>
+    <polygon points="218,147 212,144 212,150" stroke="none"/>
+    <line x1="401" y1="147" x2="414" y2="147" stroke-width="1.3"/>
+    <polygon points="418,147 412,144 412,150" stroke="none"/>
+  </g>
+
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="40" y1="276" x2="580" y2="276" stroke-width="1"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="310" y="296" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">codified as SCAR-&lt;AREA&gt;-&lt;NN&gt; &#183; 185 of them after 51 tickets</text>
+    <text x="310" y="316" font-family="Spectral, serif" font-size="10" font-style="italic" text-anchor="middle">Show it the cliff, the shortcut off the edge, and the rail.</text>
+  </g>
+</svg>

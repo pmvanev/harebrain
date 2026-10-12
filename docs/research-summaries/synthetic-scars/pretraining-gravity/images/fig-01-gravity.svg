@@ -1,0 +1,75 @@
+<svg viewBox="0 0 620 362" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two paths. Left, oxblood: an invented prompt DSL with near-zero pre-training frequency forces the model to simulate an interpreter in fragile in-context attention, which dilutes as context grows and ends in sequential amnesia. Right, blueprint: a canonical formalism seen millions of times links statically into learned circuits, frees working memory, and the gates are obeyed. A footnote marks the mechanism as asserted rather than measured.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.08); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+    }
+  </style>
+  <g class="muted" stroke="none" fill="currentColor"><text x="310" y="22" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" letter-spacing="0.12em">THE CLAIMED MECHANISM</text></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="30" y="38" width="260" height="44" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="30" y="38" width="260" height="44" rx="6" stroke-width="1.6"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="160.0" y="58" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle">invented prompt DSL</text></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="160.0" y="74" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">Freq &#8776; 0</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="160.0" y1="84" x2="160.0" y2="95" stroke-width="1.2"/><polygon points="160.0,100 156.0,93 164.0,93" stroke="none"/></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="40" y="100" width="240" height="40" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="40" y="100" width="240" height="40" rx="6" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="160.0" y="117" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle">model simulates an interpreter</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="160.0" y="131" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">for a language met seconds ago</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="160.0" y1="142" x2="160.0" y2="153" stroke-width="1.2"/><polygon points="160.0,158 156.0,151 164.0,151" stroke="none"/></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="40" y="158" width="240" height="40" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="40" y="158" width="240" height="40" rx="6" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="160.0" y="175" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle">held in in-context attention</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="160.0" y="189" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">the shallow, fragile working memory</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="160.0" y1="200" x2="160.0" y2="211" stroke-width="1.2"/><polygon points="160.0,216 156.0,209 164.0,209" stroke="none"/></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="40" y="216" width="240" height="40" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="40" y="216" width="240" height="40" rx="6" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="160.0" y="233" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle">context fills to 150k tokens</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="160.0" y="247" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">attention dilutes across the steps</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="160.0" y1="258" x2="160.0" y2="269" stroke-width="1.2"/><polygon points="160.0,274 156.0,267 164.0,267" stroke="none"/></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="40" y="274" width="240" height="40" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="40" y="274" width="240" height="40" rx="6" stroke-width="1.6"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="160.0" y="291" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle">sequential amnesia</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="160.0" y="305" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">skipped gates, dropped pointers</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="330" y="38" width="260" height="44" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="330" y="38" width="260" height="44" rx="6" stroke-width="1.6"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="460.0" y="58" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle">canonical CS formalism</text></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="460.0" y="74" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">Freq &gt; 10&#8310;</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="460.0" y1="84" x2="460.0" y2="95" stroke-width="1.2"/><polygon points="460.0,100 456.0,93 464.0,93" stroke="none"/></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="340" y="100" width="240" height="40" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="340" y="100" width="240" height="40" rx="6" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="460.0" y="117" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle">&#8220;static linkage&#8221; into the weights</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="460.0" y="131" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">make, init.d, RFC 822 already learned</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="460.0" y1="142" x2="460.0" y2="153" stroke-width="1.2"/><polygon points="460.0,158 456.0,151 464.0,151" stroke="none"/></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="340" y="158" width="240" height="40" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="340" y="158" width="240" height="40" rx="6" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="460.0" y="175" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle">crystallized circuits do the work</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="460.0" y="189" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">no runtime interpreter to simulate</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="460.0" y1="200" x2="460.0" y2="211" stroke-width="1.2"/><polygon points="460.0,216 456.0,209 464.0,209" stroke="none"/></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="340" y="216" width="240" height="40" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="340" y="216" width="240" height="40" rx="6" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="460.0" y="233" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle">working memory freed</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="460.0" y="247" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">spent on the actual domain code</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="460.0" y1="258" x2="460.0" y2="269" stroke-width="1.2"/><polygon points="460.0,274 456.0,267 464.0,267" stroke="none"/></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="340" y="274" width="240" height="40" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="340" y="274" width="240" height="40" rx="6" stroke-width="1.6"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="460.0" y="291" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle">gates obeyed, compaction survived</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="460.0" y="305" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">the article&#8217;s claimed outcome</text></g>
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="40" y1="332" x2="580" y2="332" stroke-width="1"/></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="310" y="350" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">The mechanism is asserted, not measured: no probing of attention vs. feed-forward circuits was run.</text></g>
+</svg>

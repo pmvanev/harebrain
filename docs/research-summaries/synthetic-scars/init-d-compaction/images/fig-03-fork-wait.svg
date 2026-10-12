@@ -1,0 +1,66 @@
+<svg viewBox="0 0 620 346" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A depth-0 orchestrator walks targets 2 through 5. At each heavy target it forks an ephemeral subagent (archaeology, TDD worker, un-primed pro critic) that absorbs the tokens, writes its artifact to disk, and exits; the orchestrator waits for a short summary or verdict and moves to the next target. Children absorbed 440k-plus tokens while the orchestrator finished in 196 steps with zero compactions.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.08); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    .muted-tint     { color: rgba(93, 85, 63, 0.06); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+      .muted-tint     { color: rgba(168, 156, 125, 0.10); }
+    }
+  </style>
+  <g class="muted" stroke="none" fill="currentColor"><text x="115" y="26" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8.5" text-anchor="middle" letter-spacing="0.12em">DEPTH-0 ORCHESTRATOR</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="470" y="26" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8.5" text-anchor="middle" letter-spacing="0.12em">EPHEMERAL LEVEL-1 SUBAGENTS</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="30" y="50" width="170" height="34" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="30" y="50" width="170" height="34" rx="6" stroke-width="1.3"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="115" y="71" font-family="Fraunces, serif" font-size="10" font-style="italic" text-anchor="middle">Target 2 · approved-plan</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="30" y="122" width="170" height="34" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="30" y="122" width="170" height="34" rx="6" stroke-width="1.3"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="115" y="143" font-family="Fraunces, serif" font-size="10" font-style="italic" text-anchor="middle">Target 3 · implementation</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="30" y="194" width="170" height="34" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="30" y="194" width="170" height="34" rx="6" stroke-width="1.3"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="115" y="215" font-family="Fraunces, serif" font-size="10" font-style="italic" text-anchor="middle">Target 4 · adversarial review</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="30" y="266" width="170" height="34" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="30" y="266" width="170" height="34" rx="6" stroke-width="1.3"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="115" y="287" font-family="Fraunces, serif" font-size="10" font-style="italic" text-anchor="middle">Target 5 · commit</text></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="340" y="46" width="260" height="54" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="340" y="46" width="260" height="54" rx="6" stroke-width="1.3"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="352" y="63" font-family="Fraunces, serif" font-size="10.5" font-style="italic">archaeology subagent</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="352" y="78" font-family="JetBrains Mono, ui-monospace, monospace" font-size="7.5">reads ~20 files → plan.md · exit 0</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="352" y="92" font-family="JetBrains Mono, ui-monospace, monospace" font-size="7.5">↩ wait(): 15-line summary</text></g>
+  <g class="sage" stroke="currentColor" fill="currentColor"><line x1="201" y1="65" x2="338.0" y2="65.0" stroke-width="1.3"/><polygon points="338.0,65.0 332.0,62.0 332.0,68.0" stroke="none"/></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="270" y="60" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" text-anchor="middle">fork()</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="338" y1="94" x2="202.0" y2="130.0" stroke-width="1.2" stroke-dasharray="3 3"/><polygon points="202.0,130.0 208.6,131.4 207.0,125.6" stroke="none"/></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="340" y="118" width="260" height="54" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="340" y="118" width="260" height="54" rx="6" stroke-width="1.3"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="352" y="135" font-family="Fraunces, serif" font-size="10.5" font-style="italic">TDD worker</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="352" y="150" font-family="JetBrains Mono, ui-monospace, monospace" font-size="7.5">writes code + tests → exit 0</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="352" y="164" font-family="JetBrains Mono, ui-monospace, monospace" font-size="7.5">↩ wait(): test summary</text></g>
+  <g class="sage" stroke="currentColor" fill="currentColor"><line x1="201" y1="137" x2="338.0" y2="137.0" stroke-width="1.3"/><polygon points="338.0,137.0 332.0,134.0 332.0,140.0" stroke="none"/></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="270" y="132" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" text-anchor="middle">fork()</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="338" y1="166" x2="202.0" y2="202.0" stroke-width="1.2" stroke-dasharray="3 3"/><polygon points="202.0,202.0 208.6,203.4 207.0,197.6" stroke="none"/></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="340" y="190" width="260" height="54" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="340" y="190" width="260" height="54" rx="6" stroke-width="1.3"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="352" y="207" font-family="Fraunces, serif" font-size="10.5" font-style="italic">pro critic, un-primed</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="352" y="222" font-family="JetBrains Mono, ui-monospace, monospace" font-size="7.5">audits branch.diff → VERDICT · exit 0</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="352" y="236" font-family="JetBrains Mono, ui-monospace, monospace" font-size="7.5">↩ wait(): VERDICT</text></g>
+  <g class="sage" stroke="currentColor" fill="currentColor"><line x1="201" y1="209" x2="338.0" y2="209.0" stroke-width="1.3"/><polygon points="338.0,209.0 332.0,206.0 332.0,212.0" stroke="none"/></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="270" y="204" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" text-anchor="middle">fork()</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="338" y1="238" x2="202.0" y2="274.0" stroke-width="1.2" stroke-dasharray="3 3"/><polygon points="202.0,274.0 208.6,275.4 207.0,269.6" stroke="none"/></g>
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="20" y1="316" x2="600" y2="316" stroke-width="1"/></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="310" y="334" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" text-anchor="middle">children absorbed 440k+ tokens · orchestrator: 196 steps, 0 compactions (#321, self-reported)</text></g>
+</svg>

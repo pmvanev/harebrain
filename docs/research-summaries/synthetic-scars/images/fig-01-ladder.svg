@@ -1,0 +1,79 @@
+<svg viewBox="0 0 720 422" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A six-rung ladder of where a rule lives, bottom to top. In the weights only: the diagnosis of Parts 1 and 2. Prose in the prompt: Part 1's scar catalog and Part 3's minus-infinity cutoff as a sentence. Shaped prompt: Part 3's affirmative reflex, Part 3.5's Socratic backprompt, Part 3.9's Flores handshake. Formalism in the prompt: Part 3.6's Makefile and Part 3.8's canonical primitives. On disk, model-written: Part 3.7's init.d files and Part 1's Step-21 scar commit. Enforced by a runtime: harebrain's chart and guards, and the nemik hooks cited in Part 3.8.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.08); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+    }
+  </style>
+  <g class="muted" stroke="none" fill="currentColor"><text x="340" y="22" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" letter-spacing="0.12em">WHERE DOES THE RULE LIVE?</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="40" y="40" width="640" height="46" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="40" y="40" width="640" height="46" rx="6" stroke-width="1.8"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="54" y="59" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="start">enforced by a runtime</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="54" y="75" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">the model cannot talk its way past</text></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="250" y="52" width="144" height="22" rx="11" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="321.75" y="66.5" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">harebrain: chart + guards</text></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="401.5" y="52" width="164" height="22" rx="11" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="483.45" y="66.5" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">cited: nemik hooks, OPA (3.8)</text></g>
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="40" y="98" width="640" height="46" rx="6"/></g>
+  <g class="sage" stroke="currentColor" fill="none"><rect x="40" y="98" width="640" height="46" rx="6" stroke-width="1.2"/></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="54" y="117" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="start">on disk, model-written</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="54" y="133" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">survives compaction; still forgeable</text></g>
+  <g class="sage" stroke="currentColor" fill="none"><rect x="250" y="110" width="128" height="22" rx="11" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="314.1" y="124.5" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">3.7 init.d state files</text></g>
+  <g class="sage" stroke="currentColor" fill="none"><rect x="386.2" y="110" width="123" height="22" rx="11" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="447.75" y="124.5" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">1 Step-21 scar commit</text></g>
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="40" y="156" width="640" height="46" rx="6"/></g>
+  <g class="sage" stroke="currentColor" fill="none"><rect x="40" y="156" width="640" height="46" rx="6" stroke-width="1.2"/></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="54" y="175" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="start">formalism in the prompt</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="54" y="191" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">model recalls known semantics</text></g>
+  <g class="sage" stroke="currentColor" fill="none"><rect x="250" y="168" width="98" height="22" rx="11" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="298.8" y="182.5" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">3.6 Makefile DAG</text></g>
+  <g class="sage" stroke="currentColor" fill="none"><rect x="355.6" y="168" width="138" height="22" rx="11" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="424.8" y="182.5" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">3.8 canonical primitives</text></g>
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="40" y="214" width="640" height="46" rx="6"/></g>
+  <g class="sage" stroke="currentColor" fill="none"><rect x="40" y="214" width="640" height="46" rx="6" stroke-width="1.2"/></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="54" y="233" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="start">shaped prompt</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="54" y="249" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">same rule, better grammar</text></g>
+  <g class="sage" stroke="currentColor" fill="none"><rect x="250" y="226" width="118" height="22" rx="11" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="309.0" y="240.5" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">3 affirmative reflex</text></g>
+  <g class="sage" stroke="currentColor" fill="none"><rect x="376.0" y="226" width="133" height="22" rx="11" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="442.65" y="240.5" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">3.5 Socratic backprompt</text></g>
+  <g class="sage" stroke="currentColor" fill="none"><rect x="517.3" y="226" width="118" height="22" rx="11" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="576.3" y="240.5" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">3.9 Flores handshake</text></g>
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="40" y="272" width="640" height="46" rx="6"/></g>
+  <g class="sage" stroke="currentColor" fill="none"><rect x="40" y="272" width="640" height="46" rx="6" stroke-width="1.2"/></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="54" y="291" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="start">prose in the prompt</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="54" y="307" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">a rule the model reads</text></g>
+  <g class="sage" stroke="currentColor" fill="none"><rect x="250" y="284" width="87" height="22" rx="11" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="293.7" y="298.5" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">1 scar catalog</text></g>
+  <g class="sage" stroke="currentColor" fill="none"><rect x="345.4" y="284" width="149" height="22" rx="11" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="419.7" y="298.5" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">3 -&#8734; cutoff, as a sentence</text></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="40" y="330" width="640" height="46" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="40" y="330" width="640" height="46" rx="6" stroke-width="1.2"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="54" y="349" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="start">in the weights only</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="54" y="365" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">no scars: the diagnosis</text></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="250" y="342" width="113" height="22" rx="11" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="306.45" y="356.5" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">1 straight-A intern</text></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="370.9" y="342" width="194" height="22" rx="11" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="468.15" y="356.5" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">2 forced continuity, bounded reward</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="22" y1="350" x2="22" y2="66" stroke-width="1.3"/><polygon points="22,60 18,68 26,68" stroke="none"/></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="14" y="205.0" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" transform="rotate(-90 14 205.0)">the series climbs, Sep &#8594; Oct 2026</text></g>
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="40" y1="392" x2="680" y2="392" stroke-width="1"/></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="360" y="410" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">chips are labelled by part number &#183; no published part puts its rule on the top rung; 3.8 cites a third-party harness that does</text></g>
+</svg>

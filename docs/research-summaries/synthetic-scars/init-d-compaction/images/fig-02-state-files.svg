@@ -1,0 +1,74 @@
+<svg viewBox="0 0 620 346" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The five init.d state files with their write discipline: 00 governance, 10 ticket and 20 plan approved are write-once latches (Memento's tattoos); 30 critic summary is append-only (the scar log); 99 next action is the program counter, overwritten every transition (the polaroid). A footnote: write-once is a prompt rule, not a permission bit; the agent can write all five.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.08); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    .muted-tint     { color: rgba(93, 85, 63, 0.06); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+      .muted-tint     { color: rgba(168, 156, 125, 0.10); }
+    }
+  </style>
+  <g class="muted" stroke="none" fill="currentColor"><text x="310" y="20" font-family="JetBrains Mono, ui-monospace, monospace" font-size="9" text-anchor="middle" letter-spacing="0.12em">&lt;BRAIN&gt;/STATE/ · READ 00 → 99 ON EVERY WAKE</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="36" y="44" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8">file</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="196" y="44" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8">when it is written</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="380" y="44" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8">mutability</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="506" y="44" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8">Memento</text></g>
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="20" y="54" width="580" height="38" rx="5"/></g>
+  <g class="muted" stroke="currentColor" fill="none"><rect x="20" y="54" width="580" height="38" rx="5" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="36" y="77" font-family="JetBrains Mono, ui-monospace, monospace" font-size="10">00_governance.md</text></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="196" y="77" font-family="Fraunces, serif" font-size="10.5" font-style="italic">once, at boot</text></g>
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="374" y="63" width="112" height="20" rx="10"/></g>
+  <g class="sage" stroke="currentColor" fill="none"><rect x="374" y="63" width="112" height="20" rx="10" stroke-width="1.2"/></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="430" y="76.5" font-family="JetBrains Mono, ui-monospace, monospace" font-size="7.8" text-anchor="middle">LATCH</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="506" y="77" font-family="Fraunces, serif" font-size="10.5" font-style="italic">tattoo</text></g>
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="20" y="100" width="580" height="38" rx="5"/></g>
+  <g class="muted" stroke="currentColor" fill="none"><rect x="20" y="100" width="580" height="38" rx="5" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="36" y="123" font-family="JetBrains Mono, ui-monospace, monospace" font-size="10">10_ticket.md</text></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="196" y="123" font-family="Fraunces, serif" font-size="10.5" font-style="italic">once, at ticket selection</text></g>
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="374" y="109" width="112" height="20" rx="10"/></g>
+  <g class="sage" stroke="currentColor" fill="none"><rect x="374" y="109" width="112" height="20" rx="10" stroke-width="1.2"/></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="430" y="122.5" font-family="JetBrains Mono, ui-monospace, monospace" font-size="7.8" text-anchor="middle">LATCH</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="506" y="123" font-family="Fraunces, serif" font-size="10.5" font-style="italic">tattoo</text></g>
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="20" y="146" width="580" height="38" rx="5"/></g>
+  <g class="muted" stroke="currentColor" fill="none"><rect x="20" y="146" width="580" height="38" rx="5" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="36" y="169" font-family="JetBrains Mono, ui-monospace, monospace" font-size="10">20_plan_approved.md</text></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="196" y="169" font-family="Fraunces, serif" font-size="10.5" font-style="italic">once, after plan approval</text></g>
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="374" y="155" width="112" height="20" rx="10"/></g>
+  <g class="sage" stroke="currentColor" fill="none"><rect x="374" y="155" width="112" height="20" rx="10" stroke-width="1.2"/></g>
+  <g class="sage" stroke="none" fill="currentColor"><text x="430" y="168.5" font-family="JetBrains Mono, ui-monospace, monospace" font-size="7.8" text-anchor="middle">LATCH</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="506" y="169" font-family="Fraunces, serif" font-size="10.5" font-style="italic">tattoo</text></g>
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="20" y="192" width="580" height="38" rx="5"/></g>
+  <g class="muted" stroke="currentColor" fill="none"><rect x="20" y="192" width="580" height="38" rx="5" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="36" y="215" font-family="JetBrains Mono, ui-monospace, monospace" font-size="10">30_critic_summary.md</text></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="196" y="215" font-family="Fraunces, serif" font-size="10.5" font-style="italic">appended each review round</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="374" y="201" width="112" height="20" rx="10"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="374" y="201" width="112" height="20" rx="10" stroke-width="1.2"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="430" y="214.5" font-family="JetBrains Mono, ui-monospace, monospace" font-size="7.8" text-anchor="middle">APPEND-ONLY</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="506" y="215" font-family="Fraunces, serif" font-size="10.5" font-style="italic">the scar log</text></g>
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="20" y="238" width="580" height="38" rx="5"/></g>
+  <g class="muted" stroke="currentColor" fill="none"><rect x="20" y="238" width="580" height="38" rx="5" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="36" y="261" font-family="JetBrains Mono, ui-monospace, monospace" font-size="10">99_next_action.md</text></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="196" y="261" font-family="Fraunces, serif" font-size="10.5" font-style="italic">overwritten every transition</text></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="374" y="247" width="112" height="20" rx="10"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="374" y="247" width="112" height="20" rx="10" stroke-width="1.2"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="430" y="260.5" font-family="JetBrains Mono, ui-monospace, monospace" font-size="7.8" text-anchor="middle">PROGRAM COUNTER</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="506" y="261" font-family="Fraunces, serif" font-size="10.5" font-style="italic">polaroid</text></g>
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="20" y1="296" x2="600" y2="296" stroke-width="1"/></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="310" y="316" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" text-anchor="middle">laws above, counter below: the split a single PROGRESS.md conflates</text></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="310" y="332" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" text-anchor="middle">but “write-once” is a prompt rule, not a permission bit — the agent can write all five</text></g>
+</svg>

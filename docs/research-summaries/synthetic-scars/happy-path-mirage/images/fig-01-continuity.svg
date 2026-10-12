@@ -1,0 +1,92 @@
+<svg viewBox="0 0 620 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two panels. Left, what the model expects: state A and state B joined by a gentle dashed valley. Right, what software does: from state A, a one-millisecond asynchronous gap opens onto a vertical cliff that drops to a crash at minus infinity. Beneath, the two-line Dart example, await fetchUserData then displayUserProfile, with the 200 millisecond gap between the lines marked.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    .muted-tint     { color: rgba(93, 85, 63, 0.06); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+      .muted-tint     { color: rgba(168, 156, 125, 0.10); }
+    }
+  </style>
+
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="310" y="22" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" letter-spacing="0.12em">THE FORCED CONTINUITY DEFECT</text>
+  </g>
+
+  <!-- LEFT: expected -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="20" y="38" width="270" height="184" rx="8"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="20" y="38" width="270" height="184" rx="8" stroke-width="1.4" fill="none"/>
+    <text x="155" y="62" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">what the model expects</text>
+    <text x="155" y="78" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">continuous: safe &#8594; safe &#8594; safe</text>
+  </g>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="40" y="128" width="62" height="28" rx="5" stroke-width="1.2" fill="none"/>
+    <rect x="208" y="128" width="62" height="28" rx="5" stroke-width="1.2" fill="none"/>
+    <text x="71" y="146" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" stroke="none">state A</text>
+    <text x="239" y="146" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" stroke="none">state B</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="71" y="170" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">(safe)</text>
+    <text x="239" y="170" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle">(safe)</text>
+  </g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <path d="M102,142 C135,196 175,196 205,144" stroke-width="1.5" stroke-dasharray="4 3" fill="none"/>
+    <polygon points="207,141 201,145 206,149" stroke="none"/>
+    <text x="155" y="206" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">gentle valley</text>
+  </g>
+
+  <!-- RIGHT: actual -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="330" y="38" width="270" height="184" rx="8"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="330" y="38" width="270" height="184" rx="8" stroke-width="1.4" fill="none"/>
+    <text x="465" y="62" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">what software does</text>
+    <text x="465" y="78" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">discrete: safe | cliff</text>
+  </g>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <rect x="345" y="108" width="62" height="28" rx="5" stroke-width="1.2" fill="none"/>
+    <text x="376" y="126" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" stroke="none">state A</text>
+    <polyline points="345,142 470,142 470,208" stroke-width="1.6" fill="none"/>
+  </g>
+  <g class="muted" stroke="currentColor" fill="none">
+    <line x1="460" y1="150" x2="468" y2="158" stroke-width="0.8"/>
+    <line x1="460" y1="164" x2="468" y2="172" stroke-width="0.8"/>
+    <line x1="460" y1="178" x2="468" y2="186" stroke-width="0.8"/>
+    <line x1="460" y1="192" x2="468" y2="200" stroke-width="0.8"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <line x1="409" y1="122" x2="474" y2="122" stroke-width="1.2" stroke-dasharray="3 3"/>
+    <text x="440" y="114" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">1 ms async gap</text>
+    <path d="M476,122 C486,122 482,140 482,150 L482,196" stroke-width="1.4" fill="none"/>
+    <polygon points="482,202 478,194 486,194" stroke="none"/>
+    <text x="540" y="182" font-family="Fraunces, serif" font-size="14" font-style="italic" text-anchor="middle" stroke="none">crash &#8722;&#8734;</text>
+    <text x="540" y="198" font-family="JetBrains Mono, monospace" font-size="7" text-anchor="middle" stroke="none">null deref / dead widget</text>
+  </g>
+
+  <!-- code strip -->
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="20" y="236" width="580" height="54" rx="6"/></g>
+  <g class="muted" stroke="currentColor" fill="none"><rect x="20" y="236" width="580" height="54" rx="6" stroke-width="1"/></g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="36" y="257" font-family="JetBrains Mono, monospace" font-size="10">final user = await fetchUserData();</text>
+    <text x="36" y="279" font-family="JetBrains Mono, monospace" font-size="10">displayUserProfile(user);</text>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <polyline points="256,252 262,252 262,274 256,274" stroke-width="1.2" fill="none"/>
+    <text x="272" y="267" font-family="JetBrains Mono, monospace" font-size="8.5" stroke="none">&#8592; 200 ms here: user taps Back; line 2 paints a ghost</text>
+  </g>
+</svg>

@@ -1,0 +1,55 @@
+<svg width="210" height="60" viewBox="0 0 210 60" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Synthetic Scars glyph: a stitched oxblood scar on the left becomes, through an arrow, a blueprint transition between two states guarded by a bracketed condition.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.08); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+    }
+  </style>
+  <!-- the scar: a stitched wound -->
+  <g class="oxblood" stroke="currentColor" fill="none" stroke-linecap="round">
+    <path d="M6,34 C22,26 40,40 58,30" stroke-width="1.6"/>
+    <line x1="14" y1="24" x2="18" y2="40" stroke-width="1.2"/>
+    <line x1="26" y1="25" x2="29" y2="41" stroke-width="1.2"/>
+    <line x1="38" y1="26" x2="40" y2="42" stroke-width="1.2"/>
+    <line x1="50" y1="24" x2="51" y2="40" stroke-width="1.2"/>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="6" y="12" font-family="ui-monospace, monospace" font-size="6" letter-spacing="0.1em">SCAR</text>
+  </g>
+  <!-- becomes -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="66" y1="32" x2="84" y2="32" stroke-width="1.1" stroke-dasharray="2 2"/>
+    <polygon points="88,32 82,29 82,35" stroke="none"/>
+  </g>
+  <!-- the guard: two states and a guarded edge -->
+  <g class="blueprint-tint" stroke="none" fill="currentColor">
+    <circle cx="106" cy="32" r="12"/>
+    <circle cx="190" cy="32" r="12"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <circle cx="106" cy="32" r="12" stroke-width="1.4" fill="none"/>
+    <circle cx="190" cy="32" r="12" stroke-width="1.4" fill="none"/>
+    <line x1="118" y1="32" x2="172" y2="32" stroke-width="1.3"/>
+    <polygon points="178,32 171,28.5 171,35.5" stroke="none"/>
+    <text x="146" y="25" font-family="ui-monospace, monospace" font-size="7" text-anchor="middle" stroke="none">[guard]</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="148" y="12" font-family="ui-monospace, monospace" font-size="6" letter-spacing="0.1em" text-anchor="middle">GUARD</text>
+  </g>
+</svg>

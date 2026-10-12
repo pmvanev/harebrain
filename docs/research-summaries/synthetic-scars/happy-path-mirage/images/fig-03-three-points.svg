@@ -1,0 +1,74 @@
+<svg viewBox="0 0 620 256" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two panels. Left: two points joined by a line, with three different dashed candidate planes fanning through it, labelled the plane is a guess. Right: three non-collinear points with the single shaded plane through them, labelled the plane is forced.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    .muted-tint     { color: rgba(93, 85, 63, 0.06); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+      .muted-tint     { color: rgba(168, 156, 125, 0.10); }
+    }
+  </style>
+
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="310" y="22" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" letter-spacing="0.12em">THE 3-POINT SOLUTION PLANE</text>
+  </g>
+
+  <!-- LEFT: two points -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="36" width="280" height="210" rx="8"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="20" y="36" width="280" height="210" rx="8" stroke-width="1.4" fill="none"/>
+    <text x="160" y="60" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">two instances</text>
+    <polygon points="90,154 230,126 250,74 110,102" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+    <polygon points="90,154 230,126 202,168 62,196" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+    <polygon points="90,154 230,126 276,156 136,184" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+  </g>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <line x1="90" y1="154" x2="230" y2="126" stroke-width="1.4"/>
+    <circle cx="110" cy="150" r="4.5" stroke="none"/>
+    <circle cx="210" cy="130" r="4.5" stroke="none"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="160" y="222" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">the plane is a guess</text>
+    <text x="160" y="235" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">abstracting from 2 call sites</text>
+  </g>
+
+  <!-- RIGHT: three points -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="320" y="36" width="280" height="210" rx="8"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="320" y="36" width="280" height="210" rx="8" stroke-width="1.4" fill="none"/>
+    <text x="460" y="60" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">three instances</text>
+  </g>
+  <g class="sage-tint" stroke="none" fill="currentColor">
+    <polygon points="362,178 552,150 512,80 334,106"/>
+  </g>
+  <g class="sage" stroke="currentColor" fill="none">
+    <polygon points="362,178 552,150 512,80 334,106" stroke-width="1.3"/>
+  </g>
+  <g class="ink" stroke="currentColor" fill="currentColor">
+    <circle cx="400" cy="155" r="4.5" stroke="none"/>
+    <circle cx="510" cy="140" r="4.5" stroke="none"/>
+    <circle cx="465" cy="102" r="4.5" stroke="none"/>
+    <text x="400" y="170" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">1</text>
+    <text x="510" y="134" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start" dx="7" stroke="none">2</text>
+    <text x="465" y="94" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle" stroke="none">3</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="460" y="222" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">the plane is forced</text>
+    <text x="460" y="235" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">abstract only now</text>
+  </g>
+</svg>

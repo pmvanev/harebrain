@@ -1,0 +1,82 @@
+<svg viewBox="0 0 620 306" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two panels. Left, oxblood: a Makefile in the prompt; the DAG is text, the LLM decides whether a target is satisfied and whether to stop, and tool calls carry out both the recipe and the gate decision, so the constrained party checks its own constraint. Right, blueprint: a chart in the runtime; the engine ticks guards against world state, the LLM at the leaf runs one recipe, and the resulting artifact or signal returns to the engine, so the brain never holds the instruction pointer.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.08); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    .muted-tint     { color: rgba(93, 85, 63, 0.06); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+      .muted-tint     { color: rgba(168, 156, 125, 0.10); }
+    }
+  </style>
+  <g class="muted" stroke="none" fill="currentColor"><text x="310" y="20" font-family="JetBrains Mono, ui-monospace, monospace" font-size="9" text-anchor="middle" letter-spacing="0.12em">WHO EVALUATES Satisfied(target)?</text></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="16" y="34" width="280" height="236" rx="8"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="16" y="34" width="280" height="236" rx="8" stroke-width="1.4"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="156" y="56" font-family="Fraunces, serif" font-size="13" text-anchor="middle" font-style="italic">a Makefile in the prompt</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="156" y="70" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" text-anchor="middle">Part 3.6</text></g>
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="40" y="84" width="232" height="40" rx="5"/></g>
+  <g class="muted" stroke="currentColor" fill="none"><rect x="40" y="84" width="232" height="40" rx="5" stroke-width="1.3"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="52" y="101" font-family="Fraunces, serif" font-size="11" text-anchor="start" font-style="italic">prompt · the DAG as text</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="52" y="116" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" text-anchor="start">target: prereqs, read by attention</text></g>
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="40" y="140" width="232" height="40" rx="5"/></g>
+  <g class="muted" stroke="currentColor" fill="none"><rect x="40" y="140" width="232" height="40" rx="5" stroke-width="1.3"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="52" y="157" font-family="Fraunces, serif" font-size="11" text-anchor="start" font-style="italic">the LLM</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="52" y="172" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" text-anchor="start">is it satisfied? which leaf? stop?</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <path d="M156,124 V139" fill="none" stroke-width="1.1"/>
+    <polygon points="156,140 153,134 159,134" stroke="none"/>
+  </g>
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="40" y="196" width="232" height="40" rx="5"/></g>
+  <g class="muted" stroke="currentColor" fill="none"><rect x="40" y="196" width="232" height="40" rx="5" stroke-width="1.3"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="52" y="213" font-family="Fraunces, serif" font-size="11" text-anchor="start" font-style="italic">tool calls</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="52" y="228" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" text-anchor="start">recipe and the gate decision</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <path d="M156,180 V195" fill="none" stroke-width="1.1"/>
+    <polygon points="156,196 153,190 159,190" stroke="none"/>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="156" y="262" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" text-anchor="middle">the constrained party checks its own constraint</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="324" y="34" width="280" height="236" rx="8"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="324" y="34" width="280" height="236" rx="8" stroke-width="1.4"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="464" y="56" font-family="Fraunces, serif" font-size="13" text-anchor="middle" font-style="italic">a chart in the runtime</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="464" y="70" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" text-anchor="middle">harebrain</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="348" y="84" width="232" height="40" rx="5"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="348" y="84" width="232" height="40" rx="5" stroke-width="1.3"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="360" y="101" font-family="Fraunces, serif" font-size="11" text-anchor="start" font-style="italic">the engine</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="360" y="116" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" text-anchor="start">ticks guards against world state</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="348" y="140" width="232" height="40" rx="5"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="348" y="140" width="232" height="40" rx="5" stroke-width="1.3"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="360" y="157" font-family="Fraunces, serif" font-size="11" text-anchor="start" font-style="italic">LLM at the leaf</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="360" y="172" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" text-anchor="start">runs one recipe, nothing else</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <path d="M464,124 V139" fill="none" stroke-width="1.1"/>
+    <polygon points="464,140 461,134 467,134" stroke="none"/>
+  </g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="348" y="196" width="232" height="40" rx="5"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="348" y="196" width="232" height="40" rx="5" stroke-width="1.3"/></g>
+  <g class="ink" stroke="none" fill="currentColor"><text x="360" y="213" font-family="Fraunces, serif" font-size="11" text-anchor="start" font-style="italic">artifact · signal</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="360" y="228" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" text-anchor="start">file, exit code, approval event</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <path d="M464,180 V195" fill="none" stroke-width="1.1"/>
+    <polygon points="464,196 461,190 467,190" stroke="none"/>
+  </g>
+  <g class="blueprint" stroke="currentColor" fill="currentColor">
+    <path d="M580,216 H592 V104 H582" fill="none" stroke-width="1.2" stroke-dasharray="3 3"/>
+    <polygon points="581,104 587,101 587,107" stroke="none"/>
+  </g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="464" y="262" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" text-anchor="middle">the brain never holds the instruction pointer</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="310" y="294" font-family="Spectral, serif" font-size="10.5" text-anchor="middle" font-style="italic">same graph · different evaluator · only the right-hand one is a guarantee</text></g>
+</svg>

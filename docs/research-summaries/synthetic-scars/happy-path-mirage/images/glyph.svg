@@ -1,0 +1,56 @@
+<svg viewBox="0 0 210 60" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Happy-Path Mirage glyph: a dashed smooth curve, the path the model expects, glides from state A to state B across a gap that is really a vertical cliff dropping to minus infinity.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.07); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    .muted-tint     { color: rgba(93, 85, 63, 0.06); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+      .muted-tint     { color: rgba(168, 156, 125, 0.10); }
+    }
+  </style>
+
+  <!-- ground: safe ledge, cliff, far ledge -->
+  <g class="ink" stroke="currentColor" fill="none">
+    <polyline points="6,26 92,26 92,54" stroke-width="1.4"/>
+    <polyline points="150,54 150,26 204,26" stroke-width="1.4"/>
+  </g>
+  <g class="muted" stroke="currentColor" fill="none">
+    <line x1="96" y1="30" x2="104" y2="38" stroke-width="0.8"/>
+    <line x1="96" y1="38" x2="104" y2="46" stroke-width="0.8"/>
+    <line x1="140" y1="30" x2="146" y2="36" stroke-width="0.8"/>
+    <line x1="140" y1="40" x2="146" y2="46" stroke-width="0.8"/>
+  </g>
+  <!-- state dots -->
+  <g class="blueprint" stroke="none" fill="currentColor">
+    <circle cx="22" cy="21" r="4"/>
+    <circle cx="186" cy="21" r="4"/>
+    <text x="22" y="10" font-family="JetBrains Mono, monospace" font-size="6" text-anchor="middle">A</text>
+    <text x="186" y="10" font-family="JetBrains Mono, monospace" font-size="6" text-anchor="middle">B</text>
+  </g>
+  <!-- expected smooth path (dashed) -->
+  <g class="sage" stroke="currentColor" fill="none">
+    <path d="M27,21 C70,21 80,36 121,36 C160,36 168,21 181,21" stroke-width="1.2" stroke-dasharray="3 2.5"/>
+  </g>
+  <g class="sage" stroke="none" fill="currentColor">
+    <text x="121" y="14" font-family="JetBrains Mono, monospace" font-size="6" text-anchor="middle" letter-spacing="0.2">expected</text>
+  </g>
+  <!-- the fall -->
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="121" y="56" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle">&#8722;&#8734;</text>
+  </g>
+</svg>

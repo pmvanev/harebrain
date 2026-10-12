@@ -1,0 +1,92 @@
+<svg viewBox="0 0 620 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The Socratic Gate, three stages. Beginner to junior: understand every line or make the agent explain it; payoff, syntax, semantics and standard libraries. Junior to senior: understand the choices or challenge them; payoff, the 3 AM wince, sooner. Senior to super-senior: inspect the synthesis in plan.md and review.md; payoff, the scars upskill the master.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .sage           { color: #4f6b3f; }
+    .oxblood        { color: #8b1f2c; }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .sage           { color: #b1c98c; }
+      .oxblood        { color: #e09098; }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+    }
+  </style>
+
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="310" y="22" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" letter-spacing="0.12em">THE SOCRATIC GATE &#8212; ONE RULE, THREE ALTITUDES</text>
+  </g>
+
+  <!-- stage frames -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor">
+    <rect x="20" y="40" width="176" height="160" rx="8"/>
+    <rect x="222" y="40" width="176" height="160" rx="8"/>
+    <rect x="424" y="40" width="176" height="160" rx="8"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="20" y="40" width="176" height="160" rx="8" stroke-width="1.3" fill="none"/>
+    <rect x="222" y="40" width="176" height="160" rx="8" stroke-width="1.3" fill="none"/>
+    <rect x="424" y="40" width="176" height="160" rx="8" stroke-width="1.3" fill="none"/>
+    <text x="108" y="62" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle" stroke="none">beginner &#8594; junior</text>
+    <text x="310" y="62" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle" stroke="none">junior &#8594; senior</text>
+    <text x="512" y="62" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle" stroke="none">senior &#8594; super-senior</text>
+  </g>
+
+  <!-- gate pills -->
+  <g class="sage-tint" stroke="none" fill="currentColor">
+    <rect x="32" y="76" width="152" height="52" rx="5"/>
+    <rect x="234" y="76" width="152" height="52" rx="5"/>
+    <rect x="436" y="76" width="152" height="52" rx="5"/>
+  </g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="32" y="76" width="152" height="52" rx="5" stroke-width="1.2" fill="none"/>
+    <rect x="234" y="76" width="152" height="52" rx="5" stroke-width="1.2" fill="none"/>
+    <rect x="436" y="76" width="152" height="52" rx="5" stroke-width="1.2" fill="none"/>
+    <text x="40" y="89" font-family="JetBrains Mono, monospace" font-size="6.5" letter-spacing="0.1em" stroke="none">GATE</text>
+    <text x="242" y="89" font-family="JetBrains Mono, monospace" font-size="6.5" letter-spacing="0.1em" stroke="none">GATE</text>
+    <text x="444" y="89" font-family="JetBrains Mono, monospace" font-size="6.5" letter-spacing="0.1em" stroke="none">GATE</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="108" y="104" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">understand every line,</text>
+    <text x="108" y="117" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">or make it explain</text>
+    <text x="310" y="104" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">understand the choices,</text>
+    <text x="310" y="117" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">or challenge them</text>
+    <text x="512" y="104" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">inspect the synthesis</text>
+    <text x="512" y="117" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">in plan.md, review.md</text>
+  </g>
+
+  <!-- payoff lines -->
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="108" y="150" font-family="JetBrains Mono, monospace" font-size="6.5" text-anchor="middle" letter-spacing="0.1em">YOU LEARN</text>
+    <text x="310" y="150" font-family="JetBrains Mono, monospace" font-size="6.5" text-anchor="middle" letter-spacing="0.1em">YOU LEARN</text>
+    <text x="512" y="150" font-family="JetBrains Mono, monospace" font-size="6.5" text-anchor="middle" letter-spacing="0.1em">YOU LEARN</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="108" y="168" font-family="Fraunces, serif" font-size="10" font-style="italic" text-anchor="middle">syntax, semantics,</text>
+    <text x="108" y="182" font-family="Fraunces, serif" font-size="10" font-style="italic" text-anchor="middle">standard libraries</text>
+    <text x="310" y="168" font-family="Fraunces, serif" font-size="10" font-style="italic" text-anchor="middle">trade-offs and the</text>
+    <text x="310" y="182" font-family="Fraunces, serif" font-size="10" font-style="italic" text-anchor="middle">3 AM wince, sooner</text>
+    <text x="512" y="168" font-family="Fraunces, serif" font-size="10" font-style="italic" text-anchor="middle">what the scar library</text>
+    <text x="512" y="182" font-family="Fraunces, serif" font-size="10" font-style="italic" text-anchor="middle">holds that you don't</text>
+  </g>
+
+  <!-- arrows between stages -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="198" y1="120" x2="216" y2="120" stroke-width="1.4"/>
+    <polygon points="220,120 214,117 214,123" stroke="none"/>
+    <line x1="400" y1="120" x2="418" y2="120" stroke-width="1.4"/>
+    <polygon points="422,120 416,117 416,123" stroke="none"/>
+  </g>
+
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="40" y1="216" x2="580" y2="216" stroke-width="1"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="310" y="236" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">every stage swaps typing for interrogation &#183; the human holds the pause gate</text>
+  </g>
+</svg>

@@ -1,0 +1,92 @@
+<svg viewBox="0 0 620 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The bidirectional audit. A directive is a write: 'add close() on line 28' coerces a double-close regression into working code. A question is a read with a conditional write: 'what if the parent disposes?' branches to Case A, the model fixes a real gap (the author estimates 80 to 85 percent), or Case B, the model defends its design and the human types 'ok' (10 to 20 percent). Beneath: the human spends O(1), the model spends O(N).">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .sage           { color: #4f6b3f; }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .sage           { color: #b1c98c; }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+    }
+  </style>
+
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="310" y="22" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" letter-spacing="0.12em">THE BIDIRECTIONAL AUDIT</text>
+  </g>
+
+  <!-- LEFT: directive = write -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor">
+    <rect x="20" y="44" width="180" height="64" rx="7"/>
+    <rect x="20" y="164" width="180" height="64" rx="7"/>
+  </g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="20" y="44" width="180" height="64" rx="7" stroke-width="1.4" fill="none"/>
+    <rect x="20" y="164" width="180" height="64" rx="7" stroke-width="1.4" fill="none"/>
+    <text x="110" y="66" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle" stroke="none">directive = write</text>
+    <text x="110" y="186" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle" stroke="none">coerced regression</text>
+    <line x1="110" y1="109" x2="110" y2="158" stroke-width="1.3"/>
+    <polygon points="110,162 107,156 113,156" stroke="none"/>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="110" y="87" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">'add close() on line 28'</text>
+    <text x="110" y="99" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">no room for reality</text>
+    <text x="110" y="207" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">double-close injected into</text>
+    <text x="110" y="219" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">code that was already safe</text>
+  </g>
+
+  <!-- RIGHT: question = read with conditional write -->
+  <g class="sage-tint" stroke="none" fill="currentColor">
+    <rect x="320" y="44" width="200" height="64" rx="7"/>
+  </g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="320" y="44" width="200" height="64" rx="7" stroke-width="1.8" fill="none"/>
+    <text x="420" y="66" font-family="Fraunces, serif" font-size="12" font-style="italic" text-anchor="middle" stroke="none">question = read</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="420" y="87" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">'what if the parent disposes?'</text>
+    <text x="420" y="99" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">with a conditional write</text>
+  </g>
+
+  <!-- branches -->
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <line x1="390" y1="109" x2="330" y2="158" stroke-width="1.3"/>
+    <polygon points="327,161 330,154 335,159" stroke="none"/>
+    <line x1="450" y1="109" x2="510" y2="158" stroke-width="1.3"/>
+    <polygon points="513,161 505,159 510,154" stroke="none"/>
+  </g>
+  <g class="sage-tint" stroke="none" fill="currentColor">
+    <rect x="230" y="164" width="175" height="64" rx="7"/>
+  </g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="230" y="164" width="175" height="64" rx="7" stroke-width="1.3" fill="none"/>
+    <text x="317" y="185" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle" stroke="none">case A: model fixes it</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="317" y="204" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">a real gap, found by tracing</text>
+    <text x="317" y="217" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">~80&#8211;85% (author's estimate)</text>
+  </g>
+  <g class="muted" stroke="currentColor" fill="none">
+    <rect x="425" y="164" width="175" height="64" rx="7" stroke-width="1.3" stroke-dasharray="4 3"/>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="512" y="185" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle">case B: model defends</text>
+    <text x="512" y="204" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">human types 'ok'; zero harm</text>
+    <text x="512" y="217" font-family="JetBrains Mono, monospace" font-size="7.5" text-anchor="middle">~10&#8211;20% (author's estimate)</text>
+  </g>
+
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="40" y1="250" x2="580" y2="250" stroke-width="1"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="310" y="270" font-family="JetBrains Mono, monospace" font-size="8.5" text-anchor="middle">human: O(1), the direction of the search beam &#183; model: O(N), the traversal</text>
+    <text x="310" y="287" font-family="Fraunces, serif" font-size="10" font-style="italic" text-anchor="middle">the question leaves the model room to be right; the directive does not</text>
+  </g>
+</svg>

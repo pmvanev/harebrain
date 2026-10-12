@@ -1,0 +1,94 @@
+<svg viewBox="0 0 620 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The same stream-subscription bug handled two ways. Left, a directive (store the subscription and cancel it in dispose) patches one coordinate and closes one of four lifecycle hazards. Right, a Socratic question naming reconnects and in-flight HTTP calls leads the model to close all four: cancel in dispose, cancel before re-listening, a cancelable in-flight operation with a mounted check, and an onError barrier.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    .muted-tint     { color: rgba(93, 85, 63, 0.06); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+      .muted-tint     { color: rgba(168, 156, 125, 0.10); }
+    }
+  </style>
+
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="310" y="20" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" letter-spacing="0.12em">SAME BUG &#183; TWO INTERVENTIONS</text>
+  </g>
+
+  <!-- LEFT: directive -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="34" width="280" height="262" rx="8"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="20" y="34" width="280" height="262" rx="8" stroke-width="1.4" fill="none"/>
+    <text x="160" y="58" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">directive &#8212; &#8220;quench&#8221;</text>
+  </g>
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="32" y="70" width="256" height="52" rx="4"/></g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="42" y="92" font-family="JetBrains Mono, monospace" font-size="8.5">&#8220;Store the subscription in _sub</text>
+    <text x="42" y="106" font-family="JetBrains Mono, monospace" font-size="8.5"> and cancel it inside dispose().&#8221;</text>
+  </g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="160" y1="128" x2="160" y2="146" stroke-width="1.2"/>
+    <polygon points="160,150 157,144 163,144" stroke="none"/>
+    <text x="170" y="142" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">T &#8594; 0</text>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="160" y="168" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle">patches one coordinate</text>
+  </g>
+  <g class="sage" stroke="none" fill="currentColor">
+    <text x="40" y="192" font-family="JetBrains Mono, monospace" font-size="8.5">&#10003; cancel in dispose()</text>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="40" y="210" font-family="JetBrains Mono, monospace" font-size="8.5">&#10007; re-entrant initListener()</text>
+    <text x="40" y="228" font-family="JetBrains Mono, monospace" font-size="8.5">&#10007; in-flight Future after dispose</text>
+    <text x="40" y="246" font-family="JetBrains Mono, monospace" font-size="8.5">&#10007; stream error unhandled</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="160" y="280" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">1 of 4 lifecycle hazards closed</text>
+  </g>
+
+  <!-- RIGHT: question -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="320" y="34" width="280" height="262" rx="8"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="320" y="34" width="280" height="262" rx="8" stroke-width="2" fill="none"/>
+    <text x="460" y="58" font-family="Fraunces, serif" font-size="13" font-style="italic" text-anchor="middle" stroke="none">question &#8212; &#8220;anneal&#8221;</text>
+  </g>
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="332" y="70" width="256" height="52" rx="4"/></g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="342" y="86" font-family="JetBrains Mono, monospace" font-size="8.5">&#8220;What happens if initListener() fires</text>
+    <text x="342" y="100" font-family="JetBrains Mono, monospace" font-size="8.5"> twice on reconnect, or a callback is</text>
+    <text x="342" y="114" font-family="JetBrains Mono, monospace" font-size="8.5"> awaiting HTTP when the user leaves?&#8221;</text>
+  </g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="460" y1="128" x2="460" y2="146" stroke-width="1.2"/>
+    <polygon points="460,150 457,144 463,144" stroke="none"/>
+    <text x="470" y="142" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">T &#8593;</text>
+  </g>
+  <g class="sage" stroke="none" fill="currentColor">
+    <text x="460" y="168" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="middle">re-derives the lifecycle</text>
+    <text x="340" y="192" font-family="JetBrains Mono, monospace" font-size="8.5">&#10003; cancel in dispose()</text>
+    <text x="340" y="210" font-family="JetBrains Mono, monospace" font-size="8.5">&#10003; cancel before re-listening</text>
+    <text x="340" y="228" font-family="JetBrains Mono, monospace" font-size="8.5">&#10003; cancelable op + mounted check</text>
+    <text x="340" y="246" font-family="JetBrains Mono, monospace" font-size="8.5">&#10003; onError barrier</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="460" y="280" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">4 of 4 closed</text>
+  </g>
+
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="40" y1="310" x2="580" y2="310" stroke-width="1"/>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="310" y="328" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">the question names the failure scenarios &#183; the directive names only the fix</text>
+  </g>
+</svg>

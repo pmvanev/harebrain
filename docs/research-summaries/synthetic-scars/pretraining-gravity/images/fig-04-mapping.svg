@@ -1,0 +1,111 @@
+<svg viewBox="0 0 620 614" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two columns mapping Part 3.8 constructs (left, oxblood) onto harebrain primitives (right, blueprint): invented prompt DSL to the .mpl surface syntax; Makefile DAG to statechart topology; init.d latches to the blackboard and Manifest; fork and wait to the LLM at the leaf; RFC 822 and EBNF to the typed seam; Design-by-Contract to a sound transition guard; two-phase commit to an AND-state join; circuit breaker to a retry budget as a chart state; compiler-pass diagnostics to the critic bank.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .blueprint      { color: #1f4f7a; }
+    .sage           { color: #4f6b3f; }
+    .blueprint-tint { color: rgba(31, 79, 122, 0.08); }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .blueprint      { color: #88c0e8; }
+      .sage           { color: #b1c98c; }
+      .blueprint-tint { color: rgba(136, 192, 232, 0.10); }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+    }
+  </style>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="140" y="28" font-family="Fraunces, serif" font-size="14" font-style="italic" text-anchor="middle">Synthetic Scars, Part 3.8</text></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="480" y="28" font-family="Fraunces, serif" font-size="14" font-style="italic" text-anchor="middle">harebrain</text></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="310" y="28" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle">&#x2194;</text></g>
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="40" y1="40" x2="580" y2="40" stroke-width="1"/></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="60" width="240" height="44" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="20" y="60" width="240" height="44" rx="6" stroke-width="1.3"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="30" y="78" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="start">invented prompt DSL</text></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="30" y="95" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">Freq &#8776; 0, model interprets it</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="360" y="60" width="240" height="44" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="360" y="60" width="240" height="44" rx="6" stroke-width="1.3"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="370" y="78" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="start">.mpl surface syntax</text></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="370" y="95" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">free if run; a cost if LLM-written</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="262" y1="82" x2="352" y2="82" stroke-width="1.2" stroke-dasharray="3 3"/><polygon points="358,82 351,78 351,86" stroke="none"/></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="118" width="240" height="44" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="20" y="118" width="240" height="44" rx="6" stroke-width="1.3"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="30" y="136" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="start">Makefile DAG</text></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="30" y="153" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">target: prerequisites</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="360" y="118" width="240" height="44" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="360" y="118" width="240" height="44" rx="6" stroke-width="1.3"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="370" y="136" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="start">statechart topology</text></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="370" y="153" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">Harel 1987 &#8212; our own canon</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="262" y1="140" x2="352" y2="140" stroke-width="1.2" stroke-dasharray="3 3"/><polygon points="358,140 351,136 351,144" stroke="none"/></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="176" width="240" height="44" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="20" y="176" width="240" height="44" rx="6" stroke-width="1.3"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="30" y="194" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="start">init.d write-once latches</text></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="30" y="211" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">state outside the context</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="360" y="176" width="240" height="44" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="360" y="176" width="240" height="44" rx="6" stroke-width="1.3"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="370" y="194" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="start">blackboard / Manifest</text></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="370" y="211" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">tick-snapshotted, never summarized</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="262" y1="198" x2="352" y2="198" stroke-width="1.2" stroke-dasharray="3 3"/><polygon points="358,198 351,194 351,202" stroke="none"/></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="234" width="240" height="44" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="20" y="234" width="240" height="44" rx="6" stroke-width="1.3"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="30" y="252" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="start">fork() / wait()</text></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="30" y="269" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">isolated child, exit 0</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="360" y="234" width="240" height="44" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="360" y="234" width="240" height="44" rx="6" stroke-width="1.3"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="370" y="252" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="start">LLM at the leaf</text></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="370" y="269" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">one fresh call per state</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="262" y1="256" x2="352" y2="256" stroke-width="1.2" stroke-dasharray="3 3"/><polygon points="358,256 351,252 351,260" stroke="none"/></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="292" width="240" height="44" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="20" y="292" width="240" height="44" rx="6" stroke-width="1.3"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="30" y="310" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="start">RFC 822 / EBNF grammar</text></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="30" y="327" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">Key: Value, mutual exclusion</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="360" y="292" width="240" height="44" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="360" y="292" width="240" height="44" rx="6" stroke-width="1.3"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="370" y="310" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="start">typed seam</text></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="370" y="327" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">host-import return grammar</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="262" y1="314" x2="352" y2="314" stroke-width="1.2" stroke-dasharray="3 3"/><polygon points="358,314 351,310 351,318" stroke="none"/></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="350" width="240" height="44" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="20" y="350" width="240" height="44" rx="6" stroke-width="1.3"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="30" y="368" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="start">Design-by-Contract</text></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="30" y="385" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">@requires / @ensures</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="360" y="350" width="240" height="44" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="360" y="350" width="240" height="44" rx="6" stroke-width="1.3"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="370" y="368" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="start">sound transition guard</text></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="370" y="385" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">pre/postcondition on the edge</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="262" y1="372" x2="352" y2="372" stroke-width="1.2" stroke-dasharray="3 3"/><polygon points="358,372 351,368 351,376" stroke="none"/></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="408" width="240" height="44" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="20" y="408" width="240" height="44" rx="6" stroke-width="1.3"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="30" y="426" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="start">2PC + WAL</text></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="30" y="443" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">commit iff every vote is yes</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="360" y="408" width="240" height="44" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="360" y="408" width="240" height="44" rx="6" stroke-width="1.3"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="370" y="426" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="start">AND-state join</text></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="370" y="443" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">all regions done, or none</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="262" y1="430" x2="352" y2="430" stroke-width="1.2" stroke-dasharray="3 3"/><polygon points="358,430 351,426 351,434" stroke="none"/></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="466" width="240" height="44" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="20" y="466" width="240" height="44" rx="6" stroke-width="1.3"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="30" y="484" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="start">circuit breaker FSM</text></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="30" y="501" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">CLOSED &#8594; OPEN at k</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="360" y="466" width="240" height="44" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="360" y="466" width="240" height="44" rx="6" stroke-width="1.3"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="370" y="484" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="start">retry budget as a state</text></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="370" y="501" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">when failures &gt;= k =&gt; Escalate</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="262" y1="488" x2="352" y2="488" stroke-width="1.2" stroke-dasharray="3 3"/><polygon points="358,488 351,484 351,492" stroke="none"/></g>
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="524" width="240" height="44" rx="6"/></g>
+  <g class="oxblood" stroke="currentColor" fill="none"><rect x="20" y="524" width="240" height="44" rx="6" stroke-width="1.3"/></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="30" y="542" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="start">compiler-pass diagnostics</text></g>
+  <g class="oxblood" stroke="none" fill="currentColor"><text x="30" y="559" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">error[CODE], BLKR / WARN</text></g>
+  <g class="blueprint-tint" stroke="none" fill="currentColor"><rect x="360" y="524" width="240" height="44" rx="6"/></g>
+  <g class="blueprint" stroke="currentColor" fill="none"><rect x="360" y="524" width="240" height="44" rx="6" stroke-width="1.3"/></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="370" y="542" font-family="Fraunces, serif" font-size="11" font-style="italic" text-anchor="start">critic bank</text></g>
+  <g class="blueprint" stroke="none" fill="currentColor"><text x="370" y="559" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">typed verdicts per pass</text></g>
+  <g class="muted" stroke="currentColor" fill="currentColor"><line x1="262" y1="546" x2="352" y2="546" stroke-width="1.2" stroke-dasharray="3 3"/><polygon points="358,546 351,542 351,550" stroke="none"/></g>
+  <g class="rule-soft" stroke="currentColor" fill="none"><line x1="40" y1="584" x2="580" y2="584" stroke-width="1"/></g>
+  <g class="muted" stroke="none" fill="currentColor"><text x="310" y="602" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="middle">Schwartz prompts the model to imitate each primitive &#183; harebrain builds the primitive and lets the runtime run it</text></g>
+</svg>

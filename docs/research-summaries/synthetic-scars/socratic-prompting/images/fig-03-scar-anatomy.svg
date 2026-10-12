@@ -1,0 +1,85 @@
+<svg viewBox="0 0 620 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The three-part synthetic scar. One, the wound: the runtime crime scene, for example setState called after dispose. Two, the trap: the high-probability shortcut, for example listen with no teardown. Three, the permanent reflex: an affirmative invariant, for example bind every subscription to a teardown queue, probe-tested first. Beneath, the reflex is phrased affirmatively, not as a prohibition.">
+  <style>
+    .ink            { color: #1a1810; }
+    .muted          { color: #5d553f; }
+    .rule-soft      { color: #d4c8a4; }
+    .oxblood        { color: #8b1f2c; }
+    .sage           { color: #4f6b3f; }
+    .oxblood-tint   { color: rgba(139, 31, 44, 0.06); }
+    .sage-tint      { color: rgba(79, 107, 63, 0.08); }
+    .muted-tint     { color: rgba(93, 85, 63, 0.06); }
+    @media (prefers-color-scheme: dark) {
+      .ink            { color: #ede2c4; }
+      .muted          { color: #a89c7d; }
+      .rule-soft      { color: #3a3327; }
+      .oxblood        { color: #e09098; }
+      .sage           { color: #b1c98c; }
+      .oxblood-tint   { color: rgba(224, 144, 152, 0.10); }
+      .sage-tint      { color: rgba(177, 201, 140, 0.10); }
+      .muted-tint     { color: rgba(168, 156, 125, 0.10); }
+    }
+  </style>
+
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="310" y="20" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" letter-spacing="0.12em">THE THREE-PART SCAR</text>
+  </g>
+
+  <!-- 1 wound -->
+  <g class="oxblood-tint" stroke="none" fill="currentColor"><rect x="20" y="36" width="176" height="112" rx="7"/></g>
+  <g class="oxblood" stroke="currentColor" fill="currentColor">
+    <rect x="20" y="36" width="176" height="112" rx="7" stroke-width="1.4" fill="none"/>
+    <text x="32" y="58" font-family="Fraunces, serif" font-size="13" font-style="italic" stroke="none">1 &#183; the wound</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="32" y="78" font-family="Fraunces, serif" font-size="10">the runtime crime scene</text>
+  </g>
+  <g class="muted" stroke="none" fill="currentColor">
+    <text x="32" y="110" font-family="JetBrains Mono, monospace" font-size="8">setState() called</text>
+    <text x="32" y="123" font-family="JetBrains Mono, monospace" font-size="8">after dispose()</text>
+  </g>
+
+  <!-- 2 trap -->
+  <g class="muted-tint" stroke="none" fill="currentColor"><rect x="222" y="36" width="176" height="112" rx="7"/></g>
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <rect x="222" y="36" width="176" height="112" rx="7" stroke-width="1.4" fill="none" stroke-dasharray="4 3"/>
+    <text x="234" y="58" font-family="Fraunces, serif" font-size="13" font-style="italic" stroke="none">2 &#183; the trap</text>
+    <text x="234" y="110" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">.listen(...) with</text>
+    <text x="234" y="123" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">no teardown path</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="234" y="78" font-family="Fraunces, serif" font-size="10">the high-probability shortcut</text>
+  </g>
+
+  <!-- 3 reflex -->
+  <g class="sage-tint" stroke="none" fill="currentColor"><rect x="424" y="36" width="176" height="112" rx="7"/></g>
+  <g class="sage" stroke="currentColor" fill="currentColor">
+    <rect x="424" y="36" width="176" height="112" rx="7" stroke-width="2" fill="none"/>
+    <text x="436" y="58" font-family="Fraunces, serif" font-size="13" font-style="italic" stroke="none">3 &#183; the reflex</text>
+    <text x="436" y="104" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">bind every subscription</text>
+    <text x="436" y="117" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">to a teardown queue,</text>
+    <text x="436" y="130" font-family="JetBrains Mono, monospace" font-size="8" stroke="none">probe-tested first</text>
+  </g>
+  <g class="ink" stroke="none" fill="currentColor">
+    <text x="436" y="78" font-family="Fraunces, serif" font-size="10">an affirmative invariant</text>
+  </g>
+
+  <!-- arrows -->
+  <g class="muted" stroke="currentColor" fill="currentColor">
+    <line x1="198" y1="92" x2="216" y2="92" stroke-width="1.2"/>
+    <polygon points="220,92 214,89 214,95" stroke="none"/>
+    <line x1="400" y1="92" x2="418" y2="92" stroke-width="1.2"/>
+    <polygon points="422,92 416,89 416,95" stroke="none"/>
+  </g>
+
+  <g class="rule-soft" stroke="currentColor" fill="none">
+    <line x1="40" y1="166" x2="580" y2="166" stroke-width="1"/>
+  </g>
+  <g class="oxblood" stroke="none" fill="currentColor">
+    <text x="60" y="190" font-family="JetBrains Mono, monospace" font-size="8.5">not</text>
+    <text x="100" y="190" font-family="Fraunces, serif" font-size="10.5" font-style="italic">&#8220;Don&#8217;t let streams leak.&#8221;</text>
+  </g>
+  <g class="sage" stroke="none" fill="currentColor">
+    <text x="60" y="212" font-family="JetBrains Mono, monospace" font-size="8.5">but</text>
+    <text x="100" y="212" font-family="Fraunces, serif" font-size="10.5" font-style="italic">&#8220;Bind every stream subscription to a teardown queue, verified by a cancellation probe.&#8221;</text>
+  </g>
+</svg>
