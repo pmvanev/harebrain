@@ -37,3 +37,20 @@ repos:
         files: ^python/packages/wumpus/src/wumpus/(engine|surfaces)/.*\.py$
         pass_filenames: false
         require_serial: true
+
+      # CLAUDE.md § SVG conventions, enforced: every doc SVG carries a
+      # dark-mode block, and markdown references SVGs as images, not inline.
+      - id: svg-theme-check
+        name: Theme-adaptive SVGs (CLAUDE.md § SVG conventions)
+        entry: python3 scripts/check_svg_theme.py
+        language: system
+        files: ^docs/.*\.(svg|md)$
+
+      # Negative witnesses: the guards must still reject the bad payloads
+      # they exist for.
+      - id: guard-tests
+        name: Guard tests (docs_guard hook, SVG check)
+        entry: bash -c 'python3 -m unittest discover -s .claude/hooks && python3 -m unittest discover -s scripts'
+        language: system
+        files: ^(\.claude/(hooks/.*|settings\.json)|scripts/.*)$
+        pass_filenames: false
