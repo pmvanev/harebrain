@@ -8,7 +8,7 @@
 
 ## The claim
 
-Part 3.5 is the series' practical interlude. [[socratic-prompting]] (Part 3) laid out the theory of Socratic prompting. This part is the workbench version, built from forty years of mentoring juniors and a LinkedIn comment from a reader, Mark Hedges, who named the failure mode: **the insecure neurosis death spiral.**
+Part 3.5 is the series' practical interlude. [[socratic-prompting]] (Part 3) laid out the theory. This part is the workbench version, built from forty years of mentoring juniors and a LinkedIn comment from a reader, Mark Hedges, who named the failure mode: **the insecure neurosis death spiral.**
 
 > **The one-line claim.** Don't tell the agent what to fix; ask it a question whose answer *is* the bug. A directive gets compliance, a criticism gets sycophantic panic, and only an open question makes the model trace the execution and find the collision itself.
 
@@ -16,7 +16,7 @@ The opening scene will be familiar to anyone who has paired with a coding agent.
 
 ## Two working models, redrawn
 
-The essay's main move is to replace one mental model with another. Prompt tricks treat the model like a vending machine that pays out if you jiggle it right. Schwartz's working model is **an eager, brilliant, slightly neurotic junior developer at the workbench.** It was trained on human pedagogical dialogue, so it reacts to correction the way a three-week hire does.
+The essay replaces one mental model with another. Prompt tricks treat the model like a vending machine that pays out if you jiggle it right. Schwartz's working model is **an eager, brilliant, slightly neurotic junior developer at the workbench.** It was trained on human pedagogical dialogue, so it reacts to correction the way a three-week hire does.
 
 ![Two models of correction. Left, the imperative boss loop: bark a directive, sycophantic panic, token substitution that breaks a global lifecycle, the human acting as compiler, and back. Right, the Socratic mentor line: ask a kinetic question, forced causal simulation, native discovery, robust architecture.](images/fig-01-two-loops.svg)
 *The boss model is a cycle; the mentor model is a line. The labels in the boxes ("forced causal simulation") are the author's description of the mechanism, not a measurement of it.*
@@ -33,7 +33,7 @@ The argued mechanism is **the open variable.** An assertion is a constraint the 
 
 ## The bidirectional audit: a question is a read
 
-The sharpest idea in the piece is an asymmetry that most prompting advice misses. A directive can *inject* a regression. *"Change line 28 to close the stream controller"* gets complied with even when a parent scope already disposes the controller, and the result is a double-close in code that was fine. A question cannot do that.
+The sharpest idea in the piece is an asymmetry that most prompting advice misses. A directive can *inject* a regression. The model obeys *"Change line 28 to close the stream controller"* even when a parent scope already disposes the controller, and turns code that was fine into a double-close. A question cannot do that.
 
 ![The bidirectional audit. A directive is a write that coerces a double-close regression into working code. A question is a read with a conditional write: case A, the model fixes a real gap; case B, the model defends its design and the human types 'ok'.](images/fig-02-read-write.svg)
 *"A question is a read operation with a conditional write." The 80–85 / 10–20 split is the author's estimate, given without counts.*
@@ -47,7 +47,7 @@ The same move handles **scope creep**. Hedges appends a **Socratic pre-mortem** 
 ![The Socratic Gate in three stages: beginner to junior (understand every line, or make it explain), junior to senior (understand the choices, or challenge them), senior to super-senior (inspect the synthesis in plan.md and review.md).](images/fig-03-socratic-gate.svg)
 *The essay's answer to "how do juniors learn now?". The same interrogation discipline applies at every rung, and at the top the scar library teaches the person who wrote it.*
 
-The Human Compiler spends three minutes engineering a patch in their head and typing out a paragraph for the agent to transcribe. The Socratic senior turns a gut *wince* into a five-second question and lets the model do the traversal. The human contributes the *direction of the search beam*, O(1); the machine pays for the search, O(N). When the first answer lands in a local minimum, the human asks a second five-second question and still doesn't take the keyboard.
+The Human Compiler spends three minutes engineering a patch in their head and typing out a paragraph for the agent to transcribe. The Socratic senior turns a gut *wince* into a five-second question and lets the model do the traversal. The human contributes the *direction of the search beam*, O(1); the machine pays for the search, O(N). When the first answer lands in a local minimum, the human asks a second five-second question and still leaves the keyboard alone.
 
 The second half of the essay applies this to the **junior crisis**. Its answer is the **Socratic Gate**, a single rule applied at rising altitude. A beginner may use AI freely *if* they understand every line or make the agent explain it. A junior may let the AI write features and tests *if* they understand the design choices or challenge them before the PR. At the top, the human reads `plan.md` and `review.md` at the pause gates, and the 400-scar library teaches its own author. Schwartz cites Bloom's 2-sigma tutoring result for the economics: an explanation in place against your own repository at this commit beats a generic tutorial many times over.
 
@@ -56,10 +56,10 @@ The second half of the essay applies this to the **junior crisis**. Its answer i
 The piece is a strong practitioner essay and a weak empirical one. The weaknesses matter because the headline number travels.
 
 - **"95% or more of the time, the result is good on the very first try."** It comes with no denominator, no task set, no definition of "good" and no control arm. It is one expert's field impression of his own sessions. The 80–85 / 10–20 split between Case A and Case B is presented the same way.
-- **The mechanism is a metaphor.** "Attention heads must forward-simulate the scenario" and "the discovery is native" describe the experience well, but nothing in the piece measures them. Treat them as a working model, the author's own framing, and don't read them as an account of how transformers work.
+- **The mechanism is a metaphor.** "Attention heads must forward-simulate the scenario" and "the discovery is native" describe the experience well, but nothing in the piece measures them. Treat them as the author's working model, not as an account of how transformers work.
 - **The question carries more information than the directive.** Every entry on the cheat sheet does the same thing. *"What happens if two buttons trigger this within 5 ms?"* is a **concrete failing scenario**, which is a test case. *"Add a lock"* is a fix with the scenario removed. Some of the effect that the essay credits to the question mark may come from the counterexample. The essay never separates the two, and harebrain cares about the difference (see below).
 - **The pre-mortem works by agreement.** *"…will regressions be less likely…?"* is a leading yes/no question with an obvious answer. It works because the model *agrees* with the human, which is the same pull the essay blames for the death spiral. The technique is real, but its explanation is inconsistent: "questions defeat compliance" turns out to mean "well-chosen questions get compliance aimed at the right target".
-- **Questions can pull a correct model off its answer too.** The sycophancy literature (e.g. Sharma et al., *Towards Understanding Sycophancy in Language Models*, 2023) reports that a challenge like *"are you sure?"* can make a model drop a correct answer. Case B shows that this doesn't always happen. The essay doesn't measure how often a Socratic nudge leads the model to "find" a bug that isn't there.
+- **Questions can pull a correct model off its answer too.** The sycophancy literature (e.g. Sharma et al., *Towards Understanding Sycophancy in Language Models*, 2023) reports that a challenge like *"are you sure?"* can make a model drop a correct answer. Case B shows the model can hold its ground, but the essay never measures how often a Socratic nudge leads the model to "find" a bug that isn't there.
 
 > **The defensible core.** Strip away the physics vocabulary and one claim survives, and it is a good one: *a correction should hand the model a failing scenario and leave it room to disagree, not hand it a patch and demand compliance.* Every rival framing in the essay is compatible with that sentence.
 
@@ -83,10 +83,10 @@ The harebrain thesis is `harebrain = fast LLM brain × structured game-AI cage`.
 
 ### What the piece gives harebrain
 
-- **A format rule for critic output.** Harebrain's critic bank has been specified by *what* it checks, not by *how* its verdict re-enters the brain. The essay supplies the rule: a backprompt should carry the failing scenario (inputs, interleaving, timing), not the remedy. This is what [[llm-modulo]]'s critics already do when they return a counterexample ("here is the step that violates the precondition"). It is also the shape of [[expectation-driven-development]]'s challenge (*"you never showed what happens with two discount codes"*). Three sources now converge on the same shape for a critique.
-- **The bidirectional audit as a guard property.** A directive is a write the brain can't refuse. A question is a read that the brain may answer with "already handled, here's why". Harebrain should let the leaf **rebut** an advisory verdict and route on the rebuttal, not force a patch. If the rebuttal cites line 14's auto-dispose binding, a sound guard (a test, a type check) can confirm it. That removes the coerced-regression failure by construction.
+- **A format rule for critic output.** Harebrain has specified its critic bank by *what* it checks, not by *how* its verdict re-enters the brain. The essay supplies the rule: a backprompt should carry the failing scenario (inputs, interleaving, timing), not the remedy. This is what [[llm-modulo]]'s critics already do when they return a counterexample ("here is the step that violates the precondition"). It is also the shape of [[expectation-driven-development]]'s challenge (*"you never showed what happens with two discount codes"*). Three sources now converge on the same shape for a critique.
+- **The bidirectional audit as a guard property.** A directive is a write the brain can't refuse. A question is a read that the brain may answer with "already handled, here's why". Harebrain should let the leaf **rebut** an advisory verdict and route on the rebuttal instead of forcing a patch. If the rebuttal cites line 14's auto-dispose binding, a sound guard (a test, a type check) can confirm it. That removes the coerced-regression failure by construction.
 - **Blast radius as a named axis.** The pre-mortem and the author's mandatory "Blast Radius" review pillar both treat diff scope as a first-class risk signal. Harebrain's utility-scorer sketch already lists blast radius as a scoring curve. The essay is practitioner evidence that it belongs there.
-- **The human pause gate as a teaching surface.** The Stage 3 observation is that a pause at `plan.md` upskills the reviewer. That suggests harebrain's human-in-the-loop states are also where the cage's accumulated knowledge reaches a person, not only checkpoints. The artifacts a pause state shows should be written to be read.
+- **The human pause gate as a teaching surface.** The Stage 3 observation is that a pause at `plan.md` upskills the reviewer. So harebrain's human-in-the-loop states are more than checkpoints: they are where the cage's accumulated knowledge reaches a person. The artifacts a pause state shows should be written to be read.
 
 ### What harebrain pushes that the piece doesn't
 
@@ -94,7 +94,7 @@ The harebrain thesis is `harebrain = fast LLM brain × structured game-AI cage`.
 - **Enforce scope; don't persuade.** The pre-mortem *talks* the model into a small diff, and it works most of the time. A cage puts a guard on the diff (files touched, call-sites affected) and rejects the transition when the guard fails. Persuasion is the rung below enforcement. [[pretraining-gravity]]'s data puts numbers on that gap for other primitives.
 - **Rollback belongs to the runtime.** The furious unwind exists because the brain owns its own undo. If the runtime holds the checkpoint, *"revert"* is a state transition, not a panicked generation. The model never gets a chance to destroy the fix while apologizing.
 
-> **The trap to mark.** A Socratic critic is still a critic that the brain can agree with too easily. If every backprompt in a harebrain workflow is a well-phrased question and no sound guard checks the answer, all you have done is make the sycophancy more polite. The question earns its value only when something outside the brain can run the scenario it names.
+> **The trap to mark.** A Socratic critic is still a critic that the brain can agree with too easily. If every backprompt in a harebrain workflow is a well-phrased question and no sound guard checks the answer, you have only made the sycophancy more polite. The question earns its value only when something outside the brain can run the scenario it names.
 
 ## What's worth taking away
 
